@@ -1,15 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { toast } from 'react-toastify';
-import { courseService } from '../services/courseService';
-import { enrollmentService } from '../services/enrollmentService';
-import { cartService } from '../services/cartService';
-import { addToCart } from '../store/cartSlice';
-import { formatPrice, formatDuration, formatDate, getStarArray } from '../utils/helpers';
-import { ROUTES, ROLES } from '../utils/constants';
-import Loading from '../components/common/Loading';
-import './CourseDetailPage.css';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { courseService } from "../services/courseService";
+import { enrollmentService } from "../services/enrollmentService";
+import { cartService } from "../services/cartService";
+import { addToCart } from "../store/cartSlice";
+import {
+  formatPrice,
+  formatDuration,
+  formatDate,
+  getStarArray,
+} from "../utils/helpers";
+import { ROUTES, ROLES } from "../utils/constants";
+import {
+  FaUsers,
+  FaUser,
+  FaCalendar,
+  FaGlobe,
+  FaBullseye,
+  FaCheck,
+  FaClipboard,
+  FaThumbtack,
+  // FaFileLines,
+  FaClock,
+  FaPlay,
+  FaStar,
+  FaVideo,
+  FaInfinity,
+  FaMobileAlt,
+  FaTrophy,
+  FaGraduationCap,
+  FaShoppingCart,
+} from "react-icons/fa";
+import Loading from "../components/common/Loading";
+import "./CourseDetailPage.css";
 
 const CourseDetailPage = () => {
   const { slug } = useParams();
@@ -20,12 +45,12 @@ const CourseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const { isAuthenticated, user } = useSelector(state => state.auth);
-  const { items } = useSelector(state => state.cart);
+  const [activeTab, setActiveTab] = useState("overview");
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { items } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const inCart = items.some(i => i.courseId === course?.id);
+  const inCart = items.some((i) => i.courseId === course?.id);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -35,14 +60,20 @@ const CourseDetailPage = () => {
         setCourse(c);
 
         const [chaptersRes, reviewsRes] = await Promise.allSettled([
-          import('../services/api').then(m => m.default.get(`/api/v1/chapters/course/${c.id}`)),
-          import('../services/api').then(m => m.default.get(`/api/v1/reviews/course/${c.id}`)),
+          import("../services/api").then((m) =>
+            m.default.get(`/api/v1/chapters/course/${c.id}`),
+          ),
+          import("../services/api").then((m) =>
+            m.default.get(`/api/v1/reviews/course/${c.id}`),
+          ),
         ]);
-        if (chaptersRes.status === 'fulfilled') {
+        if (chaptersRes.status === "fulfilled") {
           setChapters(chaptersRes.value.data || []);
-          if (chaptersRes.value.data?.length > 0) setExpandedChapter(chaptersRes.value.data[0].id);
+          if (chaptersRes.value.data?.length > 0)
+            setExpandedChapter(chaptersRes.value.data[0].id);
         }
-        if (reviewsRes.status === 'fulfilled') setReviews(reviewsRes.value.data || []);
+        if (reviewsRes.status === "fulfilled")
+          setReviews(reviewsRes.value.data || []);
 
         if (isAuthenticated && user?.role === ROLES.STUDENT) {
           try {
@@ -51,7 +82,7 @@ const CourseDetailPage = () => {
           } catch {}
         }
       } catch {
-        toast.error('Không tìm thấy khóa học');
+        toast.error("Không tìm thấy khóa học");
         navigate(ROUTES.COURSES);
       } finally {
         setLoading(false);
@@ -61,24 +92,35 @@ const CourseDetailPage = () => {
   }, [slug]);
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) { navigate(ROUTES.LOGIN); return; }
-    if (inCart) { navigate(ROUTES.CART); return; }
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+    if (inCart) {
+      navigate(ROUTES.CART);
+      return;
+    }
     try {
       await cartService.addItem(course.id);
       dispatch(addToCart({ courseId: course.id, course }));
-      toast.success('Đã thêm vào giỏ hàng!');
-    } catch { toast.error('Không thể thêm vào giỏ hàng'); }
+      toast.success("Đã thêm vào giỏ hàng!");
+    } catch {
+      toast.error("Không thể thêm vào giỏ hàng");
+    }
   };
 
   const handleEnroll = async () => {
-    if (!isAuthenticated) { navigate(ROUTES.LOGIN); return; }
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
     setEnrollLoading(true);
     try {
       await enrollmentService.enroll(course.id);
       setEnrollment({ enrolled: true, progressPercent: 0 });
-      toast.success('Đăng ký khóa học thành công!');
+      toast.success("Đăng ký khóa học thành công!");
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Không thể đăng ký khóa học');
+      toast.error(err.response?.data?.message || "Không thể đăng ký khóa học");
     } finally {
       setEnrollLoading(false);
     }
@@ -100,31 +142,62 @@ const CourseDetailPage = () => {
             <div className="course-detail-info">
               <div className="flex gap-2 mb-4">
                 {course.level && (
-                  <span className={`badge ${course.level === 'BEGINNER' ? 'badge-success' : course.level === 'INTERMEDIATE' ? 'badge-warning' : 'badge-error'}`}>
-                    {course.level === 'BEGINNER' ? 'Cơ bản' : course.level === 'INTERMEDIATE' ? 'Trung cấp' : 'Nâng cao'}
+                  <span
+                    className={`badge ${course.level === "BEGINNER" ? "badge-success" : course.level === "INTERMEDIATE" ? "badge-warning" : "badge-error"}`}
+                  >
+                    {course.level === "BEGINNER"
+                      ? "Cơ bản"
+                      : course.level === "INTERMEDIATE"
+                        ? "Trung cấp"
+                        : "Nâng cao"}
                   </span>
                 )}
               </div>
               <h1 className="course-detail-title">{course.title}</h1>
-              <p className="course-detail-short-desc">{course.shortDescription}</p>
+              <p className="course-detail-short-desc">
+                {course.shortDescription}
+              </p>
 
-              <div className="course-rating" style={{ marginBottom: '16px' }}>
-                <span className="rating-value">{(course.avgRating || 0).toFixed(1)}</span>
+              <div className="course-rating" style={{ marginBottom: "16px" }}>
+                <span className="rating-value">
+                  {(course.avgRating || 0).toFixed(1)}
+                </span>
                 <div className="stars">
-                  {stars.map((s, i) => <span key={i} className={`star star-${s}`}>★</span>)}
+                  {stars.map((s, i) => (
+                    <span key={i} className={`star star-${s}`}>
+                      ★
+                    </span>
+                  ))}
                 </div>
-                <span className="rating-count">({course.totalReviews || 0} đánh giá)</span>
+                <span className="rating-count">
+                  ({course.totalReviews || 0} đánh giá)
+                </span>
                 <span>•</span>
-                <span>👥 {course.totalStudents || 0} học sinh</span>
+                <span>
+                  <FaUsers style={{ marginRight: "6px" }} />{" "}
+                  {course.totalStudents || 0} học sinh
+                </span>
               </div>
 
               {course.instructorName && (
-                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', marginBottom: '8px' }}>
-                  👨‍🏫 Giảng viên: <strong style={{ color: 'white' }}>{course.instructorName}</strong>
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: "14px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <FaUser style={{ marginRight: "6px" }} /> Giảng viên:{" "}
+                  <strong style={{ color: "white" }}>
+                    {course.instructorName}
+                  </strong>
                 </p>
               )}
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
-                📅 Cập nhật: {formatDate(course.updatedAt)} • 🌐 {course.language || 'Tiếng Việt'}
+              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
+                <FaCalendar style={{ marginRight: "6px" }} /> Cập nhật:{" "}
+                {formatDate(course.updatedAt)} •{" "}
+                <FaGlobe style={{ marginRight: "6px" }} />{" "}
+                {course.language || "Tiếng Việt"}
               </p>
             </div>
           </div>
@@ -138,26 +211,40 @@ const CourseDetailPage = () => {
           <div className="course-detail-main">
             {/* Tabs */}
             <div className="tabs">
-              {['overview', 'curriculum', 'reviews'].map(tab => (
-                <button key={tab} className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab)}>
-                  {{ overview: 'Tổng quan', curriculum: 'Nội dung', reviews: 'Đánh giá' }[tab]}
+              {["overview", "curriculum", "reviews"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {
+                    {
+                      overview: "Tổng quan",
+                      curriculum: "Nội dung",
+                      reviews: "Đánh giá",
+                    }[tab]
+                  }
                 </button>
               ))}
             </div>
 
-            {activeTab === 'overview' && (
+            {activeTab === "overview" && (
               <div className="animate-fade-in">
                 {/* What you'll learn */}
                 {course.whatYouWillLearn && (
                   <div className="card card-body mb-6">
-                    <h3 style={{ marginBottom: '16px' }}>🎯 Bạn sẽ học được</h3>
+                    <h3 style={{ marginBottom: "16px" }}>
+                      <FaBullseye style={{ marginRight: "8px" }} /> Bạn sẽ học
+                      được
+                    </h3>
                     <div className="learn-grid">
                       {(Array.isArray(course.whatYouWillLearn)
                         ? course.whatYouWillLearn
-                        : course.whatYouWillLearn.split('\n').filter(Boolean)
+                        : course.whatYouWillLearn.split("\n").filter(Boolean)
                       ).map((item, i) => (
-                        <div key={i} className="learn-item">✅ {item}</div>
+                        <div key={i} className="learn-item">
+                          <FaCheck style={{ marginRight: "6px" }} /> {item}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -166,49 +253,76 @@ const CourseDetailPage = () => {
                 {/* Full Description */}
                 {course.fullDescription && (
                   <div className="card card-body mb-6">
-                    <h3 style={{ marginBottom: '16px' }}>📋 Mô tả khóa học</h3>
-                    <p style={{ lineHeight: '1.8', whiteSpace: 'pre-line' }}>{course.fullDescription}</p>
+                    <h3 style={{ marginBottom: "16px" }}>
+                      <FaClipboard style={{ marginRight: "8px" }} /> Mô tả khóa
+                      học
+                    </h3>
+                    <p style={{ lineHeight: "1.8", whiteSpace: "pre-line" }}>
+                      {course.fullDescription}
+                    </p>
                   </div>
                 )}
 
                 {/* Requirements */}
                 {course.requirements && (
                   <div className="card card-body">
-                    <h3 style={{ marginBottom: '16px' }}>📌 Yêu cầu</h3>
+                    <h3 style={{ marginBottom: "16px" }}>
+                      <FaThumbtack style={{ marginRight: "8px" }} /> Yêu cầu
+                    </h3>
                     {(Array.isArray(course.requirements)
                       ? course.requirements
-                      : course.requirements.split('\n').filter(Boolean)
+                      : course.requirements.split("\n").filter(Boolean)
                     ).map((req, i) => (
-                      <p key={i} style={{ marginBottom: '8px' }}>• {req}</p>
+                      <p key={i} style={{ marginBottom: "8px" }}>
+                        • {req}
+                      </p>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {activeTab === 'curriculum' && (
+            {activeTab === "curriculum" && (
               <div className="animate-fade-in">
                 <div className="curriculum-summary">
-                  <span>📝 {course.totalLessons || 0} bài học</span>
-                  <span>⏱️ {formatDuration(course.totalDuration)}</span>
+                  <span>
+                    <FaFileLines style={{ marginRight: "6px" }} />{" "}
+                    {course.totalLessons || 0} bài học
+                  </span>
+                  <span>
+                    <FaClock style={{ marginRight: "6px" }} />{" "}
+                    {formatDuration(course.totalDuration)}
+                  </span>
                 </div>
-                {chapters.map(chapter => (
+                {chapters.map((chapter) => (
                   <div key={chapter.id} className="chapter-item">
                     <button
                       className="chapter-header"
-                      onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
+                      onClick={() =>
+                        setExpandedChapter(
+                          expandedChapter === chapter.id ? null : chapter.id,
+                        )
+                      }
                     >
-                      <span className="chapter-toggle">{expandedChapter === chapter.id ? '▼' : '▶'}</span>
+                      <span className="chapter-toggle">
+                        {expandedChapter === chapter.id ? "▼" : "▶"}
+                      </span>
                       <span className="chapter-title">{chapter.title}</span>
                     </button>
                     {expandedChapter === chapter.id && chapter.lessons && (
                       <div className="chapter-lessons">
-                        {chapter.lessons.map(lesson => (
+                        {chapter.lessons.map((lesson) => (
                           <div key={lesson.id} className="lesson-item">
-                            <span>▶️</span>
+                            <FaPlay style={{ marginRight: "6px" }} />
                             <span className="lesson-name">{lesson.title}</span>
-                            {lesson.isFreePreview && <span className="badge badge-success">Xem thử</span>}
-                            <span className="lesson-duration">{formatDuration(lesson.duration)}</span>
+                            {lesson.isFreePreview && (
+                              <span className="badge badge-success">
+                                Xem thử
+                              </span>
+                            )}
+                            <span className="lesson-duration">
+                              {formatDuration(lesson.duration)}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -218,33 +332,57 @@ const CourseDetailPage = () => {
               </div>
             )}
 
-            {activeTab === 'reviews' && (
+            {activeTab === "reviews" && (
               <div className="animate-fade-in">
                 <div className="reviews-summary">
                   <div className="rating-big">
-                    <span className="rating-num">{(course.avgRating || 0).toFixed(1)}</span>
-                    <div className="stars" style={{ fontSize: '24px' }}>{stars.map((s, i) => <span key={i} className={`star star-${s}`}>★</span>)}</div>
-                    <span className="rating-count">({course.totalReviews || 0})</span>
+                    <span className="rating-num">
+                      {(course.avgRating || 0).toFixed(1)}
+                    </span>
+                    <div className="stars" style={{ fontSize: "24px" }}>
+                      {stars.map((s, i) => (
+                        <span key={i} className={`star star-${s}`}>
+                          <FaStar />
+                        </span>
+                      ))}
+                    </div>
+                    <span className="rating-count">
+                      ({course.totalReviews || 0})
+                    </span>
                   </div>
                 </div>
-                {reviews.map(review => (
+                {reviews.map((review) => (
                   <div key={review.id} className="review-item">
                     <div className="review-header">
-                      <div className="avatar avatar-sm">{review.studentName?.[0] || 'U'}</div>
+                      <div className="avatar avatar-sm">
+                        {review.studentName?.[0] || "U"}
+                      </div>
                       <div>
-                        <div className="font-semibold">{review.studentName}</div>
-                        <div className="stars" style={{ fontSize: '14px' }}>
-                          {getStarArray(review.rating).map((s, i) => <span key={i} className={`star star-${s}`}>★</span>)}
+                        <div className="font-semibold">
+                          {review.studentName}
+                        </div>
+                        <div className="stars" style={{ fontSize: "14px" }}>
+                          {getStarArray(review.rating).map((s, i) => (
+                            <span key={i} className={`star star-${s}`}>
+                              ★
+                            </span>
+                          ))}
                         </div>
                       </div>
-                      <span className="text-muted text-sm">{formatDate(review.createdAt)}</span>
+                      <span className="text-muted text-sm">
+                        {formatDate(review.createdAt)}
+                      </span>
                     </div>
-                    <p style={{ marginTop: '8px', paddingLeft: '44px' }}>{review.comment}</p>
+                    <p style={{ marginTop: "8px", paddingLeft: "44px" }}>
+                      {review.comment}
+                    </p>
                   </div>
                 ))}
                 {reviews.length === 0 && (
                   <div className="empty-state">
-                    <div className="empty-state-icon">⭐</div>
+                    <div className="empty-state-icon">
+                      <FaStar size={48} />
+                    </div>
                     <h3>Chưa có đánh giá</h3>
                     <p>Hãy là người đầu tiên đánh giá khóa học này</p>
                   </div>
@@ -256,7 +394,11 @@ const CourseDetailPage = () => {
           {/* Sticky Purchase Card */}
           <div className="course-purchase-card">
             {course.thumbnail && (
-              <img src={course.thumbnail} alt={course.title} className="purchase-thumbnail" />
+              <img
+                src={course.thumbnail}
+                alt={course.title}
+                className="purchase-thumbnail"
+              />
             )}
             <div className="purchase-body">
               <div className="purchase-price">
@@ -265,16 +407,23 @@ const CourseDetailPage = () => {
                 ) : (
                   <>
                     <span className="price-current">{formatPrice(price)}</span>
-                    {course.discountPrice && course.price && course.discountPrice < course.price && (
-                      <span className="price-original">{formatPrice(course.price)}</span>
-                    )}
+                    {course.discountPrice &&
+                      course.price &&
+                      course.discountPrice < course.price && (
+                        <span className="price-original">
+                          {formatPrice(course.price)}
+                        </span>
+                      )}
                   </>
                 )}
               </div>
 
               {enrollment ? (
-                <Link to={`/learn/${course.id}`} className="btn btn-success btn-full btn-lg">
-                  ▶️ Tiếp tục học
+                <Link
+                  to={`/learn/${course.id}`}
+                  className="btn btn-success btn-full btn-lg"
+                >
+                  <FaPlay style={{ marginRight: "8px" }} /> Tiếp tục học
                 </Link>
               ) : isFree ? (
                 <button
@@ -283,7 +432,17 @@ const CourseDetailPage = () => {
                   disabled={enrollLoading}
                   id="enroll-btn"
                 >
-                  {enrollLoading ? <><span className="spinner spinner-sm"></span> Đang đăng ký...</> : '🎓 Đăng ký học miễn phí'}
+                  {enrollLoading ? (
+                    <>
+                      <span className="spinner spinner-sm"></span> Đang đăng
+                      ký...
+                    </>
+                  ) : (
+                    <>
+                      <FaGraduationCap style={{ marginRight: "8px" }} /> Đăng ký
+                      học miễn phí
+                    </>
+                  )}
                 </button>
               ) : (
                 <>
@@ -292,9 +451,20 @@ const CourseDetailPage = () => {
                     onClick={handleAddToCart}
                     id="add-to-cart-btn"
                   >
-                    {inCart ? '→ Đến giỏ hàng' : '🛒 Thêm vào giỏ hàng'}
+                    {inCart ? (
+                      "→ Đến giỏ hàng"
+                    ) : (
+                      <>
+                        <FaShoppingCart style={{ marginRight: "8px" }} /> Thêm
+                        vào giỏ hàng
+                      </>
+                    )}
                   </button>
-                  <button className="btn btn-outline btn-full" onClick={handleEnroll} disabled={enrollLoading}>
+                  <button
+                    className="btn btn-outline btn-full"
+                    onClick={handleEnroll}
+                    disabled={enrollLoading}
+                  >
                     Mua ngay
                   </button>
                 </>
@@ -302,10 +472,22 @@ const CourseDetailPage = () => {
 
               <div className="purchase-includes">
                 <h4>Bao gồm:</h4>
-                <div className="include-item"><span>📹</span> Video HD chất lượng cao</div>
-                <div className="include-item"><span>♾️</span> Truy cập trọn đời</div>
-                <div className="include-item"><span>📱</span> Học trên mobile & tablet</div>
-                <div className="include-item"><span>🏆</span> Chứng chỉ hoàn thành</div>
+                <div className="include-item">
+                  <FaVideo style={{ marginRight: "8px" }} /> Video HD chất lượng
+                  cao
+                </div>
+                <div className="include-item">
+                  <FaInfinity style={{ marginRight: "8px" }} /> Truy cập trọn
+                  đời
+                </div>
+                <div className="include-item">
+                  <FaMobileAlt style={{ marginRight: "8px" }} /> Học trên mobile
+                  & tablet
+                </div>
+                <div className="include-item">
+                  <FaTrophy style={{ marginRight: "8px" }} /> Chứng chỉ hoàn
+                  thành
+                </div>
               </div>
             </div>
           </div>

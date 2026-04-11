@@ -1,15 +1,36 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import { addToCart } from '../../store/cartSlice';
-import { cartService } from '../../services/cartService';
-import { formatPrice, formatDuration, getStarArray, truncateText } from '../../utils/helpers';
-import { ROUTES, COURSE_LEVELS } from '../../utils/constants';
-import './CourseCard.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { addToCart } from "../../store/cartSlice";
+import { cartService } from "../../services/cartService";
+import {
+  formatPrice,
+  formatDuration,
+  getStarArray,
+  truncateText,
+} from "../../utils/helpers";
+import { ROUTES, COURSE_LEVELS } from "../../utils/constants";
+import {
+  FaBook,
+  FaCheck,
+  FaShoppingCart,
+  FaUsers,
+  FaFileAlt,
+  FaClock,
+} from "react-icons/fa";
+import "./CourseCard.css";
 
-const levelLabel = { BEGINNER: 'Cơ bản', INTERMEDIATE: 'Trung cấp', ADVANCED: 'Nâng cao' };
-const levelClass = { BEGINNER: 'badge-success', INTERMEDIATE: 'badge-warning', ADVANCED: 'badge-error' };
+const levelLabel = {
+  BEGINNER: "Cơ bản",
+  INTERMEDIATE: "Trung cấp",
+  ADVANCED: "Nâng cao",
+};
+const levelClass = {
+  BEGINNER: "badge-success",
+  INTERMEDIATE: "badge-warning",
+  ADVANCED: "badge-error",
+};
 
 const CourseCard = ({ course }) => {
   const dispatch = useDispatch();
@@ -20,19 +41,19 @@ const CourseCard = ({ course }) => {
   const handleAddToCart = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      toast.info('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
       return;
     }
     if (inCart) {
-      toast.info('Khóa học đã có trong giỏ hàng');
+      toast.info("Khóa học đã có trong giỏ hàng");
       return;
     }
     try {
       await cartService.addItem(course.id);
       dispatch(addToCart({ courseId: course.id, course }));
-      toast.success('Đã thêm vào giỏ hàng!');
+      toast.success("Đã thêm vào giỏ hàng!");
     } catch {
-      toast.error('Không thể thêm vào giỏ hàng');
+      toast.error("Không thể thêm vào giỏ hàng");
     }
   };
 
@@ -50,7 +71,7 @@ const CourseCard = ({ course }) => {
           <img src={course.thumbnail} alt={course.title} loading="lazy" />
         ) : (
           <div className="course-thumbnail-placeholder">
-            <span>📚</span>
+            <FaBook size={32} />
           </div>
         )}
 
@@ -61,7 +82,15 @@ const CourseCard = ({ course }) => {
             onClick={handleAddToCart}
             id={`add-to-cart-${course.id}`}
           >
-            {inCart ? '✓ Trong giỏ hàng' : '🛒 Thêm vào giỏ'}
+            {inCart ? (
+              <>
+                <FaCheck style={{ marginRight: "6px" }} /> Trong giỏ hàng
+              </>
+            ) : (
+              <>
+                <FaShoppingCart style={{ marginRight: "6px" }} /> Thêm vào giỏ
+              </>
+            )}
           </button>
         </div>
 
@@ -91,19 +120,27 @@ const CourseCard = ({ course }) => {
         <h3 className="course-title">{truncateText(course.title, 65)}</h3>
 
         {/* Description */}
-        <p className="course-desc">{truncateText(course.shortDescription, 80)}</p>
+        <p className="course-desc">
+          {truncateText(course.shortDescription, 80)}
+        </p>
 
         {/* Instructor */}
         {course.instructorName && (
-          <p className="course-instructor">👨‍🏫 {course.instructorName}</p>
+          <p className="course-instructor">
+            <FaFileAlt style={{ marginRight: "6px" }} /> {course.instructorName}
+          </p>
         )}
 
         {/* Rating */}
         <div className="course-rating">
-          <span className="rating-value">{(course.avgRating || 0).toFixed(1)}</span>
+          <span className="rating-value">
+            {(course.avgRating || 0).toFixed(1)}
+          </span>
           <div className="stars">
             {stars.map((s, i) => (
-              <span key={i} className={`star star-${s}`}>★</span>
+              <span key={i} className={`star star-${s}`}>
+                ★
+              </span>
             ))}
           </div>
           <span className="rating-count">({course.totalReviews || 0})</span>
@@ -111,17 +148,34 @@ const CourseCard = ({ course }) => {
 
         {/* Stats */}
         <div className="course-stats">
-          <span>👥 {course.totalStudents || 0}</span>
-          {course.totalLessons && <span>📝 {course.totalLessons} bài</span>}
-          {course.totalDuration && <span>⏱️ {formatDuration(course.totalDuration)}</span>}
+          <span>
+            <FaUsers style={{ marginRight: "6px" }} />{" "}
+            {course.totalStudents || 0}
+          </span>
+          {course.totalLessons && (
+            <span>
+              <FaFileAlt style={{ marginRight: "6px" }} /> {course.totalLessons}{" "}
+              bài
+            </span>
+          )}
+          {course.totalDuration && (
+            <span>
+              <FaClock style={{ marginRight: "6px" }} />{" "}
+              {formatDuration(course.totalDuration)}
+            </span>
+          )}
         </div>
 
         {/* Price */}
         <div className="course-price">
           {course.discountPrice && course.discountPrice < course.price ? (
             <>
-              <span className="price-current">{formatPrice(course.discountPrice)}</span>
-              <span className="price-original">{formatPrice(course.price)}</span>
+              <span className="price-current">
+                {formatPrice(course.discountPrice)}
+              </span>
+              <span className="price-original">
+                {formatPrice(course.price)}
+              </span>
             </>
           ) : (
             <span className="price-current">{formatPrice(course.price)}</span>

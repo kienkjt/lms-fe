@@ -5,23 +5,25 @@ import { COURSE_LEVELS, COURSE_STATUS } from './constants';
 export const mockUsers = {
   student1: {
     id: 'user-1',
+    firstName: 'Nguyễn',
+    lastName: 'Văn A',
     name: 'Nguyễn Văn A',
-    email: 'student1@example.com',
+    email: 'student@example.com',
     role: 'STUDENT',
-    avatar: 'https://i.pravatar.cc/150?img=1',
+    avatar: null,
     bio: 'Học viên chăm chỉ',
     phone: '0912345678',
-    address: 'Hà Nội',
   },
   teacher1: {
     id: 'user-2',
+    firstName: 'Trần',
+    lastName: 'Thị B',
     name: 'Trần Thị B',
-    email: 'teacher1@example.com',
+    email: 'teacher@example.com',
     role: 'INSTRUCTOR',
-    avatar: 'https://i.pravatar.cc/150?img=2',
+    avatar: null,
     bio: 'Giảng viên Web Development',
     phone: '0987654321',
-    address: 'TP HCM',
   },
 };
 

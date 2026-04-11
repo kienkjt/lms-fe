@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { enrollmentService } from "../../services/enrollmentService";
 import { ROUTES } from "../../utils/constants";
-import Loading from "../../components/common/Loading";
 import "./Dashboard.css";
 
 const StudentDashboard = () => {

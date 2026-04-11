@@ -2,8 +2,25 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'EduLearn LMS';
 
 export const ROLES = {
-  STUDENT: 'STUDENT',
-  INSTRUCTOR: 'INSTRUCTOR',
+  STUDENT: 'ROLE_STUDENT',
+  INSTRUCTOR: 'ROLE_INSTRUCTOR',
+  ADMIN: 'ROLE_ADMIN',
+};
+
+// Helper function to get user-friendly role display
+export const getRoleDisplay = (role) => {
+  switch (role) {
+    case 'ROLE_INSTRUCTOR':
+    case 'INSTRUCTOR':
+      return 'Giảng viên';
+    case 'ROLE_ADMIN':
+    case 'ADMIN':
+      return 'Quản trị viên';
+    case 'ROLE_STUDENT':
+    case 'STUDENT':
+    default:
+      return 'Học viên';
+  }
 };
 
 export const COURSE_LEVELS = {
@@ -14,7 +31,9 @@ export const COURSE_LEVELS = {
 
 export const COURSE_STATUS = {
   DRAFT: 'DRAFT',
+  PENDING: 'PENDING',
   PUBLISHED: 'PUBLISHED',
+  REJECTED: 'REJECTED',
   ARCHIVED: 'ARCHIVED',
 };
 
@@ -22,6 +41,7 @@ export const ORDER_STATUS = {
   PENDING: 'PENDING',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED',
 };
 
 export const TOKEN_KEY = 'lms_access_token';
@@ -34,6 +54,7 @@ export const PAGINATION = {
 };
 
 export const ROUTES = {
+  // Public
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
@@ -43,18 +64,38 @@ export const ROUTES = {
   COURSES: '/courses',
   COURSE_DETAIL: '/courses/:slug',
   SEARCH: '/search',
+
+  // Student
   CART: '/cart',
   CHECKOUT: '/checkout',
   WISHLIST: '/wishlist',
   PROFILE: '/profile',
   STUDENT_DASHBOARD: '/student/dashboard',
   STUDENT_COURSES: '/student/courses',
+  STUDENT_CERTIFICATES: '/student/certificates',
   LEARNING: '/learn/:courseId',
+  QUIZ: '/learn/:courseId/quiz/:quizId',
+
+  // Instructor
   INSTRUCTOR_DASHBOARD: '/instructor/dashboard',
   INSTRUCTOR_COURSES: '/instructor/courses',
   INSTRUCTOR_CREATE_COURSE: '/instructor/courses/create',
   INSTRUCTOR_EDIT_COURSE: '/instructor/courses/edit/:courseId',
   INSTRUCTOR_COURSE_DETAIL: '/instructor/courses/:courseId',
+  INSTRUCTOR_STUDENTS: '/instructor/students',
+  INSTRUCTOR_QUIZ: '/instructor/courses/:courseId/quiz',
+  INSTRUCTOR_REVENUE: '/instructor/revenue',
+  INSTRUCTOR_QA: '/instructor/qa',
+
+  // Admin
+  ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_COURSES: '/admin/courses',
+  ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_ORDERS: '/admin/orders',
+  ADMIN_REPORTS: '/admin/reports',
+
+  // Error
   UNAUTHORIZED: '/unauthorized',
   NOT_FOUND: '/404',
 };

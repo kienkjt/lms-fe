@@ -1,111 +1,263 @@
+import api from './api';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '../utils/constants';
-import { mockUsers } from '../utils/mockData';
 
-// Mock delay to simulate API call
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const DEFAULT_ERROR_MESSAGE = 'Đã xảy ra lỗi. Vui lòng thử lại sau';
+
+/**
+ * Format error response to match expected structure
+ * Handles various error response formats from backend
+ */
+const formatError = (error) => {
+  let message = DEFAULT_ERROR_MESSAGE;
+
+  // Try to extract message from various possible error structures
+  if (error?.response) {
+    const { data, status, statusText } = error.response;
+    
+    // Log actual response for debugging
+    console.debug('API Error Response:', { data, status, statusText });
+    
+    // Structure 1: error.response.data.message (APIResponse format)
+    if (typeof data === 'string') {
+      message = data;
+    } 
+    // Structure 2: error.response.data.message (direct message)
+    else if (data?.message) {
+      message = data.message;
+    }
+    // Structure 3: error.response.data.data?.message (nested data)
+    else if (data?.data?.message) {
+      message = data.data.message;
+    }
+    // Structure 4: error.response.data.error (Spring Boot error)
+    else if (data?.error) {
+      message = data.error;
+    }
+    // Structure 5: error.response.statusText as fallback
+    else if (statusText && statusText !== 'OK') {
+      message = statusText;
+    }
+  }
+  // Network error
+  else if (error?.message === 'Network Error') {
+    message = 'Lỗi kết nối. Vui lòng kiểm tra kết nối internet';
+  }
+  // Generic error message
+  else if (error?.message) {
+    message = error.message;
+  }
+
+  // Always return error with message at response.data.message level
+  return {
+    ...error,
+    response: {
+      ...error?.response,
+      data: {
+        ...(error?.response?.data || {}),
+        message: message,
+      },
+    },
+  };
+};
 
 export const authService = {
-  // Mock register
+  /**
+   * Register a new user
+   * @param {Object} data - Registration data (email, password, fullName, role)
+   */
   register: async (data) => {
-    await delay(500);
-    // Validate email format
-    if (!data.email || !data.password || !data.name) {
-      throw { response: { data: { message: 'Vui lòng nhập đầy đủ thông tin' } } };
+    try {
+      const response = await api.post('/api/v1/auth/register', {
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName || data.name,
+        role: data.role || 'STUDENT',
+      });
+      return response;
+    } catch (error) {
+      throw formatError(error);
     }
-    if (data.password.length < 6) {
-      throw { response: { data: { message: 'Mật khẩu phải có ít nhất 6 ký tự' } } };
-    }
-    // Mock user data
-    const newUser = {
-      id: `user-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      role: 'STUDENT',
-      avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-    };
-    localStorage.setItem(TOKEN_KEY, `mock-token-${Date.now()}`);
-    localStorage.setItem(REFRESH_TOKEN_KEY, `mock-refresh-token-${Date.now()}`);
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
-    return { data: { user: newUser, message: 'Đăng ký thành công' } };
   },
 
-  // Mock login
+  /**
+   * Login user with email and password
+   * @param {Object} data - Login credentials (email, password)
+   */
   login: async (data) => {
-    await delay(500);
-    // Check credentials
-    let user = null;
-    if (data.email === 'student@example.com' && data.password === 'password') {
-      user = mockUsers.student1;
-    } else if (data.email === 'teacher@example.com' && data.password === 'password') {
-      user = mockUsers.teacher1;
-    } else {
-      throw { response: { data: { message: 'Email hoặc mật khẩu không đúng' } } };
+    try {
+      const response = await api.post('/api/v1/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
+
+      // Store tokens from response
+      if (response.data?.data) {
+        const loginData = response.data.data;
+        localStorage.setItem(TOKEN_KEY, loginData.accessToken);
+        localStorage.setItem(REFRESH_TOKEN_KEY, loginData.refreshToken);
+        
+        console.debug('[Auth] Tokens stored:', {
+          accessToken: loginData.accessToken ? `${loginData.accessToken.substring(0, 20)}...` : 'EMPTY',
+          refreshToken: loginData.refreshToken ? `${loginData.refreshToken.substring(0, 20)}...` : 'EMPTY',
+        });
+        
+        // Verify tokens are in localStorage
+        const storedToken = localStorage.getItem(TOKEN_KEY);
+        console.debug('[Auth] Token verification - stored in localStorage:', storedToken ? `${storedToken.substring(0, 20)}...` : 'FAILED');
+        
+        // Store user info (role)
+        const userInfo = {
+          role: loginData.role,
+          email: data.email,
+        };
+        localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
+      }
+      return response;
+    } catch (error) {
+      throw formatError(error);
     }
-    
-    const token = `mock-token-${Date.now()}`;
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, `mock-refresh-token-${Date.now()}`);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    return { data: { user, accessToken: token, message: 'Đăng nhập thành công' } };
   },
 
-  // Mock verify OTP
-  verifyOtp: async (data) => {
-    await delay(500);
-    if (!data.otp || data.otp.length !== 6) {
-      throw { response: { data: { message: 'OTP không hợp lệ' } } };
-    }
-    return { data: { message: 'OTP xác thực thành công' } };
-  },
-
-  // Mock logout
+  /**
+   * Logout user
+   */
   logout: async () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    return { data: { message: 'Đăng xuất thành công' } };
+    try {
+      await api.post('/api/v1/auth/logout');
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return { data: { message: 'Đăng xuất thành công' } };
+    } catch {
+      // Clear local storage even if logout API fails
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return { data: { message: 'Đăng xuất thành công' } };
+    }
   },
 
-  // Mock forgot password
+  /**
+   * Verify OTP
+   * @param {Object} data - OTP data (email, otp)
+   */
+  verifyOtp: async (data) => {
+    try {
+      const response = await api.post('/api/v1/auth/verify-otp', {
+        email: data.email,
+        otp: data.otp,
+      });
+      return response;
+    } catch (error) {
+      throw formatError(error);
+    }
+  },
+
+  /**
+   * Send forgot password OTP
+   * @param {Object} data - Email data
+   */
   forgotPassword: async (data) => {
-    await delay(500);
-    if (!data.email) {
-      throw { response: { data: { message: 'Vui lòng nhập email' } } };
+    try {
+      const response = await api.post('/api/v1/auth/forgot-password', {
+        email: data.email,
+      });
+      return response;
+    } catch (error) {
+      throw formatError(error);
     }
-    return { data: { message: 'OTP đã gửi đến email của bạn', email: data.email } };
   },
 
-  // Mock verify reset OTP
+  /**
+   * Verify reset password OTP
+   * @param {Object} data - OTP verification data (email, otp)
+   */
   verifyResetOtp: async (data) => {
-    await delay(500);
-    if (!data.otp || data.otp.length !== 6) {
-      throw { response: { data: { message: 'OTP không hợp lệ' } } };
+    try {
+      const response = await api.post('/api/v1/auth/verify-reset-otp', {
+        email: data.email,
+        otp: data.otp,
+      });
+      return response;
+    } catch (error) {
+      throw formatError(error);
     }
-    return { data: { message: 'OTP hợp lệ', resetToken: `reset-token-${Date.now()}` } };
   },
 
-  // Mock reset password
+  /**
+   * Reset password
+   * @param {Object} data - Reset password data (email, newPassword)
+   */
   resetPassword: async (data) => {
-    await delay(500);
-    if (!data.newPassword || data.newPassword.length < 6) {
-      throw { response: { data: { message: 'Mật khẩu phải có ít nhất 6 ký tự' } } };
+    try {
+      const response = await api.post('/api/v1/auth/reset-password', {
+        email: data.email,
+        newPassword: data.newPassword,
+      });
+      return response;
+    } catch (error) {
+      throw formatError(error);
     }
-    return { data: { message: 'Đặt lại mật khẩu thành công' } };
   },
 
-  // Get current user from localStorage
+  /**
+   * Refresh access token
+   * @param {Object} data - Refresh token data
+   */
+  refreshToken: async (data) => {
+    try {
+      const response = await api.post('/api/v1/auth/refresh-token', {
+        refreshToken: data.refreshToken,
+      });
+
+      // Update stored tokens
+      if (response.data?.data) {
+        const loginData = response.data.data;
+        localStorage.setItem(TOKEN_KEY, loginData.accessToken);
+        localStorage.setItem(REFRESH_TOKEN_KEY, loginData.refreshToken);
+      }
+      return response;
+    } catch (error) {
+      throw formatError(error);
+    }
+  },
+
+  /**
+   * Get current authenticated user from localStorage
+   */
   getCurrentUser: () => {
     const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
   },
 
-  // Check if authenticated
+  /**
+   * Check if user is authenticated
+   */
   isAuthenticated: () => !!localStorage.getItem(TOKEN_KEY),
 
-  // Mock refresh token
-  refreshToken: async (data) => {
-    await delay(300);
-    const newToken = `mock-token-${Date.now()}`;
-    return { data: { accessToken: newToken } };
-  },
+  /**
+   * Get stored access token
+   */
+  getAccessToken: () => localStorage.getItem(TOKEN_KEY),
+
+  /**
+   * Get stored refresh token
+   */
+  getRefreshToken: () => localStorage.getItem(REFRESH_TOKEN_KEY),
+};
+
+/**
+ * Extract error message from API error response
+ * Helper function for components to use
+ */
+export const getErrorMessage = (error) => {
+  if (!error) return DEFAULT_ERROR_MESSAGE;
+
+  // If error has already been formatted by formatError
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+
+  // Fallback
+  return DEFAULT_ERROR_MESSAGE;
 };

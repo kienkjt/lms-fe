@@ -13,12 +13,14 @@ import DashboardLayout from "./layouts/DashboardLayout";
 // Common
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { PageLoader } from "./components/common/Loading";
+import AuthInit from "./components/common/AuthInit";
 
 // Auth Pages
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import VerifyOtp from "./components/auth/VerifyOtp";
 import ForgotPassword from "./components/auth/ForgotPassword";
+import ResetPassword from "./components/auth/ResetPassword";
 
 // Public Pages
 import HomePage from "./pages/HomePage";
@@ -42,11 +44,12 @@ const CreateCourse = lazy(() => import("./components/instructor/CreateCourse"));
 const Cart = lazy(() => import("./components/cart/Cart"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const LearningPage = lazy(() => import("./pages/LearningPage"));
+const ProfilePage = lazy(() => import("./components/common/Profile"));
 
 import "./index.css";
 import "./App.css";
 
-// Wrappers for layout composition
+// Wrappers
 const WithMainLayout = ({ children }) => <MainLayout>{children}</MainLayout>;
 const WithDashboard = ({ children }) => (
   <DashboardLayout>{children}</DashboardLayout>
@@ -56,15 +59,17 @@ function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* ── Auth pages (no layout) ── */}
+        <AuthInit>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+            {/* ── Auth (no layout) ── */}
             <Route path={ROUTES.LOGIN} element={<Login />} />
             <Route path={ROUTES.REGISTER} element={<Register />} />
             <Route path={ROUTES.VERIFY_OTP} element={<VerifyOtp />} />
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+            <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
-            {/* ── Public (MainLayout) ── */}
+            {/* ── Public ── */}
             <Route
               path={ROUTES.HOME}
               element={
@@ -100,7 +105,7 @@ function App() {
               }
             />
 
-            {/* ── Cart (MainLayout + Auth) ── */}
+            {/* ── Cart ── */}
             <Route
               path={ROUTES.CART}
               element={
@@ -114,7 +119,23 @@ function App() {
               }
             />
 
-            {/* ── Student Dashboard ── */}
+            {/* ── Profile (STUDENT & INSTRUCTOR only) ── */}
+            <Route
+              path={ROUTES.PROFILE}
+              element={
+                <ProtectedRoute
+                  allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}
+                >
+                  <WithDashboard>
+                    <Suspense fallback={<PageLoader />}>
+                      <ProfilePage />
+                    </Suspense>
+                  </WithDashboard>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ── Student ── */}
             <Route
               path={ROUTES.STUDENT_DASHBOARD}
               element={
@@ -140,7 +161,7 @@ function App() {
               }
             />
 
-            {/* ── Learning Page ── */}
+            {/* ── Learning ── */}
             <Route
               path={ROUTES.LEARNING}
               element={
@@ -152,7 +173,7 @@ function App() {
               }
             />
 
-            {/* ── Instructor Dashboard ── */}
+            {/* ── Instructor ── */}
             <Route
               path={ROUTES.INSTRUCTOR_DASHBOARD}
               element={
@@ -190,28 +211,14 @@ function App() {
               }
             />
 
-            {/* ── Profile ── */}
-            <Route
-              path={ROUTES.PROFILE}
-              element={
-                <ProtectedRoute>
-                  <WithDashboard>
-                    <div style={{ padding: "40px" }}>
-                      <h2>Hồ sơ cá nhân - Coming Soon</h2>
-                      <p>Chức năng này đang được phát triển.</p>
-                    </div>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* ── Error Pages ── */}
+            {/* ── Errors ── */}
             <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
             <Route path="/500" element={<ServerErrorPage />} />
             <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+        </AuthInit>
 
         <ToastContainer
           position="top-right"

@@ -5,7 +5,18 @@ import { logout } from "../../store/authSlice";
 import { clearCart } from "../../store/cartSlice";
 import { authService } from "../../services/authService";
 import { ROUTES, ROLES } from "../../utils/constants";
-import { getInitials } from "../../utils/helpers";
+import { getInitials, getDisplayName } from "../../utils/helpers";
+import {
+  FiShoppingCart,
+  FiBell,
+  FiBarChart2,
+  FiUser,
+  FiBook,
+  FiHeart,
+  FiLogOut,
+  FiChevronDown,
+  FiSearch,
+} from "react-icons/fi";
 import "./Navbar.css";
 
 const Navbar = () => {
@@ -100,16 +111,7 @@ const Navbar = () => {
 
         {/* Search Bar - Hidden on mobile, shown on desktop */}
         <form className="navbar-search" onSubmit={handleSearch}>
-          <svg
-            className="search-icon-svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
+          <FiSearch className="search-icon" />
           <input
             type="text"
             placeholder="Tìm kiếm..."
@@ -149,7 +151,7 @@ const Navbar = () => {
               {/* Cart */}
               {user?.role === ROLES.STUDENT && (
                 <Link to={ROUTES.CART} className="nav-icon-btn" id="cart-icon">
-                  🛒
+                  <FiShoppingCart size={20} />
                   {items.length > 0 && (
                     <span className="nav-badge">{items.length}</span>
                   )}
@@ -158,7 +160,7 @@ const Navbar = () => {
 
               {/* Notifications */}
               <button className="nav-icon-btn" id="notification-btn">
-                🔔
+                <FiBell size={20} />
               </button>
 
               {/* User Dropdown */}
@@ -175,19 +177,33 @@ const Navbar = () => {
                       getInitials(user?.firstName, user?.lastName)
                     )}
                   </div>
-                  <span className="user-name">{user?.firstName}</span>
-                  <span>▾</span>
+                  <span className="user-name">
+                    {user?.fullName?.split(" ")[0] ||
+                      user?.firstName ||
+                      user?.name?.split(" ")[0] ||
+                      "Tài khoản"}
+                  </span>
+                  <FiChevronDown size={18} />
                 </button>
 
                 {dropdownOpen && (
                   <div className="dropdown-menu animate-scale-in">
                     <div className="dropdown-header">
                       <div className="avatar">
-                        {getInitials(user?.firstName, user?.lastName)}
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt={user.firstName} />
+                        ) : (
+                          getInitials(
+                            user?.firstName,
+                            user?.lastName,
+                            user?.name,
+                            user?.fullName,
+                          )
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold">
-                          {user?.firstName} {user?.lastName}
+                          {getDisplayName(user)}
                         </div>
                         <div className="text-sm text-muted">{user?.email}</div>
                       </div>
@@ -198,14 +214,14 @@ const Navbar = () => {
                       className="dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      📊 Dashboard
+                      <FiBarChart2 size={18} /> Dashboard
                     </Link>
                     <Link
                       to={ROUTES.PROFILE}
                       className="dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      👤 Hồ sơ cá nhân
+                      <FiUser size={18} /> Hồ sơ cá nhân
                     </Link>
                     {user?.role === ROLES.STUDENT && (
                       <>
@@ -214,14 +230,14 @@ const Navbar = () => {
                           className="dropdown-item"
                           onClick={() => setDropdownOpen(false)}
                         >
-                          📚 Khóa học của tôi
+                          <FiBook size={18} /> Khóa học của tôi
                         </Link>
                         <Link
                           to={ROUTES.WISHLIST}
                           className="dropdown-item"
                           onClick={() => setDropdownOpen(false)}
                         >
-                          ❤️ Danh sách yêu thích
+                          <FiHeart size={18} /> Danh sách yêu thích
                         </Link>
                       </>
                     )}
@@ -230,7 +246,7 @@ const Navbar = () => {
                       className="dropdown-item danger"
                       onClick={handleLogout}
                     >
-                      🚪 Đăng xuất
+                      <FiLogOut size={18} /> Đăng xuất
                     </button>
                   </div>
                 )}

@@ -1,44 +1,77 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
-import { ROUTES } from '../../utils/constants';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
+import { ROUTES } from "../../utils/constants";
+import {
+  extractValidationErrors,
+  handleApiError,
+} from "../../utils/errorHandler";
+import { toast } from "react-toastify";
+import "./Auth.css";
 
 const Register = () => {
   const [form, setForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
+    fullName: "",
+    email: "",
+    password: "",
+    role: "STUDENT",
   });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError('');
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+    if (!form.fullName.trim()) {
+      setError("Vui lòng nhập họ tên");
+      return;
+    }
+    if (!form.email) {
+      setError("Vui lòng nhập email");
       return;
     }
     if (form.password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự');
+      setError("Mật khẩu phải có ít nhất 8 ký tự");
       return;
     }
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(form.password)) {
+      setError(
+        "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)",
+      );
+      return;
+    }
+
     setLoading(true);
+    setErrors({});
     try {
       await authService.register({
-        fullName: `${form.firstName} ${form.lastName}`.trim(),
+        fullName: form.fullName.trim(),
         email: form.email,
         password: form.password,
-        role: 'STUDENT'
+        role: form.role,
       });
-      navigate(ROUTES.VERIFY_OTP, { state: { email: form.email } });
+      // Redirect to OTP verification
+      navigate(ROUTES.VERIFY_OTP, {
+        state: { email: form.email, isRegistration: true },
+      });
     } catch (err) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      const validationErrors = extractValidationErrors(err);
+      if (validationErrors) {
+        setErrors(validationErrors);
+      } else {
+        toast.error(handleApiError(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -46,132 +79,152 @@ const Register = () => {
 
   return (
     <div className="auth-page">
-      {/* Hero */}
+      {/* Left Panel */}
       <div className="auth-hero">
         <div className="auth-hero-content">
-          <div className="auth-logo">
+          <Link to={ROUTES.HOME} className="auth-logo">
             <div className="logo-icon-lg">E</div>
             <span className="logo-text-lg">EduLearn</span>
-          </div>
-          <h1>Bắt đầu hành trình học tập của bạn 🚀</h1>
-          <p>Tham gia cộng đồng hơn 50.000 học sinh đang học tập và phát triển mỗi ngày trên EduLearn.</p>
+          </Link>
+          <h1>Bắt đầu hành trình học tập</h1>
+          <p>
+            Tham gia cùng hàng ngàn học viên đang nâng cao kỹ năng mỗi ngày.
+          </p>
           <div className="auth-features">
             {[
-              {text: 'Lộ trình học tập cá nhân hóa' },
-              {text: 'Chứng chỉ được công nhận' },
-              {text: 'Giảng viên hàng đầu' },
-              {text: 'Học mọi lúc, mọi nơi' },
+              "Lộ trình học tập cá nhân hóa",
+              "Chứng chỉ được công nhận",
+              "Giảng viên hàng đầu",
+              "Học mọi lúc, mọi nơi",
             ].map((f) => (
-              <div key={f.text} className="feature-item">
-                <span>{f.icon}</span>
-                <span>{f.text}</span>
+              <div key={f} className="feature-item">
+                <span className="feature-check">✓</span>
+                <span>{f}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Form Panel */}
+      {/* Right Panel */}
       <div className="auth-form-panel">
         <div className="auth-form-container animate-fade-in">
           <div className="auth-form-header">
-            <h2>Tạo tài khoản mới</h2>
+            <h2>Tạo tài khoản</h2>
+            <p>Miễn phí, không cần thẻ tín dụng</p>
           </div>
 
-          {error && <div className="auth-error">{error}</div>}
-
           <form onSubmit={handleSubmit} className="auth-form">
-            <div className="grid grid-2" style={{ gap: '16px' }}>
-              <div className="form-group mb-0">
-                <label className="form-label">Họ <span>*</span></label>
-                <input
-                  id="reg-firstname"
-                  name="firstName"
-                  type="text"
-                  className="form-input"
-                  placeholder="Nguyễn"
-                  value={form.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group mb-0">
-                <label className="form-label">Tên <span>*</span></label>
-                <input
-                  id="reg-lastname"
-                  name="lastName"
-                  type="text"
-                  className="form-input"
-                  placeholder="Văn A"
-                  value={form.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginTop: '16px' }}>
-              <label className="form-label">Email <span>*</span></label>
-              <div className="input-wrapper">
-                <span className="input-icon"></span>
-                <input
-                  id="reg-email"
-                  name="email"
-                  type="email"
-                  className="form-input has-icon-left"
-                  placeholder="email@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label">
+                Họ và tên <span>*</span>
+              </label>
+              <input
+                id="reg-fullname"
+                name="fullName"
+                type="text"
+                className={`form-input ${errors.fullName ? "input-error" : ""}`}
+                placeholder="Nguyễn Văn A"
+                value={form.fullName}
+                onChange={handleChange}
+                autoComplete="name"
+                required
+              />
+              {errors.fullName && (
+                <span className="error-message">{errors.fullName}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Mật khẩu <span>*</span></label>
+              <label className="form-label">
+                Email <span>*</span>
+              </label>
+              <input
+                id="reg-email"
+                name="email"
+                type="email"
+                className={`form-input ${errors.email ? "input-error" : ""}`}
+                placeholder="email@example.com"
+                value={form.email}
+                onChange={handleChange}
+                autoComplete="email"
+                required
+              />
+              {errors.email && (
+                <span className="error-message">{errors.email}</span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                Mật khẩu <span>*</span>
+              </label>
               <div className="input-wrapper">
-                <span className="input-icon"></span>
                 <input
                   id="reg-password"
                   name="password"
-                  type={showPass ? 'text' : 'password'}
-                  className="form-input has-icon-left has-icon-right"
-                  placeholder="Ít nhất 8 ký tự"
+                  type={showPass ? "text" : "password"}
+                  className={`form-input has-icon-right ${errors.password ? "input-error" : ""}`}
+                  placeholder="Ít nhất 8 ký tự (hoa, thường, số, ký tự đặc biệt)"
                   value={form.password}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                 />
-                <button type="button" className="input-icon-right" onClick={() => setShowPass(!showPass)}>
-                  {showPass ? '🙈' : '👁️'}
+                <button
+                  type="button"
+                  className="input-icon-right"
+                  onClick={() => setShowPass(!showPass)}
+                  tabIndex={-1}
+                >
+                  {showPass ? (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
                 </button>
               </div>
+              {errors.password && (
+                <span className="error-message">{errors.password}</span>
+              )}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Xác nhận mật khẩu <span>*</span></label>
-              <div className="input-wrapper">
-                <span className="input-icon"></span>
-                <input
-                  id="reg-confirm-password"
-                  name="confirmPassword"
-                  type={showPass ? 'text' : 'password'}
-                  className="form-input has-icon-left"
-                  placeholder="Nhập lại mật khẩu"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="checkbox-label">
-                <input type="checkbox" id="agree-terms" required />
-                Tôi đồng ý với{' '}
-                <a href="#" className="auth-link">Điều khoản sử dụng</a>
-                {' '}và{' '}
-                <a href="#" className="auth-link">Chính sách bảo mật</a>
+              <label className="form-label">
+                Vai trò <span>*</span>
               </label>
+              <select
+                id="reg-role"
+                name="role"
+                className="form-input"
+                value={form.role}
+                onChange={handleChange}
+                required
+              >
+                <option value="STUDENT">Học viên</option>
+                <option value="INSTRUCTOR">Giảng viên</option>
+              </select>
             </div>
 
             <button
@@ -179,14 +232,23 @@ const Register = () => {
               type="submit"
               className="btn btn-primary btn-full btn-lg"
               disabled={loading}
+              style={{ marginTop: "8px" }}
             >
-              {loading ? <><span className="spinner spinner-sm"></span> Đang đăng ký...</> : 'Tạo tài khoản miễn phí'}
+              {loading ? (
+                <>
+                  <span className="spinner spinner-sm"></span> Đang đăng ký...
+                </>
+              ) : (
+                "Tạo tài khoản"
+              )}
             </button>
           </form>
 
-          <p className="auth-footer-text" style={{ marginTop: '20px' }}>
-            Đã có tài khoản?{' '}
-            <Link to={ROUTES.LOGIN} className="auth-link">Đăng nhập ngay</Link>
+          <p className="auth-footer-text" style={{ marginTop: "24px" }}>
+            Đã có tài khoản?{" "}
+            <Link to={ROUTES.LOGIN} className="auth-link">
+              Đăng nhập
+            </Link>
           </p>
         </div>
       </div>

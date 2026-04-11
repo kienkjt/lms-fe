@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { ROUTES, COURSE_STATUS, COURSE_LEVELS } from "../../utils/constants";
 import { toast } from "react-toastify";
+import { FaBook, FaPlus, FaPen, FaCheck, FaTrash } from "react-icons/fa";
 import "./CoursesManagement.css";
 
 const CoursesManagement = () => {
@@ -77,7 +78,7 @@ const CoursesManagement = () => {
           <p>Tạo, sửa, xóa và quản lý các khóa học của bạn</p>
         </div>
         <Link to={ROUTES.INSTRUCTOR_CREATE_COURSE} className="btn btn-primary">
-          ➕ Tạo khóa học mới
+          <FaPlus style={{ marginRight: "6px" }} /> Tạo khóa học mới
         </Link>
       </div>
 
@@ -117,7 +118,9 @@ const CoursesManagement = () => {
       {/* Courses Table */}
       {filteredCourses.length === 0 ? (
         <div className="empty-state" style={{ padding: "60px 20px" }}>
-          <div className="empty-state-icon">📚</div>
+          <div className="empty-state-icon">
+            <FaBook size={48} />
+          </div>
           <h3>Chưa có khóa học nào</h3>
           <p>
             {search
@@ -226,7 +229,7 @@ const CoursesManagement = () => {
                           cclassName="btn btn-outline btn-sm"
                           style={{ fontSize: "12px", padding: "6px 12px" }}
                         >
-                          ✏ Sửa
+                          <FaPen style={{ marginRight: "4px" }} /> Sửa
                         </button>
                         {course.status === COURSE_STATUS.DRAFT && (
                           <button
@@ -234,7 +237,7 @@ const CoursesManagement = () => {
                             className="btn btn-primary btn-sm"
                             style={{ fontSize: "12px", padding: "6px 12px" }}
                           >
-                            ✓ Công khai
+                            <FaCheck style={{ marginRight: "4px" }} /> Công khai
                           </button>
                         )}
                         <button
@@ -242,7 +245,7 @@ const CoursesManagement = () => {
                           className="btn btn-danger btn-sm"
                           style={{ fontSize: "12px", padding: "6px 12px" }}
                         >
-                          🗑 Xóa
+                          <FaTrash style={{ marginRight: "4px" }} /> Xóa
                         </button>
                       </div>
                     </td>

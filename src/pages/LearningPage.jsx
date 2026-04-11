@@ -177,7 +177,7 @@ const LearningPage = () => {
                 }}
               >
                 <button className="btn btn-primary">
-                  ✓ Đánh dấu hoàn thành
+                  <FaCheck style={{ marginRight: "6px" }} /> Đánh dấu hoàn thành
                 </button>
                 <button className="btn btn-outline">+ Thêm ghi chú</button>
               </div>
@@ -193,7 +193,9 @@ const LearningPage = () => {
             </div>
           ) : (
             <div className="empty-state">
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>👋</div>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                <FaWaveHand size={48} />
+              </div>
               <h3>Chào mừng đến với khóa học!</h3>
               <p>Hãy chọn một bài học từ danh sách bên trái để bắt đầu học</p>
 

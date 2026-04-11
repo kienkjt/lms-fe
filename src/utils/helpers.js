@@ -46,10 +46,29 @@ export const truncateText = (text, maxLength = 100) => {
   return text.slice(0, maxLength) + '...';
 };
 
-export const getInitials = (firstName, lastName) => {
-  const f = firstName ? firstName[0].toUpperCase() : '';
-  const l = lastName ? lastName[0].toUpperCase() : '';
-  return `${f}${l}`;
+export const getInitials = (firstName, lastName, name, fullName) => {
+  // Support firstName/lastName pair OR combined name/fullName string
+  if (firstName || lastName) {
+    const f = firstName ? firstName[0].toUpperCase() : '';
+    const l = lastName ? lastName[0].toUpperCase() : '';
+    return `${f}${l}` || '?';
+  }
+  const combinedName = fullName || name;
+  if (combinedName) {
+    const parts = combinedName.trim().split(' ').filter(Boolean);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+  }
+  return '?';
+};
+
+export const getDisplayName = (user) => {
+  if (!user) return '';
+  if (user.fullName) return user.fullName.trim();
+  if (user.firstName || user.lastName) {
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  }
+  return user.name || user.email || '';
 };
 
 export const getAvatarUrl = (avatar) => {
