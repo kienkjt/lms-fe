@@ -28,15 +28,16 @@ export const mockUsers = {
 };
 
 // ========== MOCK CATEGORIES ==========
+// Simulates backend response structure: GET /api/v1/categories
 export const mockCategories = [
-  { id: 1, name: 'Lập trình Web', slug: 'lap-trinh-web' },
-  { id: 2, name: 'Lập trình Mobile', slug: 'lap-trinh-mobile' },
-  { id: 3, name: 'Data Science', slug: 'data-science' },
-  { id: 4, name: 'Thiết kế UI/UX', slug: 'thiet-ke-uiux' },
-  { id: 5, name: 'Marketing Digital', slug: 'marketing-digital' },
-  { id: 6, name: 'Kinh doanh', slug: 'kinh-doanh' },
-  { id: 7, name: 'Tiếng Anh', slug: 'tieng-anh' },
-  { id: 8, name: 'Quản lý dự án', slug: 'quan-ly-du-an' },
+  { id: 1, name: 'Lập trình Web', description: 'Học web development', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 2, name: 'Lập trình Mobile', description: 'Học mobile development', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 3, name: 'Data Science', description: 'Học data science', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 4, name: 'Thiết kế UI/UX', description: 'Học thiết kế giao diện', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 5, name: 'Marketing Digital', description: 'Học digital marketing', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 6, name: 'Kinh doanh', description: 'Học quản lý kinh doanh', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 7, name: 'Tiếng Anh', description: 'Học tiếng anh', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
+  { id: 8, name: 'Quản lý dự án', description: 'Học quản lý dự án', createdAt: '2024-01-01T00:00:00', updatedAt: '2024-01-01T00:00:00', createdById: 'user-1', updatedById: 'user-1' },
 ];
 
 // ========== MOCK COURSES ==========
