@@ -41,6 +41,7 @@ const CoursesManagement = lazy(
   () => import("./components/instructor/CoursesManagement"),
 );
 const CreateCourse = lazy(() => import("./components/instructor/CreateCourse"));
+const EditCourse = lazy(() => import("./components/instructor/EditCourse"));
 const Cart = lazy(() => import("./components/cart/Cart"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const LearningPage = lazy(() => import("./pages/LearningPage"));
@@ -205,6 +206,18 @@ function App() {
                   <WithDashboard>
                     <Suspense fallback={<PageLoader />}>
                       <CreateCourse />
+                    </Suspense>
+                  </WithDashboard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.INSTRUCTOR_EDIT_COURSE}
+              element={
+                <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                  <WithDashboard>
+                    <Suspense fallback={<PageLoader />}>
+                      <EditCourse />
                     </Suspense>
                   </WithDashboard>
                 </ProtectedRoute>

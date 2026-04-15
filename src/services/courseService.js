@@ -1,7 +1,19 @@
-import { mockCourses, mockInstructorCourses } from '../utils/mockData';
+import { mockCourses } from '../utils/mockData';
 import api from './api';
+const PAGE_DEFAULT = 1;
+const PAGE_SIZE_DEFAULT = 10;
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const resolvePage = (value) => {
+  const page = Number(value);
+  return Number.isFinite(page) && page > 0 ? page : PAGE_DEFAULT;
+};
+
+const resolveSize = (value, fallback = PAGE_SIZE_DEFAULT) => {
+  const size = Number(value);
+  return Number.isFinite(size) && size > 0 ? size : fallback;
+};
+
+const getStartIndex = (page, size) => (page - 1) * size;
 
 /**
  * Map mockCourses data to match CourseCard component expectations
@@ -10,6 +22,8 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const formatCourseForCard = (course) => {
   return {
     ...course,
+    // Ensure slug is preserved (critical for navigation)
+    slug: course.slug || null,
     // Map image → thumbnail
     thumbnail: course.image || course.thumbnail,
     // Map category.name → categoryName
@@ -17,11 +31,15 @@ const formatCourseForCard = (course) => {
     // Map instructor.fullName → instructorName
     instructorName: course.instructor?.fullName || course.instructor?.name || course.instructorName || 'Unknown Instructor',
     // Map description → shortDescription (truncate to first 100 chars)
-    shortDescription: course.description?.substring(0, 100) || course.shortDescription,
+    shortDescription: course.shortDescription || course.description?.substring(0, 100),
+    // Preserve fullDescription for detail/edit pages
+    fullDescription: course.fullDescription || course.description,
     // Map rating → avgRating (if using 'rating' field)
     avgRating: course.rating || course.avgRating,
     // Map discountPrice if price has discount
-    discountPrice: course.originalPrice && course.price ? course.price : undefined,
+    discountPrice: course.originalPrice && course.price ? course.price : course.discountPrice,
+    // Map category ID
+    categoryId: course.categoryId || course.category?.id,
   };
 };
 
@@ -29,8 +47,8 @@ export const courseService = {
   // Get all courses
   getAll: async (params) => {
     try {
-      const page = params?.page || 0;
-      const size = params?.size || 12;
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
       console.log('[courseService.getAll] Fetching from backend API...');
       const response = await api.get(`/api/v1/courses?page=${page}&size=${size}`);
       
@@ -43,9 +61,9 @@ export const courseService = {
       return { data: { content, totalElements } };
     } catch (error) {
       console.error('[courseService.getAll] API error, using mock data:', error);
-      const page = params?.page || 0;
-      const size = params?.size || 12;
-      const start = page * size;
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
+      const start = getStartIndex(page, size);
       const data = mockCourses.slice(start, start + size).map(formatCourseForCard);
       return { data: { content: data, totalElements: mockCourses.length } };
     }
@@ -115,7 +133,8 @@ export const courseService = {
   delete: async (id) => {
     try {
       console.log('[courseService.delete] Deleting course via backend API:', id);
-      const response = await api.delete(`/api/v1/courses/${id}`);
+      // Backend uses POST for delete, not DELETE verb
+      const response = await api.post(`/api/v1/courses/${id}`);
       return { data: response.data?.data || response.data || { message: 'Xóa khóa học thành công' } };
     } catch (error) {
       console.error('[courseService.delete] API error:', error);
@@ -127,18 +146,26 @@ export const courseService = {
   search: async (data) => {
     console.log('[courseService.search] Called with filters:', data);
     try {
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (data.categoryId) params.append('categoryId', data.categoryId);
-      if (data.level) params.append('level', data.level);
-      if (data.priceMin !== undefined) params.append('priceMin', data.priceMin);
-      if (data.priceMax !== undefined) params.append('priceMax', data.priceMax);
-      if (data.sort) params.append('sort', data.sort);
-      params.append('page', data.page || 0);
-      params.append('size', data.size || 12);
+      // Build search request body matching backend SearchCourseRequest DTO
+      const searchRequest = {
+        keyword: data.keyword,
+        categoryId: data.categoryId,
+        level: data.level,
+        priceMin: data.priceMin,
+        priceMax: data.priceMax,
+        status: data.status,
+      };
 
-      console.log('[courseService.search] Calling backend API:', `/api/v1/courses/search?${params.toString()}`);
-      const response = await api.get(`/api/v1/courses/search?${params.toString()}`);
+      // Build pagination params
+      const params = new URLSearchParams();
+      const page = resolvePage(data.page);
+      const size = resolveSize(data.size);
+      params.append('page', page);
+      params.append('size', size);
+
+      console.log('[courseService.search] Calling backend API POST /api/v1/courses/search with:', searchRequest);
+      // Backend uses POST endpoint for advanced search
+      const response = await api.post(`/api/v1/courses/search?${params.toString()}`, searchRequest);
       
       console.log('[courseService.search] API response:', response);
       
@@ -177,9 +204,9 @@ export const courseService = {
         results.sort((a, b) => b.rating - a.rating);
       }
 
-      const page = data.page || 0;
-      const size = data.size || 12;
-      const start = page * size;
+      const page = resolvePage(data.page);
+      const size = resolveSize(data.size);
+      const start = getStartIndex(page, size);
       const content = results.slice(start, start + size).map(formatCourseForCard);
 
       return { data: { content, totalElements: results.length } };
@@ -189,8 +216,8 @@ export const courseService = {
   // Get popular courses
   getPopular: async () => {
     try {
-      console.log('[courseService.getPopular] Fetching from backend API...');
-      const response = await api.get('/api/v1/courses/popular?size=8');
+      console.log('[courseService.getPopular] Fetching trending courses from backend API...');
+      const response = await api.get('/api/v1/courses/trending?page=1&size=8');
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || pageData || [];
       const result = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
@@ -206,8 +233,8 @@ export const courseService = {
   // Get newest courses
   getNewest: async () => {
     try {
-      console.log('[courseService.getNewest] Fetching from backend API...');
-      const response = await api.get('/api/v1/courses/newest?size=4');
+      console.log('[courseService.getNewest] Fetching courses from backend API...');
+      const response = await api.get('/api/v1/courses?page=1&size=4');
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || pageData || [];
       const result = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
@@ -223,10 +250,11 @@ export const courseService = {
   // Get courses by category
   getByCategory: async (categoryId, params) => {
     try {
-      const page = params?.page || 0;
-      const size = params?.size || 12;
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
       console.log('[courseService.getByCategory] Fetching from backend API:', categoryId);
-      const response = await api.get(`/api/v1/courses/category/${categoryId}?page=${page}&size=${size}`);
+      // Backend uses /by-category/{categoryId} endpoint
+      const response = await api.get(`/api/v1/courses/by-category/${categoryId}?page=${page}&size=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -238,9 +266,9 @@ export const courseService = {
     } catch (error) {
       console.error('[courseService.getByCategory] API error, using mock data:', error);
       const filtered = mockCourses.filter(c => c.categoryId === parseInt(categoryId));
-      const page = params?.page || 0;
-      const size = params?.size || 12;
-      const start = page * size;
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
+      const start = getStartIndex(page, size);
       return { data: { content: filtered.slice(start, start + size).map(formatCourseForCard), totalElements: filtered.length } };
     }
   },
@@ -248,10 +276,10 @@ export const courseService = {
   // Get courses by instructor
   getByInstructor: async (instructorId, params) => {
     try {
-      const page = params?.page || 0;
-      const size = params?.size || 12;
-      console.log('[courseService.getByInstructor] Fetching from backend API:', instructorId);
-      const response = await api.get(`/api/v1/courses/instructor/${instructorId}?page=${page}&size=${size}`);
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
+      console.log('[courseService.getByInstructor] Fetching from backend API - my courses...');
+      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&size=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -263,10 +291,178 @@ export const courseService = {
     } catch (error) {
       console.error('[courseService.getByInstructor] API error, using mock data:', error);
       const filtered = mockCourses.filter(c => c.instructorId === instructorId);
-      const page = params?.page || 0;
-      const size = params?.size || 12;
-      const start = page * size;
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size);
+      const start = getStartIndex(page, size);
       return { data: { content: filtered.slice(start, start + size).map(formatCourseForCard), totalElements: filtered.length } };
+    }
+  },
+
+  // Get my courses (instructor)
+  getMyInstructorCourses: async (params) => {
+    try {
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size, 20);
+      console.log('[courseService.getMyInstructorCourses] Fetching from backend API...');
+      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&size=${size}`);
+      
+      const pageData = response.data?.data || response.data;
+      const courses = pageData?.content || [];
+      const totalElements = pageData?.totalElements || 0;
+      
+      const content = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
+      console.log('[courseService.getMyInstructorCourses] Result:', { content: content.length, total: totalElements });
+      return { data: { content, totalElements } };
+    } catch (error) {
+      console.error('[courseService.getMyInstructorCourses] API error:', error);
+      throw error;
+    }
+  },
+
+  // Get trending courses
+  getTrendingCourses: async (params) => {
+    try {
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size, 20);
+      console.log('[courseService.getTrendingCourses] Fetching from backend API...');
+      const response = await api.get(`/api/v1/courses/trending?page=${page}&size=${size}`);
+      
+      const pageData = response.data?.data || response.data;
+      const courses = pageData?.content || [];
+      const content = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
+      console.log('[courseService.getTrendingCourses] Result:', content.length);
+      return { data: content };
+    } catch (error) {
+      console.error('[courseService.getTrendingCourses] API error:', error);
+      throw error;
+    }
+  },
+
+  // Get top rated courses
+  getTopRatedCourses: async (params) => {
+    try {
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size, 20);
+      console.log('[courseService.getTopRatedCourses] Fetching from backend API...');
+      const response = await api.get(`/api/v1/courses/top-rated?page=${page}&size=${size}`);
+      
+      const pageData = response.data?.data || response.data;
+      const courses = pageData?.content || [];
+      const content = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
+      console.log('[courseService.getTopRatedCourses] Result:', content.length);
+      return { data: content };
+    } catch (error) {
+      console.error('[courseService.getTopRatedCourses] API error:', error);
+      throw error;
+    }
+  },
+
+  // Advanced search courses
+  advancedSearch: async (request, params) => {
+    try {
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size, 20);
+      console.log('[courseService.advancedSearch] Searching from backend API...');
+      const response = await api.post(`/api/v1/courses/search?page=${page}&size=${size}`, request);
+      
+      const pageData = response.data?.data || response.data;
+      const courses = pageData?.content || [];
+      const totalElements = pageData?.totalElements || 0;
+      
+      const content = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
+      console.log('[courseService.advancedSearch] Result:', { content: content.length, total: totalElements });
+      return { data: { content, totalElements } };
+    } catch (error) {
+      console.error('[courseService.advancedSearch] API error:', error);
+      throw error;
+    }
+  },
+
+  // Publish course
+  publishCourse: async (courseId) => {
+    try {
+      console.log('[courseService.publishCourse] Publishing course:', courseId);
+      const response = await api.post(`/api/v1/courses/${courseId}/publish`);
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.publishCourse] API error:', error);
+      throw error;
+    }
+  },
+
+  // Unpublish course
+  unpublishCourse: async (courseId) => {
+    try {
+      console.log('[courseService.unpublishCourse] Unpublishing course:', courseId);
+      const response = await api.post(`/api/v1/courses/${courseId}/unpublish`);
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.unpublishCourse] API error:', error);
+      throw error;
+    }
+  },
+
+  // Upload course thumbnail image
+  uploadCourseImage: async (courseId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      console.log('[courseService.uploadCourseImage] Uploading image for course:', courseId);
+      // Don't set Content-Type header - let axios handle FormData automatically
+      const response = await api.post(`/api/v1/courses/${courseId}/image`, formData);
+      
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.uploadCourseImage] API error:', error);
+      throw error;
+    }
+  },
+
+  // Upload course preview video
+  uploadCoursePreviewVideo: async (courseId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      console.log('[courseService.uploadCoursePreviewVideo] Uploading preview video for course:', courseId);
+      // Don't set Content-Type header - let axios handle FormData automatically
+      const response = await api.post(`/api/v1/courses/${courseId}/preview-video`, formData);
+      
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.uploadCoursePreviewVideo] API error:', error);
+      throw error;
+    }
+  },
+
+  // Approve course (admin only)
+  approveCourse: async (courseId) => {
+    try {
+      console.log('[courseService.approveCourse] Approving course:', courseId);
+      const response = await api.post(`/api/v1/courses/${courseId}/approve`);
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.approveCourse] API error:', error);
+      throw error;
+    }
+  },
+
+  // Reject course (admin only)
+  rejectCourse: async (courseId, reason) => {
+    try {
+      console.log('[courseService.rejectCourse] Rejecting course:', courseId);
+      const response = await api.post(`/api/v1/courses/${courseId}/reject`, { reason });
+      const course = response.data?.data || response.data;
+      return { data: formatCourseForCard(course) };
+    } catch (error) {
+      console.error('[courseService.rejectCourse] API error:', error);
+      throw error;
     }
   },
 };

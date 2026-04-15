@@ -4,7 +4,16 @@ import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { ROUTES, COURSE_STATUS, COURSE_LEVELS } from "../../utils/constants";
 import { toast } from "react-toastify";
-import { FaBook, FaPlus, FaPen, FaCheck, FaTrash } from "react-icons/fa";
+import {
+  FaBook,
+  FaPlus,
+  FaPen,
+  FaCheck,
+  FaTimes,
+  FaTrash,
+  FaImage,
+  FaVideo,
+} from "react-icons/fa";
 import "./CoursesManagement.css";
 
 const CoursesManagement = () => {
@@ -14,14 +23,21 @@ const CoursesManagement = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [uploadingId, setUploadingId] = useState(null);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   const fetchCourses = async () => {
     if (!user?.id) return;
     try {
       setLoading(true);
-      const res = await courseService.getByInstructor(user.id);
+      const res = await courseService.getMyInstructorCourses({
+        page: 1,
+        size: 50,
+      });
       setCourses(res.data?.content || res.data || []);
-    } catch {
+    } catch (error) {
+      console.error("Fetch courses error:", error);
       toast.error("Không thể tải danh sách khóa học");
     } finally {
       setLoading(false);
@@ -38,21 +54,90 @@ const CoursesManagement = () => {
       await courseService.delete(courseId);
       setCourses(courses.filter((c) => c.id !== courseId));
       toast.success("Xóa khóa học thành công");
-    } catch {
-      toast.error("Không thể xóa khóa học");
+    } catch (error) {
+      console.error("Delete course error:", error);
+      toast.error(error.response?.data?.message || "Không thể xóa khóa học");
     }
   };
 
   const handlePublish = async (course) => {
     try {
-      const updated = await courseService.update(course.id, {
-        status: COURSE_STATUS.PUBLISHED,
-      });
+      setUploadingId(course.id);
+      const updated = await courseService.publishCourse(course.id);
       setCourses(courses.map((c) => (c.id === course.id ? updated.data : c)));
       toast.success("Công khai khóa học thành công");
-    } catch {
-      toast.error("Không thể công khai khóa học");
+    } catch (error) {
+      console.error("Publish course error:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể công khai khóa học",
+      );
+    } finally {
+      setUploadingId(null);
     }
+  };
+
+  const handleUnpublish = async (course) => {
+    if (!window.confirm("Bạn chắc chắn muốn hủy công khai khóa học này?"))
+      return;
+    try {
+      setUploadingId(course.id);
+      const updated = await courseService.unpublishCourse(course.id);
+      setCourses(courses.map((c) => (c.id === course.id ? updated.data : c)));
+      toast.success("Hủy công khai khóa học thành công");
+    } catch (error) {
+      console.error("Unpublish course error:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể hủy công khai khóa học",
+      );
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const handleUploadImage = async (courseId, file) => {
+    if (!file) return;
+    try {
+      setUploadingId(courseId);
+      const updated = await courseService.uploadCourseImage(courseId, file);
+      setCourses(courses.map((c) => (c.id === courseId ? updated.data : c)));
+      toast.success("Tải lên hình ảnh thành công");
+      setShowMediaModal(false);
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error("Upload image error:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể tải lên hình ảnh",
+      );
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const handleUploadVideo = async (courseId, file) => {
+    if (!file) return;
+    try {
+      setUploadingId(courseId);
+      const updated = await courseService.uploadCoursePreviewVideo(
+        courseId,
+        file,
+      );
+      setCourses(courses.map((c) => (c.id === courseId ? updated.data : c)));
+      toast.success("Tải lên video preview thành công");
+      setShowMediaModal(false);
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error("Upload video error:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể tải lên video preview",
+      );
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const openMediaModal = (course) => {
+    setSelectedCourse(course);
+    setShowMediaModal(true);
   };
 
   const filteredCourses = courses.filter((c) => {
@@ -162,9 +247,9 @@ const CoursesManagement = () => {
                           gap: "12px",
                         }}
                       >
-                        {course.image && (
+                        {course.thumbnail && (
                           <img
-                            src={course.image}
+                            src={course.thumbnail}
                             alt={course.title}
                             style={{
                               width: "48px",
@@ -226,22 +311,46 @@ const CoursesManagement = () => {
                               `${ROUTES.INSTRUCTOR_EDIT_COURSE.replace(":courseId", course.id)}`,
                             )
                           }
-                          cclassName="btn btn-outline btn-sm"
+                          className="btn btn-outline btn-sm"
                           style={{ fontSize: "12px", padding: "6px 12px" }}
                         >
                           <FaPen style={{ marginRight: "4px" }} /> Sửa
                         </button>
+                        <button
+                          onClick={() => openMediaModal(course)}
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: "12px", padding: "6px 12px" }}
+                          title="Tải lên hình ảnh và video"
+                        >
+                          <FaImage style={{ marginRight: "4px" }} /> Media
+                        </button>
                         {course.status === COURSE_STATUS.DRAFT && (
                           <button
                             onClick={() => handlePublish(course)}
+                            disabled={uploadingId === course.id}
                             className="btn btn-primary btn-sm"
                             style={{ fontSize: "12px", padding: "6px 12px" }}
                           >
-                            <FaCheck style={{ marginRight: "4px" }} /> Công khai
+                            <FaCheck style={{ marginRight: "4px" }} />
+                            {uploadingId === course.id ? "..." : "Công khai"}
+                          </button>
+                        )}
+                        {course.status === COURSE_STATUS.PUBLISHED && (
+                          <button
+                            onClick={() => handleUnpublish(course)}
+                            disabled={uploadingId === course.id}
+                            className="btn btn-warning btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                          >
+                            <FaTimes style={{ marginRight: "4px" }} />
+                            {uploadingId === course.id
+                              ? "..."
+                              : "Hủy công khai"}
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(course.id)}
+                          disabled={uploadingId === course.id}
                           className="btn btn-danger btn-sm"
                           style={{ fontSize: "12px", padding: "6px 12px" }}
                         >
@@ -251,9 +360,103 @@ const CoursesManagement = () => {
                     </td>
                   </tr>
                 ))}
-                ,
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Media Upload Modal */}
+      {showMediaModal && selectedCourse && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              maxWidth: "500px",
+              width: "90%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h2 style={{ marginBottom: "24px" }}>Tải lên media</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
+              Khóa học: <strong>{selectedCourse.title}</strong>
+            </p>
+
+            {/* Thumbnail Upload */}
+            <div style={{ marginBottom: "32px" }}>
+              <label
+                style={{
+                  marginBottom: "8px",
+                  display: "block",
+                  fontWeight: "600",
+                }}
+              >
+                Hình ảnh khóa học
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadImage(selectedCourse.id, file);
+                }}
+                disabled={uploadingId === selectedCourse.id}
+                style={{ width: "100%" }}
+              />
+              <small>Định dạng: JPG, PNG. Tối đa 5MB</small>
+            </div>
+
+            {/* Preview Video Upload */}
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  marginBottom: "8px",
+                  display: "block",
+                  fontWeight: "600",
+                }}
+              >
+                Video preview
+              </label>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadVideo(selectedCourse.id, file);
+                }}
+                disabled={uploadingId === selectedCourse.id}
+                style={{ width: "100%" }}
+              />
+              <small>Định dạng: MP4, WebM. Tối đa 500MB</small>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowMediaModal(false);
+                setSelectedCourse(null);
+              }}
+              className="btn btn-outline"
+              style={{ width: "100%" }}
+              disabled={uploadingId === selectedCourse.id}
+            >
+              {uploadingId === selectedCourse.id ? "Đang tải..." : "Đóng"}
+            </button>
           </div>
         </div>
       )}

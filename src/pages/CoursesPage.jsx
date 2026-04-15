@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { courseService } from "../services/courseService";
 import { categoryService } from "../services/categoryService";
@@ -17,13 +17,12 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [coursesError, setCoursesError] = useState(null);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(PAGINATION.DEFAULT_PAGE);
   const [filters, setFilters] = useState({
     category: searchParams.get("category") || "",
     level: searchParams.get("level") || "",
     priceMin: "",
     priceMax: "",
-    sort: searchParams.get("sort") || "popular",
   });
 
   // Load categories with error handling
@@ -45,19 +44,7 @@ const CoursesPage = () => {
     loadCategories();
   }, []);
 
-  // Fetch courses when component mounts and when filters/page change
-  useEffect(() => {
-    fetchCourses();
-  }, [
-    filters.category,
-    filters.level,
-    filters.priceMin,
-    filters.priceMax,
-    filters.sort,
-    page,
-  ]);
-
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     setCoursesError(null);
     try {
@@ -67,7 +54,6 @@ const CoursesPage = () => {
         level: filters.level || undefined,
         priceMin: filters.priceMin ? parseFloat(filters.priceMin) : undefined,
         priceMax: filters.priceMax ? parseFloat(filters.priceMax) : undefined,
-        sort: filters.sort,
         page,
         size: PAGINATION.DEFAULT_SIZE,
       });
@@ -81,11 +67,16 @@ const CoursesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, page]);
+
+  // Fetch courses when component mounts and when filters/page change
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-    setPage(0);
+    setPage(PAGINATION.DEFAULT_PAGE);
   };
 
   const clearFilters = () => {
@@ -94,9 +85,8 @@ const CoursesPage = () => {
       level: "",
       priceMin: "",
       priceMax: "",
-      sort: "popular",
     });
-    setPage(0);
+    setPage(PAGINATION.DEFAULT_PAGE);
     setSearchParams({});
   };
 
@@ -105,13 +95,6 @@ const CoursesPage = () => {
     INTERMEDIATE: "Trung cấp",
     ADVANCED: "Nâng cao",
   };
-  const sortOptions = [
-    { value: "popular", label: "Phổ biến nhất" },
-    { value: "newest", label: "Mới nhất" },
-    { value: "price_asc", label: "Giá tăng dần" },
-    { value: "price_desc", label: "Giá giảm dần" },
-    { value: "rating", label: "Đánh giá cao nhất" },
-  ];
 
   const totalPages = Math.ceil(total / PAGINATION.DEFAULT_SIZE);
 
@@ -223,27 +206,11 @@ const CoursesPage = () => {
 
           {/* Course List */}
           <div className="courses-main">
-            {/* Sort Bar */}
+            {/* Results Count */}
             <div className="courses-sort-bar">
               <span className="results-count">
                 {loading ? "Đang tải..." : `${total} khóa học`}
               </span>
-              <div className="sort-controls">
-                <span>Sắp xếp:</span>
-                <select
-                  className="form-select"
-                  style={{ width: "auto", padding: "7px 36px 7px 12px" }}
-                  value={filters.sort}
-                  onChange={(e) => handleFilterChange("sort", e.target.value)}
-                  id="course-sort"
-                >
-                  {sortOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Grid */}
@@ -270,7 +237,6 @@ const CoursesPage = () => {
                 ))
               ) : (
                 <div className="empty-state" style={{ gridColumn: "1 / -1" }}>
-                  <div className="empty-state-icon">🔍</div>
                   <h3>Không tìm thấy khóa học</h3>
                   <p>Thử thay đổi bộ lọc để tìm kiếm kết quả khác</p>
                   <button className="btn btn-outline" onClick={clearFilters}>
@@ -285,29 +251,29 @@ const CoursesPage = () => {
               <div className="pagination">
                 <button
                   className="page-btn"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
+                  onClick={() =>
+                    setPage((p) => Math.max(PAGINATION.DEFAULT_PAGE, p - 1))
+                  }
+                  disabled={page === PAGINATION.DEFAULT_PAGE}
                 >
                   ←
                 </button>
                 {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
-                  const pageNum = i;
+                  const pageNum = i + PAGINATION.DEFAULT_PAGE;
                   return (
                     <button
                       key={i}
                       className={`page-btn ${page === pageNum ? "active" : ""}`}
                       onClick={() => setPage(pageNum)}
                     >
-                      {pageNum + 1}
+                      {pageNum}
                     </button>
                   );
                 })}
                 <button
                   className="page-btn"
-                  onClick={() =>
-                    setPage((p) => Math.min(totalPages - 1, p + 1))
-                  }
-                  disabled={page === totalPages - 1}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
                 >
                   →
                 </button>

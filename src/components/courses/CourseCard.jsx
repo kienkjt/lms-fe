@@ -61,7 +61,7 @@ const CourseCard = ({ course }) => {
 
   return (
     <Link
-      to={`/courses/${course.slug}`}
+      to={`/courses/${course.slug || course.id}`}
       className="course-card"
       id={`course-card-${course.id}`}
     >

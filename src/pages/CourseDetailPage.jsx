@@ -22,7 +22,7 @@ import {
   FaCheck,
   FaClipboard,
   FaThumbtack,
-  // FaFileLines,
+  FaFileAlt,
   FaClock,
   FaPlay,
   FaStar,
@@ -55,7 +55,20 @@ const CourseDetailPage = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await courseService.getBySlug(slug);
+        // Try fetching by slug first; if slug looks like a UUID/ID, fetch by ID directly
+        let res;
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+        const isNumericId = /^\d+$/.test(slug);
+        if (isUUID || isNumericId) {
+          res = await courseService.getById(slug);
+        } else {
+          try {
+            res = await courseService.getBySlug(slug);
+          } catch (slugError) {
+            // Fallback: try by ID in case slug endpoint fails
+            res = await courseService.getById(slug);
+          }
+        }
         const c = res.data;
         setCourse(c);
 
@@ -79,7 +92,9 @@ const CourseDetailPage = () => {
           try {
             const enrollRes = await enrollmentService.getEnrollment(c.id);
             setEnrollment(enrollRes.data);
-          } catch {}
+          } catch (error) {
+            console.error("Failed to fetch enrollment:", error);
+          }
         }
       } catch {
         toast.error("Không tìm thấy khóa học");
@@ -286,7 +301,7 @@ const CourseDetailPage = () => {
               <div className="animate-fade-in">
                 <div className="curriculum-summary">
                   <span>
-                    <FaFileLines style={{ marginRight: "6px" }} />{" "}
+                    <FaFileAlt style={{ marginRight: "6px" }} />{" "}
                     {course.totalLessons || 0} bài học
                   </span>
                   <span>

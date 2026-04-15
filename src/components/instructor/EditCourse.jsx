@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { categoryService } from "../../services/categoryService";
 import { ROUTES } from "../../utils/constants";
 import { toast } from "react-toastify";
-import {
-  FaBook,
-  FaGraduationCap,
-  FaTag,
-  FaDollarSign,
-  FaClock,
-  FaLanguage,
-  FaImage,
-} from "react-icons/fa";
+import { FaBook, FaArrowLeft } from "react-icons/fa";
 import "./CreateCourse.css";
 
 // Backend enum values
@@ -31,14 +23,16 @@ const LEVEL_DISPLAY = {
   4: "Tất cả cấp độ",
 };
 
-const CreateCourse = () => {
+const EditCourse = () => {
+  const { courseId } = useParams();
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("basic"); // basic, details, media
+  const [activeTab, setActiveTab] = useState("basic");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -58,9 +52,9 @@ const CreateCourse = () => {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [previewVideoFile, setPreviewVideoFile] = useState(null);
-  const [createdCourseId, setCreatedCourseId] = useState(null);
+  const [currentThumbnail, setCurrentThumbnail] = useState(null);
 
-  // Fetch categories on mount
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -77,6 +71,43 @@ const CreateCourse = () => {
     };
     fetchCategories();
   }, []);
+
+  // Fetch course details
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (!courseId) return;
+      try {
+        setInitialLoading(true);
+        const res = await courseService.getById(courseId);
+        const course = res.data;
+
+        setFormData({
+          title: course.title || "",
+          shortDescription: course.shortDescription || "",
+          fullDescription: course.fullDescription || "",
+          categoryId: course.categoryId || "",
+          level: course.level || COURSE_LEVELS.BEGINNER,
+          price: course.price || 0,
+          discountPrice: course.discountPrice || 0,
+          totalDuration: course.totalDuration || 0,
+          language: course.language || "Tiếng Việt",
+          certificate: course.certificate || "",
+          requirements: course.requirements || "",
+          whatYouWillLearn: course.whatYouWillLearn || "",
+        });
+
+        setCurrentThumbnail(course.thumbnail);
+        setThumbnailPreview(course.thumbnail);
+      } catch (error) {
+        console.error("Fetch course error:", error);
+        toast.error("Không thể tải thông tin khóa học");
+        navigate(ROUTES.INSTRUCTOR_COURSES);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    fetchCourse();
+  }, [courseId, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,18 +162,9 @@ const CreateCourse = () => {
       toast.error("Vui lòng chọn danh mục");
       return;
     }
-    if (formData.title.length < 5) {
-      toast.error("Tiêu đề phải có ít nhất 5 ký tự");
-      return;
-    }
-    if (formData.title.length > 200) {
-      toast.error("Tiêu đề không được vượt quá 200 ký tự");
-      return;
-    }
 
     setLoading(true);
     try {
-      // Create course data object matching backend DTO
       const courseData = {
         title: formData.title,
         shortDescription: formData.shortDescription,
@@ -158,23 +180,17 @@ const CreateCourse = () => {
         whatYouWillLearn: formData.whatYouWillLearn || null,
       };
 
-      // Create the course first
-      const courseResponse = await courseService.create(courseData);
-      const newCourseId = courseResponse.data.id;
-      setCreatedCourseId(newCourseId);
-
-      toast.success("Tạo khóa học thành công!");
+      await courseService.update(courseId, courseData);
+      toast.success("Cập nhật khóa học thành công!");
 
       // Upload thumbnail if provided
       if (thumbnailFile) {
         try {
           setUploadingMedia(true);
-          await courseService.uploadCourseImage(newCourseId, thumbnailFile);
+          await courseService.uploadCourseImage(courseId, thumbnailFile);
           toast.success("Tải lên hình ảnh khóa học thành công!");
         } catch (err) {
-          toast.warning(
-            "Tạo khóa học thành công nhưng không thể tải lên hình ảnh",
-          );
+          toast.warning("Cập nhật thành công nhưng không thể tải lên hình ảnh");
           console.error("Thumbnail upload error:", err);
         }
       }
@@ -184,29 +200,38 @@ const CreateCourse = () => {
         try {
           setUploadingMedia(true);
           await courseService.uploadCoursePreviewVideo(
-            newCourseId,
+            courseId,
             previewVideoFile,
           );
           toast.success("Tải lên video preview thành công!");
         } catch (err) {
           toast.warning(
-            "Tạo khóa học thành công nhưng không thể tải lên video preview",
+            "Cập nhật thành công nhưng không thể tải lên video preview",
           );
           console.error("Preview video upload error:", err);
         }
       }
 
-      // Navigate to courses management
       setTimeout(() => {
         navigate(ROUTES.INSTRUCTOR_COURSES);
       }, 1500);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Không thể tạo khóa học");
+      toast.error(err.response?.data?.message || "Không thể cập nhật khóa học");
     } finally {
       setLoading(false);
       setUploadingMedia(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="create-course-container">
+        <div style={{ textAlign: "center", padding: "60px 20px" }}>
+          <p>Đang tải thông tin khóa học...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-course-container">
@@ -214,9 +239,13 @@ const CreateCourse = () => {
       <div className="create-course-header">
         <div>
           <h1>
-            <FaBook /> Tạo khóa học mới
+            <FaArrowLeft
+              style={{ cursor: "pointer", marginRight: "12px" }}
+              onClick={() => navigate(ROUTES.INSTRUCTOR_COURSES)}
+            />
+            Sửa khóa học
           </h1>
-          <p>Thiết lập những thông tin cơ bản để bắt đầu khóa học của bạn</p>
+          <p>Cập nhật thông tin chi tiết của khóa học</p>
         </div>
       </div>
 
@@ -232,25 +261,24 @@ const CreateCourse = () => {
           className={`tab-btn ${activeTab === "details" ? "active" : ""}`}
           onClick={() => setActiveTab("details")}
         >
-          <FaGraduationCap /> Chi tiết khóa học
+          Nâng cao
         </button>
         <button
           className={`tab-btn ${activeTab === "media" ? "active" : ""}`}
           onClick={() => setActiveTab("media")}
         >
-          <FaImage /> Media & Hình ảnh
+          Media & Hình ảnh
         </button>
       </div>
 
       {/* Form */}
       <div className="course-form-card">
         <form onSubmit={handleSubmit}>
-          {/* TAB 1: BASIC INFO */}
+          {/* TAB 1: BASIC */}
           {activeTab === "basic" && (
             <div className="form-section">
               <h2>Thông tin cơ bản</h2>
 
-              {/* Title */}
               <div className="form-group">
                 <label htmlFor="title">
                   Tiêu đề khóa học <span className="required">*</span>
@@ -271,7 +299,6 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              {/* Category and Level - 2 columns */}
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="categoryId">
@@ -322,7 +349,6 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              {/* Short Description */}
               <div className="form-group">
                 <label htmlFor="shortDescription">
                   Mô tả ngắn <span className="required">*</span>
@@ -331,7 +357,7 @@ const CreateCourse = () => {
                 <textarea
                   id="shortDescription"
                   name="shortDescription"
-                  placeholder="Mô tả ngắn gọn về khóa học, giúp học viên hiểu nhanh nội dung..."
+                  placeholder="Mô tả ngắn gọn về khóa học..."
                   value={formData.shortDescription}
                   onChange={handleChange}
                   maxLength="1000"
@@ -344,14 +370,13 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              {/* Navigation Buttons */}
               <div className="form-actions">
                 <button
                   type="button"
                   onClick={() => setActiveTab("details")}
                   className="btn btn-primary"
                 >
-                  Tiếp theo →
+                  Tiếp theo
                 </button>
               </div>
             </div>
@@ -362,7 +387,6 @@ const CreateCourse = () => {
             <div className="form-section">
               <h2>Chi tiết khóa học</h2>
 
-              {/* Full Description */}
               <div className="form-group">
                 <label htmlFor="fullDescription">
                   Mô tả đầy đủ
@@ -371,7 +395,7 @@ const CreateCourse = () => {
                 <textarea
                   id="fullDescription"
                   name="fullDescription"
-                  placeholder="Mô tả chi tiết về nội dung, mục tiêu, yêu cầu..."
+                  placeholder="Mô tả chi tiết về nội dung..."
                   value={formData.fullDescription}
                   onChange={handleChange}
                   maxLength="5000"
@@ -383,7 +407,6 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              {/* Price Row */}
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="price">
@@ -398,7 +421,6 @@ const CreateCourse = () => {
                     value={formData.price}
                     onChange={handleChange}
                     className="input"
-                    placeholder="0"
                     required
                   />
                 </div>
@@ -414,12 +436,10 @@ const CreateCourse = () => {
                     value={formData.discountPrice}
                     onChange={handleChange}
                     className="input"
-                    placeholder="0"
                   />
                 </div>
               </div>
 
-              {/* Duration and Language Row */}
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="totalDuration">Tổng thời lượng (giờ)</label>
@@ -432,7 +452,6 @@ const CreateCourse = () => {
                     value={formData.totalDuration}
                     onChange={handleChange}
                     className="input"
-                    placeholder="0"
                   />
                 </div>
 
@@ -446,12 +465,10 @@ const CreateCourse = () => {
                     value={formData.language}
                     onChange={handleChange}
                     className="input"
-                    placeholder="VD: Tiếng Việt"
                   />
                 </div>
               </div>
 
-              {/* Certificate and Requirements */}
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="certificate">Chứng chỉ</label>
@@ -463,7 +480,6 @@ const CreateCourse = () => {
                     value={formData.certificate}
                     onChange={handleChange}
                     className="input"
-                    placeholder="VD: Certificate of Completion"
                   />
                 </div>
 
@@ -477,18 +493,15 @@ const CreateCourse = () => {
                     onChange={handleChange}
                     className="input textarea"
                     rows="2"
-                    placeholder="Yêu cầu kiến thức hoặc kỹ năng..."
                   />
                 </div>
               </div>
 
-              {/* What you will learn */}
               <div className="form-group">
                 <label htmlFor="whatYouWillLearn">Bạn sẽ học được gì</label>
                 <textarea
                   id="whatYouWillLearn"
                   name="whatYouWillLearn"
-                  placeholder="Nêu các kỹ năng và kiến thức bạn sẽ dạy..."
                   maxLength="2000"
                   value={formData.whatYouWillLearn}
                   onChange={handleChange}
@@ -500,21 +513,20 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              {/* Navigation Buttons */}
               <div className="form-actions">
                 <button
                   type="button"
                   onClick={() => setActiveTab("basic")}
                   className="btn btn-outline"
                 >
-                  ← Quay lại
+                  Quay lại
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("media")}
                   className="btn btn-primary"
                 >
-                  Tiếp theo →
+                  Tiếp theo
                 </button>
               </div>
             </div>
@@ -525,7 +537,6 @@ const CreateCourse = () => {
             <div className="form-section">
               <h2>Media & Hình ảnh</h2>
 
-              {/* Thumbnail Image Upload */}
               <div className="media-upload-group">
                 <label htmlFor="thumbnail">Hình ảnh khóa học (Thumbnail)</label>
                 <div className="upload-area">
@@ -553,7 +564,6 @@ const CreateCourse = () => {
                 </small>
               </div>
 
-              {/* Preview Video Upload */}
               <div className="media-upload-group">
                 <label htmlFor="previewVideo">Video preview khóa học</label>
                 <div className="upload-area">
@@ -581,31 +591,22 @@ const CreateCourse = () => {
                 </small>
               </div>
 
-              {/* Info Box */}
               <div className="info-box">
                 <h3>Gợi ý</h3>
                 <ul>
-                  <li>
-                    Hình ảnh thumbnail sẽ hiển thị khi học viên tìm kiếm khóa
-                    học
-                  </li>
-                  <li>
-                    Video preview giúp học viên hiểu rõ hơn về nội dung trước
-                    khi mua
-                  </li>
-                  <li>Bạn có thể cập nhật media sau khi tạo khóa học</li>
-                  <li>Khóa học không cần media để được tạo thành công</li>
+                  <li>Cập nhật hình ảnh sẽ thay thế hình ảnh hiện tại</li>
+                  <li>Video preview giúp học viên hiểu rõ nội dung</li>
+                  <li>Bạn có thể cập nhật media bất kỳ lúc nào</li>
                 </ul>
               </div>
 
-              {/* Navigation Buttons */}
               <div className="form-actions">
                 <button
                   type="button"
                   onClick={() => setActiveTab("details")}
                   className="btn btn-outline"
                 >
-                  ← Quay lại
+                  Quay lại
                 </button>
                 <button
                   type="submit"
@@ -619,10 +620,10 @@ const CreateCourse = () => {
                   className="btn btn-primary btn-submit"
                 >
                   {loading
-                    ? "Đang tạo..."
+                    ? "Đang cập nhật..."
                     : uploadingMedia
                       ? "Đang tải lên..."
-                      : "Tạo khóa học"}
+                      : "Cập nhật khóa học"}
                 </button>
               </div>
             </div>
@@ -633,4 +634,4 @@ const CreateCourse = () => {
   );
 };
 
-export default CreateCourse;
+export default EditCourse;

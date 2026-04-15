@@ -54,9 +54,9 @@ export const enrollmentService = {
   getStudentCoursesPaginated: async (studentId, params) => {
     await delay(200);
     const courses = mockEnrollments.filter(e => e.userId === studentId);
-    const page = params?.page || 0;
-    const size = params?.size || 12;
-    const start = page * size;
+    const page = params?.page || 1;
+    const size = params?.size || 10;
+    const start = (page - 1) * size;
     return { data: { content: courses.slice(start, start + size), totalElements: courses.length } };
   },
   getCourseStudents: async (courseId) => {
@@ -67,9 +67,9 @@ export const enrollmentService = {
   getCourseStudentsPaginated: async (courseId, params) => {
     await delay(200);
     const students = mockEnrollments.filter(e => e.courseId === courseId);
-    const page = params?.page || 0;
-    const size = params?.size || 12;
-    const start = page * size;
+    const page = params?.page || 1;
+    const size = params?.size || 10;
+    const start = (page - 1) * size;
     return { data: { content: students.slice(start, start + size), totalElements: students.length } };
   },
 };

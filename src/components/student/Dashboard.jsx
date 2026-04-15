@@ -13,7 +13,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (user?.id) {
       enrollmentService
-        .getStudentCoursesPaginated(user.id, { page: 0, size: 6 })
+        .getStudentCoursesPaginated(user.id, { page: 1, size: 6 })
         .then((res) => setEnrollments(res.data?.content || res.data || []))
         .catch(() => setEnrollments([]))
         .finally(() => setLoading(false));

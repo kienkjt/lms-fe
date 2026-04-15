@@ -49,8 +49,8 @@ export const REFRESH_TOKEN_KEY = 'lms_refresh_token';
 export const USER_KEY = 'lms_user';
 
 export const PAGINATION = {
-  DEFAULT_PAGE: 0,
-  DEFAULT_SIZE: 12,
+  DEFAULT_PAGE: 1,
+  DEFAULT_SIZE: 10,
 };
 
 export const ROUTES = {
