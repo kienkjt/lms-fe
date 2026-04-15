@@ -13,6 +13,7 @@ import {
   FaTrash,
   FaImage,
   FaVideo,
+  FaListUl,
 } from "react-icons/fa";
 import "./CoursesManagement.css";
 
@@ -315,6 +316,18 @@ const CoursesManagement = () => {
                           style={{ fontSize: "12px", padding: "6px 12px" }}
                         >
                           <FaPen style={{ marginRight: "4px" }} /> Sửa
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.INSTRUCTOR_CHAPTERS.replace(":courseId", course.id)}`,
+                            )
+                          }
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: "12px", padding: "6px 12px" }}
+                          title="Quản lý chương"
+                        >
+                          <FaListUl style={{ marginRight: "4px" }} /> Chương
                         </button>
                         <button
                           onClick={() => openMediaModal(course)}

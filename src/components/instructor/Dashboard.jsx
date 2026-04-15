@@ -3,7 +3,14 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { ROUTES } from "../../utils/constants";
-import { FaBook, FaCheck, FaUsers, FaStar, FaPlus } from "react-icons/fa";
+import {
+  FaBook,
+  FaCheck,
+  FaUsers,
+  FaStar,
+  FaPlus,
+  FaListUl,
+} from "react-icons/fa";
 import Loading from "../../components/common/Loading";
 import "../student/Dashboard.css";
 
@@ -185,7 +192,15 @@ const InstructorDashboard = () => {
                           Xem
                         </Link>
                         <Link
-                          to={`/instructor/courses/${course.id}/edit`}
+                          to={`${ROUTES.INSTRUCTOR_CHAPTERS.replace(":courseId", course.id)}`}
+                          className="btn btn-outline btn-sm"
+                          title="Quản lý chương"
+                        >
+                          <FaListUl style={{ marginRight: "4px" }} />
+                          Chương
+                        </Link>
+                        <Link
+                          to={`${ROUTES.INSTRUCTOR_EDIT_COURSE.replace(":courseId", course.id)}`}
                           className="btn btn-outline btn-sm"
                         >
                           Sửa

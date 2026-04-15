@@ -42,6 +42,9 @@ const CoursesManagement = lazy(
 );
 const CreateCourse = lazy(() => import("./components/instructor/CreateCourse"));
 const EditCourse = lazy(() => import("./components/instructor/EditCourse"));
+const ChapterManagement = lazy(
+  () => import("./components/instructor/ChapterManagement"),
+);
 const Cart = lazy(() => import("./components/cart/Cart"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const LearningPage = lazy(() => import("./pages/LearningPage"));
@@ -63,172 +66,190 @@ function App() {
         <AuthInit>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-            {/* ── Auth (no layout) ── */}
-            <Route path={ROUTES.LOGIN} element={<Login />} />
-            <Route path={ROUTES.REGISTER} element={<Register />} />
-            <Route path={ROUTES.VERIFY_OTP} element={<VerifyOtp />} />
-            <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-            <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+              {/* ── Auth (no layout) ── */}
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.REGISTER} element={<Register />} />
+              <Route path={ROUTES.VERIFY_OTP} element={<VerifyOtp />} />
+              <Route
+                path={ROUTES.FORGOT_PASSWORD}
+                element={<ForgotPassword />}
+              />
+              <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
-            {/* ── Public ── */}
-            <Route
-              path={ROUTES.HOME}
-              element={
-                <WithMainLayout>
-                  <HomePage />
-                </WithMainLayout>
-              }
-            />
-            <Route
-              path={ROUTES.COURSES}
-              element={
-                <WithMainLayout>
-                  <CoursesPage />
-                </WithMainLayout>
-              }
-            />
-            <Route
-              path={ROUTES.COURSE_DETAIL}
-              element={
-                <WithMainLayout>
-                  <CourseDetailPage />
-                </WithMainLayout>
-              }
-            />
-            <Route
-              path={ROUTES.SEARCH}
-              element={
-                <WithMainLayout>
-                  <Suspense fallback={<PageLoader />}>
-                    <SearchPage />
-                  </Suspense>
-                </WithMainLayout>
-              }
-            />
+              {/* ── Public ── */}
+              <Route
+                path={ROUTES.HOME}
+                element={
+                  <WithMainLayout>
+                    <HomePage />
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path={ROUTES.COURSES}
+                element={
+                  <WithMainLayout>
+                    <CoursesPage />
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path={ROUTES.COURSE_DETAIL}
+                element={
+                  <WithMainLayout>
+                    <CourseDetailPage />
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path={ROUTES.SEARCH}
+                element={
+                  <WithMainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <SearchPage />
+                    </Suspense>
+                  </WithMainLayout>
+                }
+              />
 
-            {/* ── Cart ── */}
-            <Route
-              path={ROUTES.CART}
-              element={
-                <WithMainLayout>
+              {/* ── Cart ── */}
+              <Route
+                path={ROUTES.CART}
+                element={
+                  <WithMainLayout>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                      <Suspense fallback={<PageLoader />}>
+                        <Cart />
+                      </Suspense>
+                    </ProtectedRoute>
+                  </WithMainLayout>
+                }
+              />
+
+              {/* ── Profile (STUDENT & INSTRUCTOR only) ── */}
+              <Route
+                path={ROUTES.PROFILE}
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}
+                  >
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <ProfilePage />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ── Student ── */}
+              <Route
+                path={ROUTES.STUDENT_DASHBOARD}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <StudentDashboard />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.STUDENT_COURSES}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <StudentDashboard />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ── Learning ── */}
+              <Route
+                path={ROUTES.LEARNING}
+                element={
                   <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
                     <Suspense fallback={<PageLoader />}>
-                      <Cart />
+                      <LearningPage />
                     </Suspense>
                   </ProtectedRoute>
-                </WithMainLayout>
-              }
-            />
+                }
+              />
 
-            {/* ── Profile (STUDENT & INSTRUCTOR only) ── */}
-            <Route
-              path={ROUTES.PROFILE}
-              element={
-                <ProtectedRoute
-                  allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}
-                >
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <ProfilePage />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
+              {/* ── Instructor ── */}
+              <Route
+                path={ROUTES.INSTRUCTOR_DASHBOARD}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <InstructorDashboard />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_COURSES}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <CoursesManagement />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_CREATE_COURSE}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <CreateCourse />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_EDIT_COURSE}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <EditCourse />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_CHAPTERS}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <ChapterManagement />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* ── Student ── */}
-            <Route
-              path={ROUTES.STUDENT_DASHBOARD}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <StudentDashboard />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.STUDENT_COURSES}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <StudentDashboard />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* ── Learning ── */}
-            <Route
-              path={ROUTES.LEARNING}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-                  <Suspense fallback={<PageLoader />}>
-                    <LearningPage />
-                  </Suspense>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* ── Instructor ── */}
-            <Route
-              path={ROUTES.INSTRUCTOR_DASHBOARD}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <InstructorDashboard />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.INSTRUCTOR_COURSES}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <CoursesManagement />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.INSTRUCTOR_CREATE_COURSE}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <CreateCourse />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.INSTRUCTOR_EDIT_COURSE}
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-                  <WithDashboard>
-                    <Suspense fallback={<PageLoader />}>
-                      <EditCourse />
-                    </Suspense>
-                  </WithDashboard>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* ── Errors ── */}
-            <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
-            <Route path="/500" element={<ServerErrorPage />} />
-            <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
-            <Route path="*" element={<NotFoundPage />} />
+              {/* ── Errors ── */}
+              <Route
+                path={ROUTES.UNAUTHORIZED}
+                element={<UnauthorizedPage />}
+              />
+              <Route path="/500" element={<ServerErrorPage />} />
+              <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </AuthInit>

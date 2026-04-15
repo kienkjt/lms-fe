@@ -81,6 +81,7 @@ export const ROUTES = {
   INSTRUCTOR_COURSES: '/instructor/courses',
   INSTRUCTOR_CREATE_COURSE: '/instructor/courses/create',
   INSTRUCTOR_EDIT_COURSE: '/instructor/courses/edit/:courseId',
+  INSTRUCTOR_CHAPTERS: '/instructor/courses/:courseId/chapters',
   INSTRUCTOR_COURSE_DETAIL: '/instructor/courses/:courseId',
   INSTRUCTOR_STUDENTS: '/instructor/students',
   INSTRUCTOR_QUIZ: '/instructor/courses/:courseId/quiz',
