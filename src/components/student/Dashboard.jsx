@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { enrollmentService } from "../../services/enrollmentService";
 import { ROUTES } from "../../utils/constants";
+import Loading from "../common/Loading";
 import "./Dashboard.css";
 
 const StudentDashboard = () => {
@@ -13,7 +14,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (user?.id) {
       enrollmentService
-        .getStudentCoursesPaginated(user.id, { page: 1, size: 6 })
+        .getStudentCoursesPaginated({ page: 1, size: 6 })
         .then((res) => setEnrollments(res.data?.content || res.data || []))
         .catch(() => setEnrollments([]))
         .finally(() => setLoading(false));
@@ -222,7 +223,7 @@ const StudentDashboard = () => {
                   </div>
                   <div className="course-action">
                     <Link
-                      to={`/learning/${enrollment.courseId}`}
+                      to={`/learn/${enrollment.courseId}`}
                       className="btn-continue-learning"
                     >
                       {enrollment.progressPercent > 0

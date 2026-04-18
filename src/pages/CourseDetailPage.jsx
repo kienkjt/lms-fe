@@ -35,6 +35,7 @@ import { ROUTES, ROLES } from "../utils/constants";
 import {
   formatDate,
   formatDuration,
+  formatNumber,
   formatPrice,
   getStarArray,
 } from "../utils/helpers";
@@ -264,6 +265,28 @@ const CourseDetailPage = () => {
   const isFree = !course.price || course.price === 0;
   const finalPrice = course.discountPrice || course.price;
   const previewYouTubeId = extractYouTubeId(previewLesson?.videoUrl);
+  const chapterCount = chapters.length;
+  const lessonCountFromChapters = chapters.reduce(
+    (totalLessons, chapter) => totalLessons + (chapter.lessons?.length || 0),
+    0,
+  );
+  const totalDurationFromChapters = chapters.reduce(
+    (totalDuration, chapter) =>
+      totalDuration +
+      (chapter.lessons || []).reduce(
+        (lessonDuration, lesson) => lessonDuration + (lesson.duration || 0),
+        0,
+      ),
+    0,
+  );
+  const displayLessonCount =
+    lessonCountFromChapters || course.totalLessons || 0;
+  const displayDuration =
+    totalDurationFromChapters || course.totalDuration || 0;
+  const enrollmentProgress = Math.min(
+    100,
+    Math.max(0, enrollment?.progressPercent || 0),
+  );
 
   return (
     <div className="course-detail-page">
@@ -271,7 +294,9 @@ const CourseDetailPage = () => {
         <div className="container">
           <div className="course-detail-header">
             <div className="course-detail-info">
-              <div className="flex gap-2 mb-4">
+              <p className="course-breadcrumb">Khóa học / Chi tiết khóa học</p>
+
+              <div className="course-detail-badges">
                 {course.level && (
                   <span
                     className={`badge ${
@@ -282,11 +307,15 @@ const CourseDetailPage = () => {
                           : "badge-error"
                     }`}
                   >
-                    {course.level === "BEGINNER"
-                      ? "Cơ bản"
-                      : course.level === "INTERMEDIATE"
-                        ? "Trung cấp"
-                        : "Nâng cao"}
+                    {course.level === "BEGINNER" && "Cơ bản"}
+                    {course.level === "INTERMEDIATE" && "Trung cấp"}
+                    {course.level === "ADVANCED" && "Nâng cao"}
+                  </span>
+                )}
+
+                {course.categoryName && (
+                  <span className="badge badge-gray">
+                    {course.categoryName}
                   </span>
                 )}
               </div>
@@ -296,8 +325,8 @@ const CourseDetailPage = () => {
                 {course.shortDescription}
               </p>
 
-              <div className="course-rating" style={{ marginBottom: "16px" }}>
-                <span className="rating-value">
+              <div className="detail-rating-row">
+                <span className="detail-rating-value">
                   {(course.avgRating || 0).toFixed(1)}
                 </span>
                 <div className="stars">
@@ -307,35 +336,40 @@ const CourseDetailPage = () => {
                     </span>
                   ))}
                 </div>
-                <span className="rating-count">
-                  ({course.totalReviews || 0} đánh giá)
-                </span>
-                <span>•</span>
-                <span>
-                  <FaUsers style={{ marginRight: "6px" }} />
-                  {course.totalStudents || 0} học viên
+                <span className="detail-rating-count">
+                  ({formatNumber(course.totalReviews || 0)} đánh giá)
                 </span>
               </div>
 
-              {course.instructorName && (
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.85)",
-                    fontSize: "14px",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <FaUser style={{ marginRight: "6px" }} /> Giảng viên:{" "}
-                  <strong>{course.instructorName}</strong>
-                </p>
-              )}
+              <div className="course-quick-stats">
+                <span className="quick-stat-pill">
+                  <FaUsers /> {formatNumber(course.totalStudents || 0)} học viên
+                </span>
+                <span className="quick-stat-pill">
+                  <FaClipboard /> {chapterCount} chương
+                </span>
+                <span className="quick-stat-pill">
+                  <FaFileAlt /> {displayLessonCount} bài học
+                </span>
+                <span className="quick-stat-pill">
+                  <FaClock /> {formatDuration(displayDuration)}
+                </span>
+              </div>
 
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "13px" }}>
-                <FaCalendar style={{ marginRight: "6px" }} /> Cập nhật:{" "}
-                {formatDate(course.updatedAt)} •
-                <FaGlobe style={{ margin: "0 6px" }} />{" "}
-                {course.language || "Tiếng Việt"}
-              </p>
+              <div className="course-instructor-line">
+                {course.instructorName && (
+                  <span>
+                    <FaUser /> Giảng viên:{" "}
+                    <strong>{course.instructorName}</strong>
+                  </span>
+                )}
+                <span>
+                  <FaCalendar /> Cập nhật: {formatDate(course.updatedAt)}
+                </span>
+                <span>
+                  <FaGlobe /> {course.language || "Tiếng Việt"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -344,11 +378,11 @@ const CourseDetailPage = () => {
       <div className="container">
         <div className="course-detail-layout">
           <div className="course-detail-main">
-            <div className="tabs">
+            <div className="tabs course-detail-tabs">
               {["overview", "curriculum", "reviews"].map((tabKey) => (
                 <button
                   key={tabKey}
-                  className={`tab-btn ${activeTab === tabKey ? "active" : ""}`}
+                  className={`tab ${activeTab === tabKey ? "active" : ""}`}
                   onClick={() => setActiveTab(tabKey)}
                 >
                   {
@@ -363,19 +397,11 @@ const CourseDetailPage = () => {
             </div>
 
             {previewLesson && (
-              <div className="card card-body mb-6">
-                <h3 style={{ marginBottom: "16px" }}>
-                  <FaPlay style={{ marginRight: "8px" }} /> Video preview miễn
-                  phí
+              <div className="card card-body mb-6 detail-preview-card">
+                <h3 className="detail-section-title">
+                  <FaPlay /> Video preview miễn phí
                 </h3>
-                <p
-                  style={{
-                    marginBottom: "12px",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  {previewLesson.title}
-                </p>
+                <p className="detail-preview-title">{previewLesson.title}</p>
 
                 <div className="detail-preview-player">
                   {previewYouTubeId ? (
@@ -400,10 +426,9 @@ const CourseDetailPage = () => {
             {activeTab === "overview" && (
               <div className="animate-fade-in">
                 {course.whatYouWillLearn && (
-                  <div className="card card-body mb-6">
-                    <h3 style={{ marginBottom: "16px" }}>
-                      <FaBullseye style={{ marginRight: "8px" }} /> Bạn sẽ học
-                      được
+                  <div className="card card-body mb-6 detail-section-card">
+                    <h3 className="detail-section-title">
+                      <FaBullseye /> Bạn sẽ học được
                     </h3>
                     <div className="learn-grid">
                       {(Array.isArray(course.whatYouWillLearn)
@@ -412,8 +437,8 @@ const CourseDetailPage = () => {
                             .split("\n")
                             .filter(Boolean)
                       ).map((item, index) => (
-                        <div key={index} className="learn-item">
-                          <FaCheck style={{ marginRight: "6px" }} /> {item}
+                        <div key={index} className="learn-item" role="listitem">
+                          <FaCheck /> {item}
                         </div>
                       ))}
                     </div>
@@ -421,30 +446,31 @@ const CourseDetailPage = () => {
                 )}
 
                 {course.fullDescription && (
-                  <div className="card card-body mb-6">
-                    <h3 style={{ marginBottom: "16px" }}>
-                      <FaClipboard style={{ marginRight: "8px" }} /> Mô tả khóa
-                      học
+                  <div className="card card-body mb-6 detail-section-card">
+                    <h3 className="detail-section-title">
+                      <FaClipboard /> Mô tả khóa học
                     </h3>
-                    <p style={{ lineHeight: "1.8", whiteSpace: "pre-line" }}>
+                    <p className="detail-description-text">
                       {course.fullDescription}
                     </p>
                   </div>
                 )}
 
                 {course.requirements && (
-                  <div className="card card-body">
-                    <h3 style={{ marginBottom: "16px" }}>
-                      <FaThumbtack style={{ marginRight: "8px" }} /> Yêu cầu
+                  <div className="card card-body detail-section-card">
+                    <h3 className="detail-section-title">
+                      <FaThumbtack /> Yêu cầu trước khi học
                     </h3>
-                    {(Array.isArray(course.requirements)
-                      ? course.requirements
-                      : String(course.requirements).split("\n").filter(Boolean)
-                    ).map((requirement, index) => (
-                      <p key={index} style={{ marginBottom: "8px" }}>
-                        • {requirement}
-                      </p>
-                    ))}
+                    <ul className="detail-list" role="list">
+                      {(Array.isArray(course.requirements)
+                        ? course.requirements
+                        : String(course.requirements)
+                            .split("\n")
+                            .filter(Boolean)
+                      ).map((requirement, index) => (
+                        <li key={index}>{requirement}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
@@ -453,13 +479,14 @@ const CourseDetailPage = () => {
             {activeTab === "curriculum" && (
               <div className="animate-fade-in">
                 <div className="curriculum-summary">
-                  <span>
-                    <FaFileAlt style={{ marginRight: "6px" }} />{" "}
-                    {course.totalLessons || 0} bài học
+                  <span className="summary-pill">
+                    <FaClipboard /> {chapterCount} chương
                   </span>
-                  <span>
-                    <FaClock style={{ marginRight: "6px" }} />{" "}
-                    {formatDuration(course.totalDuration || 0)}
+                  <span className="summary-pill">
+                    <FaFileAlt /> {displayLessonCount} bài học
+                  </span>
+                  <span className="summary-pill">
+                    <FaClock /> {formatDuration(displayDuration)}
                   </span>
                 </div>
 
@@ -477,6 +504,9 @@ const CourseDetailPage = () => {
                         {expandedChapter === chapter.id ? "▼" : "▶"}
                       </span>
                       <span className="chapter-title">{chapter.title}</span>
+                      <span className="chapter-count">
+                        {(chapter.lessons || []).length} bài
+                      </span>
                     </button>
 
                     {expandedChapter === chapter.id && (
@@ -486,7 +516,9 @@ const CourseDetailPage = () => {
 
                           return (
                             <div key={lesson.id} className="lesson-item">
-                              {canPreview ? <FaPlay /> : <FaLock />}
+                              <span className="lesson-type-icon">
+                                {canPreview ? <FaPlay /> : <FaLock />}
+                              </span>
                               <span className="lesson-name">
                                 {lesson.title}
                               </span>
@@ -505,6 +537,18 @@ const CourseDetailPage = () => {
                     )}
                   </div>
                 ))}
+
+                {chapters.length === 0 && (
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <FaFileAlt size={44} />
+                    </div>
+                    <h3>Nội dung đang được cập nhật</h3>
+                    <p>
+                      Giảng viên sẽ bổ sung chương và bài học sớm nhất có thể.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -523,7 +567,7 @@ const CourseDetailPage = () => {
                       ))}
                     </div>
                     <span className="rating-count">
-                      ({course.totalReviews || 0})
+                      ({formatNumber(course.totalReviews || 0)})
                     </span>
                   </div>
                 </div>
@@ -552,9 +596,7 @@ const CourseDetailPage = () => {
                         {formatDate(review.createdAt)}
                       </span>
                     </div>
-                    <p style={{ marginTop: "8px", paddingLeft: "44px" }}>
-                      {review.comment}
-                    </p>
+                    <p className="review-comment">{review.comment}</p>
                   </div>
                 ))}
 
@@ -572,34 +614,36 @@ const CourseDetailPage = () => {
           </div>
 
           <div className="course-purchase-card">
-            {course.thumbnail && (
-              <img
-                src={course.thumbnail}
-                alt={course.title}
-                className="purchase-thumbnail"
-              />
-            )}
+            <div className="course-detail-course-image-sidebar">
+              {course.thumbnail ? (
+                <img src={course.thumbnail} alt={course.title} />
+              ) : (
+                <div className="course-image-placeholder-sidebar">
+                  <FaGraduationCap />
+                </div>
+              )}
+            </div>
 
             <div className="purchase-body">
               {previewLesson && (
                 <div className="purchase-preview-note">
-                  <FaPlay style={{ marginRight: "6px" }} />
+                  <FaPlay />
                   Có video preview miễn phí cho học viên chưa mua
                 </div>
               )}
 
               <div className="purchase-price">
                 {isFree ? (
-                  <span className="price-free">Miễn phí</span>
+                  <span className="detail-price-free">Miễn phí</span>
                 ) : (
                   <>
-                    <span className="price-current">
+                    <span className="detail-price-current">
                       {formatPrice(finalPrice)}
                     </span>
                     {course.discountPrice &&
                       course.price &&
                       course.discountPrice < course.price && (
-                        <span className="price-original">
+                        <span className="detail-price-original">
                           {formatPrice(course.price)}
                         </span>
                       )}
@@ -607,12 +651,33 @@ const CourseDetailPage = () => {
                 )}
               </div>
 
+              <p className="purchase-subtitle">
+                {enrollment
+                  ? "Bạn đã đăng ký khóa học này"
+                  : `${formatNumber(course.totalStudents || 0)} học viên đã đăng ký`}
+              </p>
+
+              {enrollment && (
+                <div className="purchase-progress-block">
+                  <div className="purchase-progress-head">
+                    <span>Tiến độ học của bạn</span>
+                    <strong>{enrollmentProgress}%</strong>
+                  </div>
+                  <div className="progress progress-lg">
+                    <div
+                      className="progress-bar"
+                      style={{ width: `${enrollmentProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
               {enrollment ? (
                 <Link
                   to={`/learn/${course.id}`}
                   className="btn btn-success btn-full btn-lg"
                 >
-                  <FaPlay style={{ marginRight: "8px" }} /> Tiếp tục học
+                  <FaPlay /> Tiếp tục học
                 </Link>
               ) : isFree ? (
                 <button
@@ -628,8 +693,7 @@ const CourseDetailPage = () => {
                     </>
                   ) : (
                     <>
-                      <FaGraduationCap style={{ marginRight: "8px" }} /> Đăng ký
-                      học miễn phí
+                      <FaGraduationCap /> Đăng ký học miễn phí
                     </>
                   )}
                 </button>
@@ -644,8 +708,7 @@ const CourseDetailPage = () => {
                       "→ Đến giỏ hàng"
                     ) : (
                       <>
-                        <FaShoppingCart style={{ marginRight: "8px" }} /> Thêm
-                        vào giỏ hàng
+                        <FaShoppingCart /> Thêm vào giỏ hàng
                       </>
                     )}
                   </button>
@@ -663,20 +726,22 @@ const CourseDetailPage = () => {
               <div className="purchase-includes">
                 <h4>Bao gồm:</h4>
                 <div className="include-item">
-                  <FaVideo style={{ marginRight: "8px" }} /> Video HD chất lượng
-                  cao
+                  <FaVideo /> Video HD chất lượng cao
                 </div>
                 <div className="include-item">
-                  <FaInfinity style={{ marginRight: "8px" }} /> Truy cập trọn
-                  đời
+                  <FaFileAlt /> {displayLessonCount} bài học
                 </div>
                 <div className="include-item">
-                  <FaMobileAlt style={{ marginRight: "8px" }} /> Học trên mobile
-                  và tablet
+                  <FaClock /> {formatDuration(displayDuration)} nội dung
                 </div>
                 <div className="include-item">
-                  <FaTrophy style={{ marginRight: "8px" }} /> Chứng chỉ hoàn
-                  thành
+                  <FaInfinity /> Truy cập trọn đời
+                </div>
+                <div className="include-item">
+                  <FaMobileAlt /> Học trên mobile và tablet
+                </div>
+                <div className="include-item">
+                  <FaTrophy /> Chứng chỉ hoàn thành
                 </div>
               </div>
             </div>

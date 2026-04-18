@@ -72,6 +72,7 @@ export const ROUTES = {
   PROFILE: '/profile',
   STUDENT_DASHBOARD: '/student/dashboard',
   STUDENT_COURSES: '/student/courses',
+  STUDENT_ORDERS: '/student/orders',
   STUDENT_CERTIFICATES: '/student/certificates',
   LEARNING: '/learn/:courseId',
   QUIZ: '/learn/:courseId/quiz/:quizId',

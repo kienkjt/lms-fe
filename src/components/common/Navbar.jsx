@@ -6,10 +6,11 @@ import { clearCart } from "../../store/cartSlice";
 import { authService } from "../../services/authService";
 import { ROUTES, ROLES } from "../../utils/constants";
 import { getInitials, getDisplayName } from "../../utils/helpers";
+import NotificationCenter from "./NotificationCenter";
 import {
   FiShoppingCart,
-  FiBell,
   FiBarChart2,
+  FiFileText,
   FiUser,
   FiBook,
   FiHeart,
@@ -129,9 +130,9 @@ const Navbar = () => {
           >
             Khóa học
           </Link>
-          {isAuthenticated && (
-            <Link to={ROUTES.COURSES} className="nav-link">
-              Danh sách yêu thích
+          {isAuthenticated && user?.role === ROLES.STUDENT && (
+            <Link to={ROUTES.STUDENT_ORDERS} className="nav-link">
+              Đơn hàng
             </Link>
           )}
           {isAuthenticated && user?.role === ROLES.INSTRUCTOR && (
@@ -158,10 +159,7 @@ const Navbar = () => {
                 </Link>
               )}
 
-              {/* Notifications */}
-              <button className="nav-icon-btn" id="notification-btn">
-                <FiBell size={20} />
-              </button>
+              <NotificationCenter />
 
               {/* User Dropdown */}
               <div className="dropdown" ref={dropdownRef}>
@@ -231,6 +229,13 @@ const Navbar = () => {
                           onClick={() => setDropdownOpen(false)}
                         >
                           <FiBook size={18} /> Khóa học của tôi
+                        </Link>
+                        <Link
+                          to={ROUTES.STUDENT_ORDERS}
+                          className="dropdown-item"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <FiFileText size={18} /> Lịch sử đơn hàng
                         </Link>
                         <Link
                           to={ROUTES.WISHLIST}

@@ -13,11 +13,16 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_DASHBOARD,
     label: "Tổng quan",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="7" height="7" rx="1"/>
-        <rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/>
-        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
   },
@@ -25,9 +30,14 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_COURSES,
     label: "Khóa học",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
       </svg>
     ),
   },
@@ -35,10 +45,15 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_CREATE_COURSE,
     label: "Tạo khóa học",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="16"/>
-        <line x1="8" y1="12" x2="16" y2="12"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
       </svg>
     ),
   },
@@ -46,11 +61,16 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_STUDENTS,
     label: "Học viên",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     ),
   },
@@ -58,9 +78,14 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_REVENUE,
     label: "Thu nhập",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <line x1="12" y1="1" x2="12" y2="23"/>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
     ),
   },
@@ -68,8 +93,13 @@ const getInstructorNavItems = () => [
     path: ROUTES.INSTRUCTOR_QA,
     label: "Hỏi & Đáp",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
   },
@@ -77,9 +107,14 @@ const getInstructorNavItems = () => [
     path: ROUTES.PROFILE,
     label: "Hồ sơ",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
       </svg>
     ),
   },
@@ -88,16 +123,25 @@ const getInstructorNavItems = () => [
 const studentNavItems = [
   { path: ROUTES.STUDENT_DASHBOARD, label: "Dashboard" },
   { path: ROUTES.STUDENT_COURSES, label: "Khóa học của tôi" },
+  { path: ROUTES.STUDENT_ORDERS, label: "Đơn hàng" },
   { path: ROUTES.WISHLIST, label: "Yêu thích" },
   { path: ROUTES.STUDENT_CERTIFICATES, label: "Chứng chỉ" },
 ];
 
 // ── UserAvatar: shared component ──
 const UserAvatar = ({ user, size = "md" }) => {
-  const initials = getInitials(user?.firstName, user?.lastName, user?.name, user?.fullName);
-  const sizeClass = size === "sm" ? "avatar-sm" : size === "lg" ? "avatar-lg" : "";
+  const initials = getInitials(
+    user?.firstName,
+    user?.lastName,
+    user?.name,
+    user?.fullName,
+  );
+  const sizeClass =
+    size === "sm" ? "avatar-sm" : size === "lg" ? "avatar-lg" : "";
   if (user?.avatar) {
-    return <img src={user.avatar} alt={initials} className={`avatar ${sizeClass}`} />;
+    return (
+      <img src={user.avatar} alt={initials} className={`avatar ${sizeClass}`} />
+    );
   }
   return <div className={`avatar ${sizeClass}`}>{initials}</div>;
 };
@@ -139,7 +183,11 @@ const DashboardLayout = ({ children }) => {
           <div className="student-header-container">
             {/* Logo */}
             <Link to={ROUTES.HOME} className="student-logo">
-              <svg className="logo-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                className="logo-icon-svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7V12C2 18.6 7.1 24 12 24C16.9 24 22 18.6 22 12V7L12 2Z" />
               </svg>
               <span className="logo-text">EduLearn</span>
@@ -162,11 +210,26 @@ const DashboardLayout = ({ children }) => {
             <div className="student-actions">
               {/* User dropdown */}
               <div className="user-dropdown-container" ref={dropdownRef}>
-                <button className="avatar-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                <button
+                  className="avatar-btn"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
                   <UserAvatar user={user} size="sm" />
-                  <span className="student-username">{user?.fullName?.split(' ')[0] || user?.firstName || user?.name?.split(' ')[0] || 'Tài khoản'}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="6 9 12 15 18 9"/>
+                  <span className="student-username">
+                    {user?.fullName?.split(" ")[0] ||
+                      user?.firstName ||
+                      user?.name?.split(" ")[0] ||
+                      "Tài khoản"}
+                  </span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
 
@@ -180,21 +243,79 @@ const DashboardLayout = ({ children }) => {
                       </div>
                     </div>
                     <div className="dropdown-divider"></div>
-                    <Link to={ROUTES.PROFILE} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <Link
+                      to={ROUTES.PROFILE}
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
                       Hồ sơ cá nhân
                     </Link>
-                    <Link to={ROUTES.STUDENT_DASHBOARD} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <Link
+                      to={ROUTES.STUDENT_DASHBOARD}
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
+                        <rect x="14" y="14" width="7" height="7" rx="1" />
+                      </svg>
                       Dashboard
                     </Link>
-                    <Link to={ROUTES.STUDENT_COURSES} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <Link
+                      to={ROUTES.STUDENT_COURSES}
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                      </svg>
                       Khóa học của tôi
                     </Link>
                     <div className="dropdown-divider"></div>
-                    <button onClick={handleLogout} className="dropdown-item danger">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <button
+                      onClick={handleLogout}
+                      className="dropdown-item danger"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
                       Đăng xuất
                     </button>
                   </div>
@@ -229,12 +350,26 @@ const DashboardLayout = ({ children }) => {
             title={sidebarCollapsed ? "Mở rộng" : "Thu gọn"}
           >
             {sidebarCollapsed ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9 18 15 12 9 6"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="9 18 15 12 9 6" />
               </svg>
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="15 18 9 12 15 6" />
               </svg>
             )}
           </button>
@@ -247,7 +382,9 @@ const DashboardLayout = ({ children }) => {
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">{displayName}</div>
               <div className="sidebar-user-role">
-                {user?.role === ROLES.INSTRUCTOR ? "Giảng viên" : "Quản trị viên"}
+                {user?.role === ROLES.INSTRUCTOR
+                  ? "Giảng viên"
+                  : "Quản trị viên"}
               </div>
             </div>
           </div>
@@ -260,7 +397,9 @@ const DashboardLayout = ({ children }) => {
         {/* Nav */}
         <nav className="sidebar-nav">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+            const isActive =
+              location.pathname === item.path ||
+              location.pathname.startsWith(item.path + "/");
             return (
               <Link
                 key={item.path}
@@ -269,8 +408,12 @@ const DashboardLayout = ({ children }) => {
                 title={sidebarCollapsed ? item.label : ""}
               >
                 <span className="nav-icon">{item.icon}</span>
-                {!sidebarCollapsed && <span className="nav-label">{item.label}</span>}
-                {isActive && !sidebarCollapsed && <span className="nav-active-dot"/>}
+                {!sidebarCollapsed && (
+                  <span className="nav-label">{item.label}</span>
+                )}
+                {isActive && !sidebarCollapsed && (
+                  <span className="nav-active-dot" />
+                )}
               </Link>
             );
           })}
@@ -279,11 +422,19 @@ const DashboardLayout = ({ children }) => {
         {/* Footer */}
         <div className="sidebar-footer">
           {!sidebarCollapsed && (
-            <Link to={ROUTES.HOME} className="sidebar-nav-item sidebar-home-link">
+            <Link
+              to={ROUTES.HOME}
+              className="sidebar-nav-item sidebar-home-link"
+            >
               <span className="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
               </span>
               <span className="nav-label">Trang chủ</span>
@@ -291,10 +442,15 @@ const DashboardLayout = ({ children }) => {
           )}
           <button className="sidebar-nav-item danger" onClick={handleLogout}>
             <span className="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </span>
             {!sidebarCollapsed && <span className="nav-label">Đăng xuất</span>}
@@ -312,14 +468,22 @@ const DashboardLayout = ({ children }) => {
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               id="topbar-sidebar-toggle"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
             <div className="topbar-breadcrumb">
-              {navItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
+              {navItems.find((i) => i.path === location.pathname)?.label ||
+                "Dashboard"}
             </div>
           </div>
           <div className="topbar-right">

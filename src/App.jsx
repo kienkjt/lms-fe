@@ -50,6 +50,9 @@ const Cart = lazy(() => import("./components/cart/Cart"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const LearningPage = lazy(() => import("./pages/LearningPage"));
 const ProfilePage = lazy(() => import("./components/common/Profile"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const WishlistPage = lazy(() => import("./pages/WishlistPage"));
+const CertificatesPage = lazy(() => import("./pages/CertificatesPage"));
 
 import "./index.css";
 import "./App.css";
@@ -177,6 +180,42 @@ function App() {
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <StudentDashboard />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.STUDENT_ORDERS}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <OrdersPage />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.WISHLIST}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <WishlistPage />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.STUDENT_CERTIFICATES}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <CertificatesPage />
                       </Suspense>
                     </WithDashboard>
                   </ProtectedRoute>

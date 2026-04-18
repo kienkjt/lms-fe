@@ -5,7 +5,7 @@ import { categoryService } from "../services/categoryService";
 import CourseCard from "../components/courses/CourseCard";
 import CategoryFilter from "../components/courses/CategoryFilter";
 import { SkeletonCard } from "../components/common/Loading";
-import { COURSE_LEVELS, PAGINATION } from "../utils/constants";
+import { PAGINATION } from "../utils/constants";
 import "./CoursesPage.css";
 
 const CoursesPage = () => {
@@ -49,21 +49,50 @@ const CoursesPage = () => {
     setCoursesError(null);
     try {
       console.log("[CoursesPage] Fetching courses with filters:", filters);
-      const res = await courseService.search({
-        categoryId: filters.category || undefined,
-        level: filters.level || undefined,
-        priceMin: filters.priceMin ? parseFloat(filters.priceMin) : undefined,
-        priceMax: filters.priceMax ? parseFloat(filters.priceMax) : undefined,
-        page,
-        size: PAGINATION.DEFAULT_SIZE,
+      const requestParams = { page, size: PAGINATION.DEFAULT_SIZE };
+      const baseResponse = filters.category
+        ? await courseService.getByCategory(filters.category, requestParams)
+        : await courseService.getAll(requestParams);
+
+      const baseCourses = baseResponse.data?.content || baseResponse.data || [];
+
+      const filteredCourses = baseCourses.filter((course) => {
+        if (filters.level && course.level !== filters.level) return false;
+
+        const coursePrice = Number(course.discountPrice ?? course.price ?? 0);
+        const minPrice = filters.priceMin ? Number(filters.priceMin) : null;
+        const maxPrice = filters.priceMax ? Number(filters.priceMax) : null;
+
+        if (
+          minPrice !== null &&
+          Number.isFinite(minPrice) &&
+          coursePrice < minPrice
+        ) {
+          return false;
+        }
+        if (
+          maxPrice !== null &&
+          Number.isFinite(maxPrice) &&
+          coursePrice > maxPrice
+        ) {
+          return false;
+        }
+
+        return true;
       });
-      console.log("[CoursesPage] Courses response:", res);
-      setCourses(res.data?.content || res.data || []);
-      setTotal(res.data?.totalElements || res.data?.length || 0);
+
+      console.log("[CoursesPage] Courses response:", filteredCourses.length);
+      setCourses(filteredCourses);
+      setTotal(
+        filters.level || filters.priceMin || filters.priceMax
+          ? filteredCourses.length
+          : baseResponse.data?.totalElements || filteredCourses.length,
+      );
     } catch (error) {
       console.error("[CoursesPage] Failed to fetch courses:", error);
       setCoursesError("Không thể tải danh sách khóa học");
       setCourses([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
