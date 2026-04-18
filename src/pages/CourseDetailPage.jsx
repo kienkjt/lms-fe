@@ -1,43 +1,105 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { courseService } from "../services/courseService";
-import { enrollmentService } from "../services/enrollmentService";
-import { cartService } from "../services/cartService";
-import { addToCart } from "../store/cartSlice";
 import {
-  formatPrice,
-  formatDuration,
-  formatDate,
-  getStarArray,
-} from "../utils/helpers";
-import { ROUTES, ROLES } from "../utils/constants";
-import {
-  FaUsers,
-  FaUser,
-  FaCalendar,
-  FaGlobe,
   FaBullseye,
+  FaCalendar,
   FaCheck,
   FaClipboard,
-  FaThumbtack,
-  FaFileAlt,
   FaClock,
-  FaPlay,
-  FaStar,
-  FaVideo,
-  FaInfinity,
-  FaMobileAlt,
-  FaTrophy,
+  FaFileAlt,
+  FaGlobe,
   FaGraduationCap,
+  FaInfinity,
+  FaLock,
+  FaMobileAlt,
+  FaPlay,
   FaShoppingCart,
+  FaStar,
+  FaThumbtack,
+  FaTrophy,
+  FaUser,
+  FaUsers,
+  FaVideo,
 } from "react-icons/fa";
 import Loading from "../components/common/Loading";
+import { addToCart } from "../store/cartSlice";
+import { chapterService } from "../services/chapterService";
+import { cartService } from "../services/cartService";
+import { enrollmentService } from "../services/enrollmentService";
+import { lessonService } from "../services/lessonService";
+import { reviewService } from "../services/reviewService";
+import api from "../services/api";
+import { ROUTES, ROLES } from "../utils/constants";
+import {
+  formatDate,
+  formatDuration,
+  formatPrice,
+  getStarArray,
+} from "../utils/helpers";
 import "./CourseDetailPage.css";
+
+const normalizeCourse = (course) => {
+  if (!course) return null;
+
+  return {
+    ...course,
+    thumbnail: course.thumbnail || course.image || "",
+    shortDescription: course.shortDescription || course.description || "",
+    fullDescription: course.fullDescription || course.description || "",
+    instructorName:
+      course.instructorName ||
+      course.instructor?.fullName ||
+      course.instructor?.name ||
+      "",
+    avgRating: course.avgRating ?? course.rating ?? 0,
+    totalReviews: course.totalReviews ?? course.reviews ?? 0,
+    totalStudents: course.totalStudents ?? course.students ?? 0,
+    totalLessons: course.totalLessons ?? course.lessons ?? 0,
+    totalDuration: course.totalDuration ?? 0,
+  };
+};
+
+const isPreviewLesson = (lesson) =>
+  Boolean(lesson?.freePreview ?? lesson?.isFreePreview);
+
+const extractYouTubeId = (url) => {
+  if (!url) return null;
+
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) return match[1];
+  }
+
+  return null;
+};
+
+const getPreviewLesson = (chapters) => {
+  const lessons = chapters.flatMap((chapter) => chapter.lessons || []);
+
+  return (
+    lessons.find(
+      (lesson) =>
+        lesson.type === "VIDEO" && lesson.videoUrl && isPreviewLesson(lesson),
+    ) || null
+  );
+};
 
 const CourseDetailPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { items } = useSelector((state) => state.cart);
+
   const [course, setCourse] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -45,81 +107,132 @@ const CourseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const { items } = useSelector((state) => state.cart);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const inCart = items.some((i) => i.courseId === course?.id);
+  const [activeTab, setActiveTab] = useState("curriculum");
+  const [previewLesson, setPreviewLesson] = useState(null);
+
+  const inCart = items.some((item) => item.courseId === course?.id);
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchCourseDetail = async () => {
       try {
-        // Try fetching by slug first; if slug looks like a UUID/ID, fetch by ID directly
-        let res;
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+        setLoading(true);
+
+        const isUUID =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            slug,
+          );
         const isNumericId = /^\d+$/.test(slug);
+
+        let courseResponse;
+
         if (isUUID || isNumericId) {
-          res = await courseService.getById(slug);
+          courseResponse = await api.get(`/api/v1/courses/${slug}`);
         } else {
           try {
-            res = await courseService.getBySlug(slug);
-          } catch (slugError) {
-            // Fallback: try by ID in case slug endpoint fails
-            res = await courseService.getById(slug);
+            courseResponse = await api.get(`/api/v1/courses/slug/${slug}`);
+          } catch {
+            courseResponse = await api.get(`/api/v1/courses/${slug}`);
           }
         }
-        const c = res.data;
-        setCourse(c);
 
-        const [chaptersRes, reviewsRes] = await Promise.allSettled([
-          import("../services/api").then((m) =>
-            m.default.get(`/api/v1/chapters/course/${c.id}`),
-          ),
-          import("../services/api").then((m) =>
-            m.default.get(`/api/v1/reviews/course/${c.id}`),
-          ),
-        ]);
-        if (chaptersRes.status === "fulfilled") {
-          setChapters(chaptersRes.value.data || []);
-          if (chaptersRes.value.data?.length > 0)
-            setExpandedChapter(chaptersRes.value.data[0].id);
+        const normalizedCourse = normalizeCourse(
+          courseResponse.data?.data || courseResponse.data,
+        );
+        setCourse(normalizedCourse);
+
+        const chaptersRes = await chapterService.getChaptersByCourse(
+          normalizedCourse.id,
+        );
+        const chapterList = Array.isArray(chaptersRes.data)
+          ? chaptersRes.data
+          : [];
+
+        const chaptersWithLessons = await Promise.all(
+          chapterList.map(async (chapter) => {
+            if (Array.isArray(chapter.lessons) && chapter.lessons.length > 0) {
+              return chapter;
+            }
+
+            try {
+              const lessonsRes = await lessonService.getLessonsByChapter(
+                normalizedCourse.id,
+                chapter.id,
+              );
+              return {
+                ...chapter,
+                lessons: Array.isArray(lessonsRes.data) ? lessonsRes.data : [],
+              };
+            } catch {
+              return {
+                ...chapter,
+                lessons: Array.isArray(chapter.lessons) ? chapter.lessons : [],
+              };
+            }
+          }),
+        );
+
+        setChapters(chaptersWithLessons);
+        if (chaptersWithLessons.length > 0) {
+          setExpandedChapter(chaptersWithLessons[0].id);
         }
-        if (reviewsRes.status === "fulfilled")
-          setReviews(reviewsRes.value.data || []);
+        setPreviewLesson(getPreviewLesson(chaptersWithLessons));
+
+        try {
+          const reviewsRes = await reviewService.getByCourse(
+            normalizedCourse.id,
+            {
+              page: 1,
+              size: 20,
+            },
+          );
+          const reviewData = reviewsRes.data?.content || reviewsRes.data || [];
+          setReviews(Array.isArray(reviewData) ? reviewData : []);
+        } catch (reviewError) {
+          console.error("Failed to load reviews:", reviewError);
+          setReviews([]);
+        }
 
         if (isAuthenticated && user?.role === ROLES.STUDENT) {
           try {
-            const enrollRes = await enrollmentService.getEnrollment(c.id);
-            setEnrollment(enrollRes.data);
-          } catch (error) {
-            console.error("Failed to fetch enrollment:", error);
+            const enrollmentRes = await enrollmentService.getEnrollment(
+              normalizedCourse.id,
+            );
+            setEnrollment(enrollmentRes.data);
+          } catch {
+            setEnrollment(null);
           }
         }
-      } catch {
+      } catch (error) {
+        console.error("Failed to load course detail:", error);
         toast.error("Không tìm thấy khóa học");
         navigate(ROUTES.COURSES);
       } finally {
         setLoading(false);
       }
     };
-    fetchCourse();
-  }, [slug]);
+
+    if (slug) {
+      fetchCourseDetail();
+    }
+  }, [slug, isAuthenticated, user?.role, navigate]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       navigate(ROUTES.LOGIN);
       return;
     }
+
     if (inCart) {
       navigate(ROUTES.CART);
       return;
     }
+
     try {
       await cartService.addItem(course.id);
       dispatch(addToCart({ courseId: course.id, course }));
       toast.success("Đã thêm vào giỏ hàng!");
-    } catch {
+    } catch (error) {
+      console.error("Add to cart failed:", error);
       toast.error("Không thể thêm vào giỏ hàng");
     }
   };
@@ -129,13 +242,16 @@ const CourseDetailPage = () => {
       navigate(ROUTES.LOGIN);
       return;
     }
+
     setEnrollLoading(true);
     try {
       await enrollmentService.enroll(course.id);
       setEnrollment({ enrolled: true, progressPercent: 0 });
       toast.success("Đăng ký khóa học thành công!");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Không thể đăng ký khóa học");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Không thể đăng ký khóa học",
+      );
     } finally {
       setEnrollLoading(false);
     }
@@ -146,11 +262,11 @@ const CourseDetailPage = () => {
 
   const stars = getStarArray(course.avgRating || 0);
   const isFree = !course.price || course.price === 0;
-  const price = course.discountPrice || course.price;
+  const finalPrice = course.discountPrice || course.price;
+  const previewYouTubeId = extractYouTubeId(previewLesson?.videoUrl);
 
   return (
     <div className="course-detail-page">
-      {/* Hero */}
       <div className="course-detail-hero">
         <div className="container">
           <div className="course-detail-header">
@@ -158,7 +274,13 @@ const CourseDetailPage = () => {
               <div className="flex gap-2 mb-4">
                 {course.level && (
                   <span
-                    className={`badge ${course.level === "BEGINNER" ? "badge-success" : course.level === "INTERMEDIATE" ? "badge-warning" : "badge-error"}`}
+                    className={`badge ${
+                      course.level === "BEGINNER"
+                        ? "badge-success"
+                        : course.level === "INTERMEDIATE"
+                          ? "badge-warning"
+                          : "badge-error"
+                    }`}
                   >
                     {course.level === "BEGINNER"
                       ? "Cơ bản"
@@ -168,6 +290,7 @@ const CourseDetailPage = () => {
                   </span>
                 )}
               </div>
+
               <h1 className="course-detail-title">{course.title}</h1>
               <p className="course-detail-short-desc">
                 {course.shortDescription}
@@ -178,8 +301,8 @@ const CourseDetailPage = () => {
                   {(course.avgRating || 0).toFixed(1)}
                 </span>
                 <div className="stars">
-                  {stars.map((s, i) => (
-                    <span key={i} className={`star star-${s}`}>
+                  {stars.map((star, index) => (
+                    <span key={index} className={`star star-${star}`}>
                       ★
                     </span>
                   ))}
@@ -189,29 +312,28 @@ const CourseDetailPage = () => {
                 </span>
                 <span>•</span>
                 <span>
-                  <FaUsers style={{ marginRight: "6px" }} />{" "}
-                  {course.totalStudents || 0} học sinh
+                  <FaUsers style={{ marginRight: "6px" }} />
+                  {course.totalStudents || 0} học viên
                 </span>
               </div>
 
               {course.instructorName && (
                 <p
                   style={{
-                    color: "rgba(255,255,255,0.8)",
+                    color: "rgba(255,255,255,0.85)",
                     fontSize: "14px",
                     marginBottom: "8px",
                   }}
                 >
                   <FaUser style={{ marginRight: "6px" }} /> Giảng viên:{" "}
-                  <strong style={{ color: "white" }}>
-                    {course.instructorName}
-                  </strong>
+                  <strong>{course.instructorName}</strong>
                 </p>
               )}
-              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
+
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "13px" }}>
                 <FaCalendar style={{ marginRight: "6px" }} /> Cập nhật:{" "}
-                {formatDate(course.updatedAt)} •{" "}
-                <FaGlobe style={{ marginRight: "6px" }} />{" "}
+                {formatDate(course.updatedAt)} •
+                <FaGlobe style={{ margin: "0 6px" }} />{" "}
                 {course.language || "Tiếng Việt"}
               </p>
             </div>
@@ -219,33 +341,64 @@ const CourseDetailPage = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="container">
         <div className="course-detail-layout">
-          {/* Main */}
           <div className="course-detail-main">
-            {/* Tabs */}
             <div className="tabs">
-              {["overview", "curriculum", "reviews"].map((tab) => (
+              {["overview", "curriculum", "reviews"].map((tabKey) => (
                 <button
-                  key={tab}
-                  className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-                  onClick={() => setActiveTab(tab)}
+                  key={tabKey}
+                  className={`tab-btn ${activeTab === tabKey ? "active" : ""}`}
+                  onClick={() => setActiveTab(tabKey)}
                 >
                   {
                     {
                       overview: "Tổng quan",
                       curriculum: "Nội dung",
                       reviews: "Đánh giá",
-                    }[tab]
+                    }[tabKey]
                   }
                 </button>
               ))}
             </div>
 
+            {previewLesson && (
+              <div className="card card-body mb-6">
+                <h3 style={{ marginBottom: "16px" }}>
+                  <FaPlay style={{ marginRight: "8px" }} /> Video preview miễn
+                  phí
+                </h3>
+                <p
+                  style={{
+                    marginBottom: "12px",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  {previewLesson.title}
+                </p>
+
+                <div className="detail-preview-player">
+                  {previewYouTubeId ? (
+                    <iframe
+                      width="100%"
+                      height="360"
+                      src={`https://www.youtube.com/embed/${previewYouTubeId}`}
+                      title={previewLesson.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <video controls width="100%" src={previewLesson.videoUrl}>
+                      Trình duyệt của bạn không hỗ trợ phát video.
+                    </video>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === "overview" && (
               <div className="animate-fade-in">
-                {/* What you'll learn */}
                 {course.whatYouWillLearn && (
                   <div className="card card-body mb-6">
                     <h3 style={{ marginBottom: "16px" }}>
@@ -255,9 +408,11 @@ const CourseDetailPage = () => {
                     <div className="learn-grid">
                       {(Array.isArray(course.whatYouWillLearn)
                         ? course.whatYouWillLearn
-                        : course.whatYouWillLearn.split("\n").filter(Boolean)
-                      ).map((item, i) => (
-                        <div key={i} className="learn-item">
+                        : String(course.whatYouWillLearn)
+                            .split("\n")
+                            .filter(Boolean)
+                      ).map((item, index) => (
+                        <div key={index} className="learn-item">
                           <FaCheck style={{ marginRight: "6px" }} /> {item}
                         </div>
                       ))}
@@ -265,7 +420,6 @@ const CourseDetailPage = () => {
                   </div>
                 )}
 
-                {/* Full Description */}
                 {course.fullDescription && (
                   <div className="card card-body mb-6">
                     <h3 style={{ marginBottom: "16px" }}>
@@ -278,7 +432,6 @@ const CourseDetailPage = () => {
                   </div>
                 )}
 
-                {/* Requirements */}
                 {course.requirements && (
                   <div className="card card-body">
                     <h3 style={{ marginBottom: "16px" }}>
@@ -286,10 +439,10 @@ const CourseDetailPage = () => {
                     </h3>
                     {(Array.isArray(course.requirements)
                       ? course.requirements
-                      : course.requirements.split("\n").filter(Boolean)
-                    ).map((req, i) => (
-                      <p key={i} style={{ marginBottom: "8px" }}>
-                        • {req}
+                      : String(course.requirements).split("\n").filter(Boolean)
+                    ).map((requirement, index) => (
+                      <p key={index} style={{ marginBottom: "8px" }}>
+                        • {requirement}
                       </p>
                     ))}
                   </div>
@@ -306,16 +459,17 @@ const CourseDetailPage = () => {
                   </span>
                   <span>
                     <FaClock style={{ marginRight: "6px" }} />{" "}
-                    {formatDuration(course.totalDuration)}
+                    {formatDuration(course.totalDuration || 0)}
                   </span>
                 </div>
+
                 {chapters.map((chapter) => (
                   <div key={chapter.id} className="chapter-item">
                     <button
                       className="chapter-header"
                       onClick={() =>
-                        setExpandedChapter(
-                          expandedChapter === chapter.id ? null : chapter.id,
+                        setExpandedChapter((prev) =>
+                          prev === chapter.id ? null : chapter.id,
                         )
                       }
                     >
@@ -324,22 +478,29 @@ const CourseDetailPage = () => {
                       </span>
                       <span className="chapter-title">{chapter.title}</span>
                     </button>
-                    {expandedChapter === chapter.id && chapter.lessons && (
+
+                    {expandedChapter === chapter.id && (
                       <div className="chapter-lessons">
-                        {chapter.lessons.map((lesson) => (
-                          <div key={lesson.id} className="lesson-item">
-                            <FaPlay style={{ marginRight: "6px" }} />
-                            <span className="lesson-name">{lesson.title}</span>
-                            {lesson.isFreePreview && (
-                              <span className="badge badge-success">
-                                Xem thử
+                        {(chapter.lessons || []).map((lesson) => {
+                          const canPreview = isPreviewLesson(lesson);
+
+                          return (
+                            <div key={lesson.id} className="lesson-item">
+                              {canPreview ? <FaPlay /> : <FaLock />}
+                              <span className="lesson-name">
+                                {lesson.title}
                               </span>
-                            )}
-                            <span className="lesson-duration">
-                              {formatDuration(lesson.duration)}
-                            </span>
-                          </div>
-                        ))}
+                              {canPreview && (
+                                <span className="badge badge-success">
+                                  Xem thử
+                                </span>
+                              )}
+                              <span className="lesson-duration">
+                                {formatDuration(lesson.duration || 0)}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -355,8 +516,8 @@ const CourseDetailPage = () => {
                       {(course.avgRating || 0).toFixed(1)}
                     </span>
                     <div className="stars" style={{ fontSize: "24px" }}>
-                      {stars.map((s, i) => (
-                        <span key={i} className={`star star-${s}`}>
+                      {stars.map((star, index) => (
+                        <span key={index} className={`star star-${star}`}>
                           <FaStar />
                         </span>
                       ))}
@@ -366,6 +527,7 @@ const CourseDetailPage = () => {
                     </span>
                   </div>
                 </div>
+
                 {reviews.map((review) => (
                   <div key={review.id} className="review-item">
                     <div className="review-header">
@@ -374,14 +536,16 @@ const CourseDetailPage = () => {
                       </div>
                       <div>
                         <div className="font-semibold">
-                          {review.studentName}
+                          {review.studentName || "Học viên"}
                         </div>
                         <div className="stars" style={{ fontSize: "14px" }}>
-                          {getStarArray(review.rating).map((s, i) => (
-                            <span key={i} className={`star star-${s}`}>
-                              ★
-                            </span>
-                          ))}
+                          {getStarArray(review.rating || 0).map(
+                            (star, index) => (
+                              <span key={index} className={`star star-${star}`}>
+                                ★
+                              </span>
+                            ),
+                          )}
                         </div>
                       </div>
                       <span className="text-muted text-sm">
@@ -393,6 +557,7 @@ const CourseDetailPage = () => {
                     </p>
                   </div>
                 ))}
+
                 {reviews.length === 0 && (
                   <div className="empty-state">
                     <div className="empty-state-icon">
@@ -406,7 +571,6 @@ const CourseDetailPage = () => {
             )}
           </div>
 
-          {/* Sticky Purchase Card */}
           <div className="course-purchase-card">
             {course.thumbnail && (
               <img
@@ -415,13 +579,23 @@ const CourseDetailPage = () => {
                 className="purchase-thumbnail"
               />
             )}
+
             <div className="purchase-body">
+              {previewLesson && (
+                <div className="purchase-preview-note">
+                  <FaPlay style={{ marginRight: "6px" }} />
+                  Có video preview miễn phí cho học viên chưa mua
+                </div>
+              )}
+
               <div className="purchase-price">
                 {isFree ? (
                   <span className="price-free">Miễn phí</span>
                 ) : (
                   <>
-                    <span className="price-current">{formatPrice(price)}</span>
+                    <span className="price-current">
+                      {formatPrice(finalPrice)}
+                    </span>
                     {course.discountPrice &&
                       course.price &&
                       course.discountPrice < course.price && (
@@ -475,6 +649,7 @@ const CourseDetailPage = () => {
                       </>
                     )}
                   </button>
+
                   <button
                     className="btn btn-outline btn-full"
                     onClick={handleEnroll}
@@ -497,7 +672,7 @@ const CourseDetailPage = () => {
                 </div>
                 <div className="include-item">
                   <FaMobileAlt style={{ marginRight: "8px" }} /> Học trên mobile
-                  & tablet
+                  và tablet
                 </div>
                 <div className="include-item">
                   <FaTrophy style={{ marginRight: "8px" }} /> Chứng chỉ hoàn

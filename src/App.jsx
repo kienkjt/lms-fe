@@ -26,6 +26,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 import HomePage from "./pages/HomePage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import {
   NotFoundPage,
   UnauthorizedPage,
@@ -120,6 +121,20 @@ function App() {
                     <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
                       <Suspense fallback={<PageLoader />}>
                         <Cart />
+                      </Suspense>
+                    </ProtectedRoute>
+                  </WithMainLayout>
+                }
+              />
+
+              {/* ── Checkout ── */}
+              <Route
+                path={ROUTES.CHECKOUT}
+                element={
+                  <WithMainLayout>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                      <Suspense fallback={<PageLoader />}>
+                        <CheckoutPage />
                       </Suspense>
                     </ProtectedRoute>
                   </WithMainLayout>
