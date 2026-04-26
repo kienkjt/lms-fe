@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { cartService } from "../services/cartService";
 import { orderService } from "../services/orderService";
 import { userService } from "../services/userService";
+import vnpayService from "../services/vnpayService";
 import { ROUTES } from "../utils/constants";
 import Loading from "../components/common/Loading";
 import {
@@ -95,31 +96,33 @@ const Checkout = () => {
         setTimeout(() => {
           navigate(`/order/${order.id}`, { state: { orderData: order } });
         }, 1000);
-      } else if (
-        paymentMethod === "VNPAY" ||
-        paymentMethod === "BANK_TRANSFER"
-      ) {
-        // Show payment gateway (simulated for now)
-        toast.info("Chuyển hướng đến cổng thanh toán...");
+      } else if (paymentMethod === "VNPAY") {
+        // VNPAY Payment Gateway
+        try {
+          const paymentUrl = vnpayService.generatePaymentUrl({
+            orderId: order.id,
+            amount: total,
+            orderCode: order.orderCode,
+            description: `Thanh toán khóa học - Đơn hàng ${order.orderCode}`,
+            buyerEmail: profile?.email,
+            buyerPhone: profile?.phoneNumber,
+          });
 
-        // In real implementation, redirect to payment gateway
-        // For now, simulate payment success after 2 seconds
-        setTimeout(async () => {
-          try {
-            const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            const payRes = await orderService.payOrder(order.id, {
-              transactionId,
-            });
-
-            toast.success("Thanh toán thành công!");
-            navigate(`/order/${payRes.data.id}`, {
-              state: { orderData: payRes.data },
-            });
-          } catch (paymentError) {
-            console.error("Payment error:", paymentError);
-            toast.error("Lỗi thanh toán. Vui lòng thử lại.");
-          }
-        }, 2000);
+          // Redirect to VNPAY payment gateway
+          // Note: The success/failure callback will be handled by PaymentSuccessPage/PaymentFailurePage
+          window.location.href = paymentUrl;
+        } catch (vnpayError) {
+          console.error("VNPAY Error:", vnpayError);
+          toast.error("Lỗi khởi tạo thanh toán VNPAY");
+        }
+      } else if (paymentMethod === "BANK_TRANSFER") {
+        // Bank Transfer - show pending page
+        toast.info("Vui lòng chuyển khoản theo thông tin ngân hàng");
+        
+        // Navigate to pending payment page
+        navigate(`/payment/pending?orderId=${order.id}`, {
+          state: { orderData: order },
+        });
       }
     } catch (error) {
       console.error("Checkout error:", error);

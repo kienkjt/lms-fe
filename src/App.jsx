@@ -27,6 +27,10 @@ import HomePage from "./pages/HomePage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentFailurePage from "./pages/PaymentFailurePage";
+import PaymentPendingPage from "./pages/PaymentPendingPage";
 import {
   NotFoundPage,
   UnauthorizedPage,
@@ -140,6 +144,50 @@ function App() {
                         <CheckoutPage />
                       </Suspense>
                     </ProtectedRoute>
+                  </WithMainLayout>
+                }
+              />
+
+              {/* ── Payment Status Pages ── */}
+              <Route
+                path="/order/:orderId"
+                element={
+                  <WithMainLayout>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                      <Suspense fallback={<PageLoader />}>
+                        <OrderDetailPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path="/payment/success"
+                element={
+                  <WithMainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentSuccessPage />
+                    </Suspense>
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path="/payment/failure"
+                element={
+                  <WithMainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentFailurePage />
+                    </Suspense>
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path="/payment/pending"
+                element={
+                  <WithMainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentPendingPage />
+                    </Suspense>
                   </WithMainLayout>
                 }
               />
