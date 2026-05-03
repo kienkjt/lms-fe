@@ -1,0 +1,109 @@
+.instructor-revenue-page {
+  display: grid;
+  gap: 24px;
+  padding: 4px;
+}
+
+.instructor-revenue-page .dashboard-section {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 0;
+  padding: 24px;
+}
+
+.instructor-revenue-page .section-header {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.instructor-revenue-page .section-header h1,
+.instructor-revenue-page .section-header h2 {
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+.instructor-revenue-page form {
+  display: grid;
+  gap: 4px;
+}
+
+.instructor-revenue-page .form-input {
+  background: var(--gray-50);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  min-height: 46px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.instructor-revenue-page textarea.form-input {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.instructor-revenue-page .form-input:focus {
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.14);
+}
+
+.instructor-revenue-page .btn {
+  border-radius: var(--radius-lg);
+}
+
+.instructor-revenue-page .btn-lg {
+  justify-self: start;
+  min-height: 46px;
+  padding-inline: 22px;
+}
+
+.instructor-revenue-page .data-table {
+  background: white;
+}
+
+.instructor-revenue-page .data-table th {
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.instructor-revenue-page .data-table td {
+  border-color: var(--border-light);
+}
+
+.instructor-revenue-page .data-table tr:hover td {
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.instructor-revenue-page .badge {
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+@media (max-width: 700px) {
+  .instructor-revenue-page {
+    gap: 16px;
+    padding: 0;
+  }
+
+  .instructor-revenue-page .dashboard-section {
+    padding: 18px;
+  }
+
+  .instructor-revenue-page .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .instructor-revenue-page .btn-lg {
+    justify-self: stretch;
+  }
+}

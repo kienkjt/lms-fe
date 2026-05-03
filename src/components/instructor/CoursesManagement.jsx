@@ -14,6 +14,8 @@ import {
   FaImage,
   FaVideo,
   FaListUl,
+  FaUsers,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import "./CoursesManagement.css";
 
@@ -328,6 +330,30 @@ const CoursesManagement = () => {
                           title="Quản lý chương"
                         >
                           <FaListUl style={{ marginRight: "4px" }} /> Chương
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.INSTRUCTOR_QUIZ.replace(":courseId", course.id)}`,
+                            )
+                          }
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: "12px", padding: "6px 12px" }}
+                          title="Tạo và quản lý quiz"
+                        >
+                          <FaQuestionCircle style={{ marginRight: "4px" }} /> Quiz
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.INSTRUCTOR_STUDENTS}?courseId=${course.id}`,
+                            )
+                          }
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: "12px", padding: "6px 12px" }}
+                          title="Xem danh sách học viên"
+                        >
+                          <FaUsers style={{ marginRight: "4px" }} /> Học viên
                         </button>
                         <button
                           onClick={() => openMediaModal(course)}

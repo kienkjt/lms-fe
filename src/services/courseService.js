@@ -50,7 +50,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size);
       console.log('[courseService.getAll] Fetching from backend API...');
-      const response = await api.get(`/api/v1/courses?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -86,11 +86,11 @@ export const courseService = {
     }
   },
 
-  // Get course by slug
+  // Get course by route identifier. Backend no longer exposes /courses/slug.
   getBySlug: async (slug) => {
     try {
       console.log('[courseService.getBySlug] Fetching from backend API:', slug);
-      const response = await api.get(`/api/v1/courses/slug/${slug}`);
+      const response = await api.get(`/api/v1/courses/${slug}`);
       const course = response.data?.data || response.data;
       const result = formatCourseForCard(course);
       console.log('[courseService.getBySlug] Result:', result.id);
@@ -161,7 +161,7 @@ export const courseService = {
       const page = resolvePage(data.page);
       const size = resolveSize(data.size);
       params.append('page', page);
-      params.append('size', size);
+      params.append('pageSize', size);
 
       console.log('[courseService.search] Calling backend API POST /api/v1/courses/search with:', searchRequest);
       // Backend uses POST endpoint for advanced search
@@ -217,7 +217,7 @@ export const courseService = {
   getPopular: async () => {
     try {
       console.log('[courseService.getPopular] Fetching trending courses from backend API...');
-      const response = await api.get('/api/v1/courses/trending?page=1&size=8');
+      const response = await api.get('/api/v1/courses/trending?page=1&pageSize=8');
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || pageData || [];
       const result = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
@@ -234,7 +234,7 @@ export const courseService = {
   getNewest: async () => {
     try {
       console.log('[courseService.getNewest] Fetching courses from backend API...');
-      const response = await api.get('/api/v1/courses?page=1&size=4');
+      const response = await api.get('/api/v1/courses?page=1&pageSize=4');
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || pageData || [];
       const result = (Array.isArray(courses) ? courses : []).map(formatCourseForCard);
@@ -254,7 +254,7 @@ export const courseService = {
       const size = resolveSize(params?.size);
       console.log('[courseService.getByCategory] Fetching from backend API:', categoryId);
       // Backend uses /by-category/{categoryId} endpoint
-      const response = await api.get(`/api/v1/courses/by-category/${categoryId}?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses/by-category/${categoryId}?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -279,7 +279,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size);
       console.log('[courseService.getByInstructor] Fetching from backend API - my courses...');
-      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -304,7 +304,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size, 20);
       console.log('[courseService.getMyInstructorCourses] Fetching from backend API...');
-      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses/my-courses?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -325,7 +325,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size, 20);
       console.log('[courseService.getTrendingCourses] Fetching from backend API...');
-      const response = await api.get(`/api/v1/courses/trending?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses/trending?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -344,7 +344,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size, 20);
       console.log('[courseService.getTopRatedCourses] Fetching from backend API...');
-      const response = await api.get(`/api/v1/courses/top-rated?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/courses/top-rated?page=${page}&pageSize=${size}`);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -363,7 +363,7 @@ export const courseService = {
       const page = resolvePage(params?.page);
       const size = resolveSize(params?.size, 20);
       console.log('[courseService.advancedSearch] Searching from backend API...');
-      const response = await api.post(`/api/v1/courses/search?page=${page}&size=${size}`, request);
+      const response = await api.post(`/api/v1/courses/search?page=${page}&pageSize=${size}`, request);
       
       const pageData = response.data?.data || response.data;
       const courses = pageData?.content || [];
@@ -407,14 +407,24 @@ export const courseService = {
   // Upload course thumbnail image
   uploadCourseImage: async (courseId, file) => {
     try {
+      if (!file) {
+        throw new Error('No file provided');
+      }
+      
       const formData = new FormData();
       formData.append('file', file);
       
-      console.log('[courseService.uploadCourseImage] Uploading image for course:', courseId);
-      // Don't set Content-Type header - let axios handle FormData automatically
-      const response = await api.post(`/api/v1/courses/${courseId}/image`, formData);
+      console.log('[courseService.uploadCourseImage] Uploading image for course:', courseId, 'File:', file.name);
+      
+      // Create config without Content-Type header so axios sets multipart/form-data
+      const response = await api.post(`/api/v1/courses/${courseId}/image`, formData, {
+        headers: {
+          // Don't set Content-Type - let axios handle it
+        }
+      });
       
       const course = response.data?.data || response.data;
+      console.log('[courseService.uploadCourseImage] Upload successful');
       return { data: formatCourseForCard(course) };
     } catch (error) {
       console.error('[courseService.uploadCourseImage] API error:', error);
@@ -425,14 +435,24 @@ export const courseService = {
   // Upload course preview video
   uploadCoursePreviewVideo: async (courseId, file) => {
     try {
+      if (!file) {
+        throw new Error('No file provided');
+      }
+      
       const formData = new FormData();
       formData.append('file', file);
       
-      console.log('[courseService.uploadCoursePreviewVideo] Uploading preview video for course:', courseId);
-      // Don't set Content-Type header - let axios handle FormData automatically
-      const response = await api.post(`/api/v1/courses/${courseId}/preview-video`, formData);
+      console.log('[courseService.uploadCoursePreviewVideo] Uploading preview video for course:', courseId, 'File:', file.name);
+      
+      // Create config without Content-Type header so axios sets multipart/form-data
+      const response = await api.post(`/api/v1/courses/${courseId}/preview-video`, formData, {
+        headers: {
+          // Don't set Content-Type - let axios handle it
+        }
+      });
       
       const course = response.data?.data || response.data;
+      console.log('[courseService.uploadCoursePreviewVideo] Upload successful');
       return { data: formatCourseForCard(course) };
     } catch (error) {
       console.error('[courseService.uploadCoursePreviewVideo] API error:', error);
@@ -440,10 +460,41 @@ export const courseService = {
     }
   },
 
-  // Approve course (admin only)
+  // Delete course (instructor only)
+  deleteCourse: async (courseId) => {
+    try {
+      console.log('[courseService.deleteCourse] Deleting course:', courseId);
+      const response = await api.post(`/api/v1/courses/${courseId}`);
+      return { data: response.data?.data || response.data || { message: 'Xóa khóa học thành công' } };
+    } catch (error) {
+      console.error('[courseService.deleteCourse] API error:', error);
+      throw error;
+    }
+  },
+
+  // Search courses visible to course managers (instructor/admin)
+  searchManagedCourses: async (request, params) => {
+    try {
+      const page = resolvePage(params?.page);
+      const size = resolveSize(params?.size, 20);
+      console.log('[courseService.searchManagedCourses] Searching managed courses');
+      const response = await api.post(`/api/v1/courses/management/search?page=${page}&pageSize=${size}`, request || {});
+      const pageData = response.data?.data || response.data;
+      const courses = pageData?.content || [];
+      return {
+        data: {
+          ...pageData,
+          content: (Array.isArray(courses) ? courses : []).map(formatCourseForCard),
+        },
+      };
+    } catch (error) {
+      console.error('[courseService.searchManagedCourses] API error:', error);
+      throw error;
+    }
+  },
+
   approveCourse: async (courseId) => {
     try {
-      console.log('[courseService.approveCourse] Approving course:', courseId);
       const response = await api.post(`/api/v1/courses/${courseId}/approve`);
       const course = response.data?.data || response.data;
       return { data: formatCourseForCard(course) };
@@ -453,10 +504,8 @@ export const courseService = {
     }
   },
 
-  // Reject course (admin only)
   rejectCourse: async (courseId, reason) => {
     try {
-      console.log('[courseService.rejectCourse] Rejecting course:', courseId);
       const response = await api.post(`/api/v1/courses/${courseId}/reject`, { reason });
       const course = response.data?.data || response.data;
       return { data: formatCourseForCard(course) };

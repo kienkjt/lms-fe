@@ -15,3 +15,16 @@ export const validatePhone = (phone) => {
 export const validateRequired = (value) => {
   return value !== null && value !== undefined && value !== '';
 };
+
+export const validateBankAccount = (accountNumber) => {
+  // Vietnamese bank accounts are typically 9-20 digits
+  const regex = /^[0-9]{9,20}$/;
+  return regex.test(accountNumber);
+};
+
+export const validateWithdrawalAmount = (amount, maxAmount = null) => {
+  const numAmount = Number(amount);
+  if (isNaN(numAmount) || numAmount <= 0) return false;
+  if (maxAmount && numAmount > maxAmount) return false;
+  return true;
+};

@@ -35,7 +35,7 @@ export const categoryService = {
     try {
       console.log('[categoryService.getAll] Fetching categories from backend API...');
       // Get all categories in one page (size=100 to get most categories)
-      const response = await api.get('/api/v1/categories?size=100');
+      const response = await api.get('/api/v1/categories?page=1&pageSize=100');
       
       console.log('[categoryService.getAll] Raw response:', response);
       
@@ -85,6 +85,45 @@ export const categoryService = {
         throw { response: { status: 404, data: { message: 'Danh mục không tìm thấy' } } };
       }
       return { data: extractCategoryName(category) };
+    }
+  },
+
+  create: async (data) => {
+    try {
+      console.log('[categoryService.create] Creating category');
+      const response = await api.post('/api/v1/categories', {
+        name: data.name,
+        description: data.description || '',
+      });
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[categoryService.create] API error:', error);
+      throw error;
+    }
+  },
+
+  update: async (id, data) => {
+    try {
+      console.log('[categoryService.update] Updating category:', id);
+      const response = await api.put(`/api/v1/categories/${id}`, {
+        name: data.name,
+        description: data.description || '',
+      });
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[categoryService.update] API error:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id) => {
+    try {
+      console.log('[categoryService.delete] Deleting category:', id);
+      const response = await api.post(`/api/v1/categories/${id}`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[categoryService.delete] API error:', error);
+      throw error;
     }
   },
 };

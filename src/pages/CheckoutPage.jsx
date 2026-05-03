@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { cartService } from "../services/cartService";
 import { orderService } from "../services/orderService";
 import { userService } from "../services/userService";
-import vnpayService from "../services/vnpayService";
 import { ROUTES } from "../utils/constants";
 import Loading from "../components/common/Loading";
 import {
@@ -36,29 +35,56 @@ const Checkout = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [cartRes, profileRes] = await Promise.all([
-          cartService.getCart(),
-          userService.getProfile(),
-        ]);
-
+        const cartRes = await cartService.getCart();
         setCartItems(cartRes.data?.items || cartRes.data || []);
-        setProfile(profileRes.data);
+
+        // Try to load profile, but use user from Redux as fallback
+        try {
+          const profileRes = await userService.getProfile();
+          const profileData = profileRes.data?.data || profileRes.data;
+          setProfile(profileData);
+        } catch (profileError) {
+          console.warn(
+            "Failed to load profile, using auth user:",
+            profileError,
+          );
+          // Fallback to Redux user
+          if (user) {
+            setProfile({
+              fullName: user.fullName || user.name || "",
+              email: user.email || "",
+              phone: user.phone || user.phoneNumber || "",
+            });
+          }
+        }
       } catch (error) {
         toast.error("Lỗi tải giỏ hàng");
         console.error("Error loading checkout data:", error);
+        // Still set profile from user as fallback
+        if (user) {
+          setProfile({
+            fullName: user.fullName || user.name || "",
+            email: user.email || "",
+            phone: user.phone || user.phoneNumber || "",
+          });
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [user]);
 
   // Calculate total
   const calculateTotal = () => {
     return (cartItems || []).reduce((sum, item) => {
       const price =
-        item.paidPrice || item.course?.discountPrice || item.course?.price || 0;
+        item.price ||
+        item.paidPrice ||
+        item.course?.discountPrice ||
+        item.course?.price ||
+        0;
       return sum + price;
     }, 0);
   };
@@ -97,16 +123,20 @@ const Checkout = () => {
           navigate(`/order/${order.id}`, { state: { orderData: order } });
         }, 1000);
       } else if (paymentMethod === "VNPAY") {
-        // VNPAY Payment Gateway
         try {
-          const paymentUrl = vnpayService.generatePaymentUrl({
-            orderId: order.id,
-            amount: total,
-            orderCode: order.orderCode,
-            description: `Thanh toán khóa học - Đơn hàng ${order.orderCode}`,
-            buyerEmail: profile?.email,
-            buyerPhone: profile?.phoneNumber,
+          const paymentRes = await orderService.initPayment(order.id, {
+            paymentMethod: "VNPAY",
+            language: "vn",
+            bankCode: "",
           });
+          const paymentUrl =
+            paymentRes.data?.paymentUrl ||
+            paymentRes.data?.paymentURL ||
+            paymentRes.data?.paymentLink;
+
+          if (!paymentUrl) {
+            throw new Error("Không nhận được URL thanh toán");
+          }
 
           // Redirect to VNPAY payment gateway
           // Note: The success/failure callback will be handled by PaymentSuccessPage/PaymentFailurePage
@@ -118,7 +148,7 @@ const Checkout = () => {
       } else if (paymentMethod === "BANK_TRANSFER") {
         // Bank Transfer - show pending page
         toast.info("Vui lòng chuyển khoản theo thông tin ngân hàng");
-        
+
         // Navigate to pending payment page
         navigate(`/payment/pending?orderId=${order.id}`, {
           state: { orderData: order },
@@ -215,23 +245,37 @@ const Checkout = () => {
         {/* Billing Information */}
         <div className="checkout-section billing-info">
           <h2>Thông tin thanh toán</h2>
-          {profile && (
+          {profile ? (
             <div className="profile-info">
-              <div className="info-row">
-                <label>Họ tên:</label>
-                <span>{profile.fullName}</span>
-              </div>
-              <div className="info-row">
-                <label>Email:</label>
-                <span>{profile.email}</span>
-              </div>
-              {profile.phoneNumber && (
+              {(profile.fullName || profile.name) && (
                 <div className="info-row">
-                  <label>Điện thoại:</label>
-                  <span>{profile.phoneNumber}</span>
+                  <label>Họ tên:</label>
+                  <span>{profile.fullName || profile.name}</span>
                 </div>
               )}
+              {profile.email && (
+                <div className="info-row">
+                  <label>Email:</label>
+                  <span>{profile.email}</span>
+                </div>
+              )}
+              {(profile.phone || profile.phoneNumber) && (
+                <div className="info-row">
+                  <label>Điện thoại:</label>
+                  <span>{profile.phone || profile.phoneNumber}</span>
+                </div>
+              )}
+              {!profile.fullName &&
+                !profile.name &&
+                !profile.email &&
+                !profile.phone && (
+                  <p className="empty-profile">
+                    Không có thông tin hồ sơ. Vui lòng cập nhật hồ sơ của bạn.
+                  </p>
+                )}
             </div>
+          ) : (
+            <p className="empty-profile">Đang tải thông tin...</p>
           )}
         </div>
 

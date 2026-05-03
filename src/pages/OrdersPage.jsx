@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   FaClock,
   FaCoins,
+  FaCreditCard,
   FaHistory,
   FaListAlt,
   FaTimesCircle,
@@ -50,6 +51,7 @@ const normalizeOrders = (payload) => {
 };
 
 const OrdersPage = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -147,6 +149,44 @@ const OrdersPage = () => {
       console.error("Refund order failed:", error);
       toast.error(
         error.response?.data?.message || "Không thể hoàn tiền đơn hàng",
+      );
+    } finally {
+      setActionLoadingId("");
+    }
+  };
+
+  const handleContinuePayment = async (order) => {
+    try {
+      setActionLoadingId(order.id);
+      const method = order.paymentMethod || "VNPAY";
+      const response = await orderService.initPayment(order.id, {
+        paymentMethod: method,
+        language: "vn",
+        bankCode: "",
+      });
+
+      const updated = response.data || {};
+      setOrders((prev) =>
+        prev.map((item) =>
+          item.id === order.id ? { ...item, ...updated } : item,
+        ),
+      );
+
+      const paymentUrl =
+        updated.paymentUrl || updated.paymentURL || updated.paymentLink;
+
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      navigate(`/payment/pending?orderId=${order.id}`, {
+        state: { orderData: { ...order, ...updated } },
+      });
+    } catch (error) {
+      console.error("Continue payment failed:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể tiếp tục thanh toán",
       );
     } finally {
       setActionLoadingId("");
@@ -253,13 +293,22 @@ const OrdersPage = () => {
 
                   <footer className="order-actions">
                     {order.status === ORDER_STATUS.PENDING && (
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleCancel(order)}
-                        disabled={actionLoadingId === order.id}
-                      >
-                        <FaTimesCircle /> Hủy đơn
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleContinuePayment(order)}
+                          disabled={actionLoadingId === order.id}
+                        >
+                          <FaCreditCard /> Tiếp tục thanh toán
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleCancel(order)}
+                          disabled={actionLoadingId === order.id}
+                        >
+                          <FaTimesCircle /> Hủy đơn
+                        </button>
+                      </>
                     )}
 
                     {order.status === ORDER_STATUS.COMPLETED && (

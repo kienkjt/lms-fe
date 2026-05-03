@@ -72,6 +72,17 @@
   margin-bottom: 24px;
 }
 
+.review-access-note {
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--light-bg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 /* Form */
 .review-form {
   background: var(--light-bg);
@@ -81,15 +92,15 @@
   border: 1px solid var(--border-light);
 }
 
-.form-group {
+.reviews-section .form-group {
   margin-bottom: 20px;
 }
 
-.form-group:last-of-type {
+.reviews-section .form-group:last-of-type {
   margin-bottom: 0;
 }
 
-.form-group label {
+.reviews-section .form-group label {
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
@@ -127,7 +138,7 @@
 }
 
 /* Textarea */
-.form-group textarea {
+.reviews-section .form-group textarea {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--border-light);
@@ -138,13 +149,13 @@
   color: var(--text-dark);
 }
 
-.form-group textarea:focus {
+.reviews-section .form-group textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
 }
 
-.char-count {
+.reviews-section .char-count {
   display: block;
   margin-top: 4px;
   font-size: 11px;
@@ -153,13 +164,13 @@
 }
 
 /* Form Actions */
-.form-actions {
+.reviews-section .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 20px;
 }
 
-.btn {
+.reviews-section .btn {
   padding: 10px 16px;
   border: none;
   border-radius: 6px;
@@ -172,33 +183,33 @@
   gap: 6px;
 }
 
-.btn:disabled {
+.reviews-section .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btn-primary {
+.reviews-section .btn-primary {
   background: var(--primary);
   color: white;
   flex: 1;
   justify-content: center;
 }
 
-.btn-primary:hover:not(:disabled) {
+.reviews-section .btn-primary:hover:not(:disabled) {
   background: darken(var(--primary), 10%);
 }
 
-.btn-ghost {
+.reviews-section .btn-ghost {
   background: white;
   color: var(--text-dark);
   border: 1px solid var(--border-light);
 }
 
-.btn-ghost:hover:not(:disabled) {
+.reviews-section .btn-ghost:hover:not(:disabled) {
   background: var(--light-bg);
 }
 
-.spinner {
+.reviews-section .spinner {
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -372,13 +383,13 @@
   margin-top: 16px;
 }
 
-.btn-outline {
+.reviews-section .btn-outline {
   background: white;
   border: 1px solid var(--border-light);
   color: var(--text-dark);
 }
 
-.btn-outline:hover:not(:disabled) {
+.reviews-section .btn-outline:hover:not(:disabled) {
   background: var(--light-bg);
 }
 
@@ -394,6 +405,118 @@
   padding: 20px;
   color: var(--text-light);
   font-size: 14px;
+}
+
+/* Instructor Reply */
+.instructor-reply {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f0f8ff;
+  border-left: 4px solid var(--info);
+  border-radius: 4px;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.reply-header svg {
+  color: var(--info);
+}
+
+.reply-label {
+  color: var(--info);
+  font-weight: 600;
+}
+
+.reply-date {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: normal;
+  text-transform: none;
+}
+
+.reply-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dark);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Reply Form */
+.reply-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+}
+
+.reply-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.reply-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+.reply-form .char-count {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-light);
+  text-align: right;
+}
+
+.reply-form .form-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Reply Button */
+.btn-reply-small {
+  background: none;
+  border: 1px solid var(--info);
+  color: var(--info);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-reply-small:hover {
+  background: var(--info);
+  color: white;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
 /* Responsive */

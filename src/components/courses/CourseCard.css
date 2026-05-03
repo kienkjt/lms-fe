@@ -83,6 +83,48 @@
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
+/* ========== WISHLIST BUTTON ========== */
+.wishlist-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+}
+
+.wishlist-btn:hover {
+  background: white;
+  color: #ef4444;
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active {
+  background: #ef4444;
+  color: white;
+}
+
+.wishlist-btn.active:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.wishlist-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ========== COURSE INFO ========== */
 .course-info {
   padding: 16px;

@@ -20,6 +20,13 @@ api.interceptors.request.use(
     // Set Accept-Language header cho backend tra cứu locale
     config.headers['Accept-Language'] = language;
     
+    // Handle FormData: don't set Content-Type, let axios handle it with multipart/form-data
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    } else if (!config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+    
     console.debug('[API] Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'NOT FOUND');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -43,15 +50,18 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const errorMessage = handleApiError(error);
     
-    console.error('[API] Error response:', {
-      url: originalRequest?.url,
-      status: error.response?.status,
-      message: error.response?.data?.message,
-      errorKey: error.response?.data?.errorKey,
-      i18nMessage: errorMessage,
-      data: error.response?.data,
-      headers: originalRequest?.headers,
-    });
+    // Only log errors if suppressErrorLog is not set
+    if (!originalRequest?.suppressErrorLog) {
+      console.error('[API] Error response:', {
+        url: originalRequest?.url,
+        status: error.response?.status,
+        message: error.response?.data?.message,
+        errorKey: error.response?.data?.errorKey,
+        i18nMessage: errorMessage,
+        data: error.response?.data,
+        headers: originalRequest?.headers,
+      });
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       console.warn('[API] 401 error - attempting token refresh...');

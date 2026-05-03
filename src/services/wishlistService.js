@@ -1,33 +1,88 @@
-import { mockWishlist, mockCourses } from '../utils/mockData';
+import api from './api';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
+/**
+ * Wishlist Service - Manage student wishlist
+ */
 export const wishlistService = {
-  getWishlist: async () => {
-    await delay(200);
-    return { data: mockWishlist };
+  /**
+   * Get current user's wishlist (paginated)
+   * @param {object} params - Pagination params { page, pageSize }
+   * @returns {Promise} Response with wishlist items
+   */
+  getWishlist: async (params = {}) => {
+    try {
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 10;
+      console.log('[wishlistService.getWishlist] Fetching wishlist - page:', page, 'pageSize:', pageSize);
+      const response = await api.get(`/api/v1/wishlist?page=${page}&pageSize=${pageSize}`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[wishlistService.getWishlist] Error:', error);
+      throw error;
+    }
   },
+
+  /**
+   * Add course to wishlist
+   * @param {string} courseId - Course ID to add
+   * @returns {Promise} Response with wishlist item containing course details
+   */
   add: async (courseId) => {
-    await delay(200);
-    const course = mockCourses.find(c => c.id === courseId);
-    if (!course) throw { response: { status: 404, data: { message: 'Khóa học không tìm thấy' } } };
-    const exists = mockWishlist.some(w => w.courseId === courseId);
-    if (exists) throw { response: { data: { message: 'Khóa học đã có trong danh sách yêu thích' } } };
-    const item = {
-      id: `wishlist-${Date.now()}`,
-      userId: 'user-1',
-      courseId,
-      course,
-      addedAt: new Date().toISOString().split('T')[0],
-    };
-    mockWishlist.push(item);
-    return { data: item };
+    try {
+      console.log('[wishlistService.add] Adding to wishlist:', courseId);
+      const response = await api.post(`/api/v1/wishlist/courses/${courseId}`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[wishlistService.add] Error:', error);
+      throw error;
+    }
   },
+
+  /**
+   * Remove course from wishlist by course ID
+   * @param {string} courseId - Course ID to remove
+   * @returns {Promise} Response
+   */
   remove: async (courseId) => {
-    await delay(200);
-    const index = mockWishlist.findIndex(w => w.courseId === courseId);
-    if (index === -1) throw { response: { status: 404, data: { message: 'Khóa học không có trong danh sách yêu thích' } } };
-    mockWishlist.splice(index, 1);
-    return { data: { message: 'Xóa khỏi danh sách yêu thích thành công' } };
+    try {
+      console.log('[wishlistService.remove] Removing from wishlist by course ID:', courseId);
+      const response = await api.delete(`/api/v1/wishlist/courses/${courseId}`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[wishlistService.remove] Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove wishlist item by wishlist ID
+   * @param {string} wishlistId - Wishlist item ID to remove
+   * @returns {Promise} Response
+   */
+  removeById: async (wishlistId) => {
+    try {
+      console.log('[wishlistService.removeById] Removing wishlist item:', wishlistId);
+      const response = await api.delete(`/api/v1/wishlist/${wishlistId}`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[wishlistService.removeById] Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Check if course is in wishlist
+   * @param {string} courseId - Course ID to check
+   * @returns {Promise} Response with { exists: boolean }
+   */
+  isCourseInWishlist: async (courseId) => {
+    try {
+      console.log('[wishlistService.isCourseInWishlist] Checking course:', courseId);
+      const response = await api.get(`/api/v1/wishlist/courses/${courseId}/exists`);
+      return { data: response.data?.data || response.data };
+    } catch (error) {
+      console.error('[wishlistService.isCourseInWishlist] Error:', error);
+      throw error;
+    }
   },
 };

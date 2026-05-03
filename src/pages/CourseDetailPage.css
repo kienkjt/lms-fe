@@ -488,6 +488,43 @@
   line-height: 1;
 }
 
+.purchase-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-wishlist {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-wishlist:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.btn-wishlist.active {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btn-wishlist:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .purchase-subtitle {
   font-size: 13px;
   color: var(--text-tertiary);

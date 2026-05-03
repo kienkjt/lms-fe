@@ -7,9 +7,74 @@ import {
   FaExpand,
   FaCompress,
   FaCog,
-  FaDownload,
 } from "react-icons/fa";
 import "./VideoPlayer.css";
+
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+
+  const rawUrl = String(url).trim();
+  if (!rawUrl) return null;
+
+  const extractByRegex = (input) => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#/]+)/i,
+      /youtube\.com\/embed\/([^&\n?#/]+)/i,
+      /youtube\.com\/v\/([^&\n?#/]+)/i,
+      /youtube\.com\/shorts\/([^&\n?#/]+)/i,
+      /youtube\.com\/live\/([^&\n?#/]+)/i,
+      /youtube-nocookie\.com\/embed\/([^&\n?#/]+)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = input.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    return null;
+  };
+
+  const directId = extractByRegex(rawUrl);
+  if (directId) {
+    return `https://www.youtube.com/embed/${directId}?rel=0&modestbranding=1`;
+  }
+
+  try {
+    const normalizedUrl = /^https?:\/\//i.test(rawUrl)
+      ? rawUrl
+      : `https://${rawUrl}`;
+    const parsedUrl = new URL(normalizedUrl);
+    const host = parsedUrl.hostname.replace(/^www\./, "");
+    let videoId = null;
+
+    if (host === "youtu.be") {
+      videoId = parsedUrl.pathname.split("/").filter(Boolean)[0];
+    } else if (
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "youtube-nocookie.com"
+    ) {
+      if (parsedUrl.pathname === "/watch") {
+        videoId = parsedUrl.searchParams.get("v");
+      } else {
+        const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+        if (["embed", "shorts", "live", "v"].includes(pathParts[0])) {
+          videoId = pathParts[1];
+        }
+      }
+    }
+
+    return videoId
+      ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`
+      : null;
+  } catch {
+    return extractByRegex(rawUrl)
+      ? `https://www.youtube.com/embed/${extractByRegex(rawUrl)}?rel=0&modestbranding=1`
+      : null;
+  }
+};
 
 const VideoPlayer = ({
   videoUrl,
@@ -29,6 +94,7 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [playbackRate, setPlaybackRate] = useState(1);
   const controlsTimeoutRef = useRef(null);
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(videoUrl);
 
   // Load video metadata
   const handleLoadedMetadata = () => {
@@ -194,6 +260,19 @@ const VideoPlayer = ({
           <FaPlay size={48} />
           <p>Video không tìm thấy hoặc bạn chưa đủ quyền truy cập</p>
         </div>
+      </div>
+    );
+  }
+
+  if (youtubeEmbedUrl) {
+    return (
+      <div className="video-player-container youtube-player">
+        <iframe
+          src={youtubeEmbedUrl}
+          title={videoTitle || "YouTube video player"}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
       </div>
     );
   }

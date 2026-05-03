@@ -11,12 +11,12 @@ import {
   FaFileAlt,
   FaGlobe,
   FaGraduationCap,
+  FaHeart,
   FaInfinity,
   FaLock,
   FaMobileAlt,
   FaPlay,
   FaShoppingCart,
-  FaStar,
   FaThumbtack,
   FaTrophy,
   FaUser,
@@ -29,9 +29,10 @@ import { chapterService } from "../services/chapterService";
 import { cartService } from "../services/cartService";
 import { enrollmentService } from "../services/enrollmentService";
 import { lessonService } from "../services/lessonService";
-import { reviewService } from "../services/reviewService";
+import { wishlistService } from "../services/wishlistService";
+import Reviews from "../components/courses/Reviews";
 import api from "../services/api";
-import { ROUTES, ROLES } from "../utils/constants";
+import { ROUTES, ROLES, hasRole } from "../utils/constants";
 import {
   formatDate,
   formatDuration,
@@ -103,13 +104,14 @@ const CourseDetailPage = () => {
 
   const [course, setCourse] = useState(null);
   const [chapters, setChapters] = useState([]);
-  const [reviews, setReviews] = useState([]);
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(null);
   const [activeTab, setActiveTab] = useState("curriculum");
   const [previewLesson, setPreviewLesson] = useState(null);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
 
   const inCart = items.some((item) => item.courseId === course?.id);
 
@@ -118,23 +120,7 @@ const CourseDetailPage = () => {
       try {
         setLoading(true);
 
-        const isUUID =
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-            slug,
-          );
-        const isNumericId = /^\d+$/.test(slug);
-
-        let courseResponse;
-
-        if (isUUID || isNumericId) {
-          courseResponse = await api.get(`/api/v1/courses/${slug}`);
-        } else {
-          try {
-            courseResponse = await api.get(`/api/v1/courses/slug/${slug}`);
-          } catch {
-            courseResponse = await api.get(`/api/v1/courses/${slug}`);
-          }
-        }
+        const courseResponse = await api.get(`/api/v1/courses/${slug}`);
 
         const normalizedCourse = normalizeCourse(
           courseResponse.data?.data || courseResponse.data,
@@ -178,22 +164,7 @@ const CourseDetailPage = () => {
         }
         setPreviewLesson(getPreviewLesson(chaptersWithLessons));
 
-        try {
-          const reviewsRes = await reviewService.getByCourse(
-            normalizedCourse.id,
-            {
-              page: 1,
-              size: 20,
-            },
-          );
-          const reviewData = reviewsRes.data?.content || reviewsRes.data || [];
-          setReviews(Array.isArray(reviewData) ? reviewData : []);
-        } catch (reviewError) {
-          console.error("Failed to load reviews:", reviewError);
-          setReviews([]);
-        }
-
-        if (isAuthenticated && user?.role === ROLES.STUDENT) {
+        if (isAuthenticated && hasRole(user?.role, [ROLES.STUDENT])) {
           try {
             const enrollmentRes = await enrollmentService.getEnrollment(
               normalizedCourse.id,
@@ -258,6 +229,32 @@ const CourseDetailPage = () => {
     }
   };
 
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+
+    try {
+      setLoadingWishlist(true);
+      if (inWishlist) {
+        await wishlistService.remove(course.id);
+        setInWishlist(false);
+        toast.success("Đã xóa khỏi danh sách yêu thích");
+      } else {
+        await wishlistService.add(course.id);
+        setInWishlist(true);
+        toast.success("Đã lưu vào danh sách yêu thích");
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 
+                       (inWishlist ? "Không thể xóa" : "Không thể thêm vào danh sách yêu thích");
+      toast.error(errorMsg);
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
   if (loading) return <Loading fullPage />;
   if (!course) return null;
 
@@ -287,6 +284,8 @@ const CourseDetailPage = () => {
     100,
     Math.max(0, enrollment?.progressPercent || 0),
   );
+  const canReview =
+    isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]);
 
   return (
     <div className="course-detail-page">
@@ -554,61 +553,7 @@ const CourseDetailPage = () => {
 
             {activeTab === "reviews" && (
               <div className="animate-fade-in">
-                <div className="reviews-summary">
-                  <div className="rating-big">
-                    <span className="rating-num">
-                      {(course.avgRating || 0).toFixed(1)}
-                    </span>
-                    <div className="stars" style={{ fontSize: "24px" }}>
-                      {stars.map((star, index) => (
-                        <span key={index} className={`star star-${star}`}>
-                          <FaStar />
-                        </span>
-                      ))}
-                    </div>
-                    <span className="rating-count">
-                      ({formatNumber(course.totalReviews || 0)})
-                    </span>
-                  </div>
-                </div>
-
-                {reviews.map((review) => (
-                  <div key={review.id} className="review-item">
-                    <div className="review-header">
-                      <div className="avatar avatar-sm">
-                        {review.studentName?.[0] || "U"}
-                      </div>
-                      <div>
-                        <div className="font-semibold">
-                          {review.studentName || "Học viên"}
-                        </div>
-                        <div className="stars" style={{ fontSize: "14px" }}>
-                          {getStarArray(review.rating || 0).map(
-                            (star, index) => (
-                              <span key={index} className={`star star-${star}`}>
-                                ★
-                              </span>
-                            ),
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-muted text-sm">
-                        {formatDate(review.createdAt)}
-                      </span>
-                    </div>
-                    <p className="review-comment">{review.comment}</p>
-                  </div>
-                ))}
-
-                {reviews.length === 0 && (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">
-                      <FaStar size={48} />
-                    </div>
-                    <h3>Chưa có đánh giá</h3>
-                    <p>Hãy là người đầu tiên đánh giá khóa học này</p>
-                  </div>
-                )}
+                <Reviews courseId={course.id} canReview={canReview} />
               </div>
             )}
           </div>
@@ -649,6 +594,18 @@ const CourseDetailPage = () => {
                       )}
                   </>
                 )}
+              </div>
+
+              <div className="purchase-actions">
+                <button
+                  className={`btn-wishlist ${inWishlist ? 'active' : ''}`}
+                  onClick={handleWishlistToggle}
+                  disabled={loadingWishlist}
+                  title={inWishlist ? 'Xóa khỏi yêu thích' : 'Lưu vào yêu thích'}
+                  id="wishlist-detail-btn"
+                >
+                  <FaHeart /> {inWishlist ? 'Đã lưu' : 'Lưu'}
+                </button>
               </div>
 
               <p className="purchase-subtitle">

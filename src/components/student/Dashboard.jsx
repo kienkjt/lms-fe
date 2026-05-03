@@ -6,6 +6,24 @@ import { ROUTES } from "../../utils/constants";
 import Loading from "../common/Loading";
 import "./Dashboard.css";
 
+const normalizeEnrollment = (enrollment) => ({
+  ...enrollment,
+  id: enrollment.enrollmentId || enrollment.id,
+  courseId: enrollment.courseId || enrollment.course?.id,
+  courseTitle: enrollment.courseTitle || enrollment.course?.title,
+  courseThumbnail:
+    enrollment.courseThumbnail ||
+    enrollment.course?.thumbnail ||
+    enrollment.course?.image,
+  instructorName:
+    enrollment.instructorName || enrollment.course?.instructorName,
+  progressPercent:
+    enrollment.progressPercent ??
+    enrollment.progress ??
+    enrollment.course?.progressPercent ??
+    0,
+});
+
 const StudentDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [enrollments, setEnrollments] = useState([]);
@@ -15,7 +33,13 @@ const StudentDashboard = () => {
     if (user?.id) {
       enrollmentService
         .getStudentCoursesPaginated({ page: 1, size: 6 })
-        .then((res) => setEnrollments(res.data?.content || res.data || []))
+        .then((res) => {
+          const data = res.data?.content || res.data || [];
+          const normalized = Array.isArray(data)
+            ? data.map(normalizeEnrollment)
+            : [];
+          setEnrollments(normalized);
+        })
         .catch(() => setEnrollments([]))
         .finally(() => setLoading(false));
     }
@@ -166,10 +190,10 @@ const StudentDashboard = () => {
             {enrollments.map((enrollment) => (
               <div key={enrollment.id} className="course-card-std">
                 <div className="course-thumbnail-std">
-                  {enrollment.course?.thumbnail ? (
+                  {enrollment.courseThumbnail ? (
                     <img
-                      src={enrollment.course.thumbnail}
-                      alt={enrollment.course.title}
+                      src={enrollment.courseThumbnail}
+                      alt={enrollment.courseTitle || "Khóa học"}
                     />
                   ) : (
                     <div className="placeholder-thumbnail">
@@ -196,13 +220,12 @@ const StudentDashboard = () => {
                 <div className="course-info-std">
                   <h4
                     className="course-title-std"
-                    title={enrollment.course?.title}
+                    title={enrollment.courseTitle}
                   >
-                    {enrollment.course?.title || "Chưa có tên khóa học"}
+                    {enrollment.courseTitle || "Chưa có tên khóa học"}
                   </h4>
                   <div className="course-instructor">
-                    {enrollment.course?.instructorName ||
-                      "Giảng viên chưa cập nhật"}
+                    {enrollment.instructorName || "Giảng viên chưa cập nhật"}
                   </div>
                   <div className="course-progress-wrapper">
                     <div className="progress-bar-bg">

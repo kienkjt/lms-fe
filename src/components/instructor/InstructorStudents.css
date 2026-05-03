@@ -1,0 +1,165 @@
+.instructor-students-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.instructor-students-header {
+  margin-bottom: 0;
+}
+
+.students-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 0.9fr);
+  gap: 16px;
+  align-items: end;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.students-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.students-field label {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.students-search-input {
+  position: relative;
+}
+
+.students-search-input svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--text-tertiary);
+  transform: translateY(-50%);
+}
+
+.students-search-input .form-input {
+  padding-left: 42px;
+}
+
+.students-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.students-table-card {
+  overflow: hidden;
+}
+
+.students-table-card:hover {
+  transform: none;
+}
+
+.students-table th,
+.students-table td {
+  vertical-align: middle;
+}
+
+.student-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 260px;
+}
+
+.student-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.student-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.student-name {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.student-contact {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.student-contact span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.student-contact svg {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.student-progress {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+  min-width: 150px;
+}
+
+.student-progress span {
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: right;
+}
+
+.students-message-cell {
+  color: var(--text-tertiary);
+  padding: 36px 20px !important;
+  text-align: center;
+}
+
+.students-empty {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+}
+
+.students-pagination {
+  border-top: 1px solid var(--border-color);
+  padding: 18px;
+}
+
+@media (max-width: 900px) {
+  .students-toolbar,
+  .students-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .instructor-students-page {
+    gap: 16px;
+  }
+
+  .students-toolbar {
+    padding: 16px;
+  }
+}

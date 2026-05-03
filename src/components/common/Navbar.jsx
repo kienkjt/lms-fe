@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../store/authSlice";
 import { clearCart } from "../../store/cartSlice";
 import { authService } from "../../services/authService";
-import { ROUTES, ROLES } from "../../utils/constants";
+import { ROUTES, ROLES, hasRole } from "../../utils/constants";
 import { getInitials, getDisplayName } from "../../utils/helpers";
 import NotificationCenter from "./NotificationCenter";
 import {
@@ -79,14 +79,11 @@ const Navbar = () => {
 
   const getDashboardRoute = () => {
     if (!user) return ROUTES.HOME;
-    switch (user.role) {
-      case ROLES.ADMIN:
-        return ROUTES.ADMIN_DASHBOARD;
-      case ROLES.INSTRUCTOR:
-        return ROUTES.INSTRUCTOR_DASHBOARD;
-      default:
-        return ROUTES.STUDENT_DASHBOARD;
+    if (hasRole(user.role, [ROLES.ADMIN])) return ROUTES.ADMIN_DASHBOARD;
+    if (hasRole(user.role, [ROLES.INSTRUCTOR])) {
+      return ROUTES.INSTRUCTOR_DASHBOARD;
     }
+    return ROUTES.STUDENT_DASHBOARD;
   };
 
   return (
@@ -130,12 +127,12 @@ const Navbar = () => {
           >
             Khóa học
           </Link>
-          {isAuthenticated && user?.role === ROLES.STUDENT && (
+          {isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]) && (
             <Link to={ROUTES.STUDENT_ORDERS} className="nav-link">
               Đơn hàng
             </Link>
           )}
-          {isAuthenticated && user?.role === ROLES.INSTRUCTOR && (
+          {isAuthenticated && hasRole(user?.role, [ROLES.INSTRUCTOR]) && (
             <Link
               to={ROUTES.INSTRUCTOR_DASHBOARD}
               className={`nav-link ${location.pathname.startsWith("/instructor") ? "active" : ""}`}
@@ -150,7 +147,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               {/* Cart */}
-              {user?.role === ROLES.STUDENT && (
+              {hasRole(user?.role, [ROLES.STUDENT]) && (
                 <Link to={ROUTES.CART} className="nav-icon-btn" id="cart-icon">
                   <FiShoppingCart size={20} />
                   {items.length > 0 && (
@@ -221,7 +218,7 @@ const Navbar = () => {
                     >
                       <FiUser size={18} /> Hồ sơ cá nhân
                     </Link>
-                    {user?.role === ROLES.STUDENT && (
+                    {hasRole(user?.role, [ROLES.STUDENT]) && (
                       <>
                         <Link
                           to={ROUTES.STUDENT_COURSES}

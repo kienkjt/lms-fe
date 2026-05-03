@@ -22,24 +22,23 @@ const Cart = () => {
         .getCart()
         .then((res) => {
           const data = res.data;
-          const cartItems = data?.cartItems || data?.items || [];
-          const total = cartItems.reduce(
-            (sum, item) =>
-              sum + (item.course?.discountPrice || item.course?.price || 0),
-            0,
-          );
+          const cartItems = data?.items || data?.cartItems || [];
+          const total =
+            data?.totalAmount ||
+            cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
           dispatch(setCart({ items: cartItems, total }));
         })
         .catch(() => {});
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
-  const handleRemove = async (courseId) => {
+  const handleRemove = async (cartItemId) => {
     try {
-      await cartService.removeItem(courseId);
-      dispatch(removeFromCart(courseId));
+      await cartService.removeItem(cartItemId);
+      dispatch(removeFromCart(cartItemId));
       toast.success("Đã xóa khỏi giỏ hàng");
-    } catch {
+    } catch (error) {
+      console.error("Remove cart item failed:", error);
       toast.error("Không thể xóa");
     }
   };
@@ -56,7 +55,8 @@ const Cart = () => {
 
   const total = items.reduce(
     (sum, item) =>
-      sum + (item.course?.discountPrice || item.course?.price || 0),
+      sum +
+      (item.price || item.course?.discountPrice || item.course?.price || 0),
     0,
   );
 
@@ -92,30 +92,47 @@ const Cart = () => {
               </div>
 
               {items.map((item) => {
-                const course = item.course || item;
-                const price = course?.discountPrice || course?.price || 0;
+                const title =
+                  item.courseTitle || item.course?.title || "Khóa học";
+                const thumbnail =
+                  item.courseThumbnail || item.course?.thumbnail;
+                const instructorName =
+                  item.instructorName || item.course?.instructorName;
+                const price =
+                  item.price ||
+                  item.course?.discountPrice ||
+                  item.course?.price ||
+                  0;
+                const originalPrice =
+                  item.originalPrice ||
+                  item.course?.originalPrice ||
+                  item.course?.price ||
+                  0;
                 return (
-                  <div key={item.courseId || item.id} className="cart-item">
-                    {course?.thumbnail && (
+                  <div key={item.id || item.courseId} className="cart-item">
+                    {thumbnail && (
                       <img
-                        src={course.thumbnail}
-                        alt={course.title}
+                        src={thumbnail}
+                        alt={title}
                         className="cart-item-img"
                       />
                     )}
                     <div className="cart-item-info">
                       <Link
-                        to={`/courses/${course?.slug}`}
+                        to={`/courses/${item.courseId || item.course?.id}`}
                         className="cart-item-title"
                       >
-                        {course?.title}
+                        {title}
                       </Link>
-                      <p className="cart-item-instructor">
-                        {course?.instructorName}
-                      </p>
+                      <p className="cart-item-instructor">{instructorName}</p>
                       <div className="cart-item-meta">
-                        {course?.totalLessons && (
-                          <span>📝 {course.totalLessons} bài</span>
+                        {originalPrice > price && (
+                          <span
+                            className="text-muted"
+                            style={{ textDecoration: "line-through" }}
+                          >
+                            {formatPrice(originalPrice)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -125,7 +142,7 @@ const Cart = () => {
                       </span>
                       <button
                         className="btn btn-ghost btn-sm"
-                        onClick={() => handleRemove(item.courseId || item.id)}
+                        onClick={() => handleRemove(item.id)}
                       >
                         ✕
                       </button>

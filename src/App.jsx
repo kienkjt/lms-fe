@@ -31,6 +31,7 @@ import OrderDetailPage from "./pages/OrderDetailPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentFailurePage from "./pages/PaymentFailurePage";
 import PaymentPendingPage from "./pages/PaymentPendingPage";
+import PaymentResultPage from "./pages/PaymentResultPage";
 import {
   NotFoundPage,
   UnauthorizedPage,
@@ -42,6 +43,9 @@ const StudentDashboard = lazy(() => import("./components/student/Dashboard"));
 const InstructorDashboard = lazy(
   () => import("./components/instructor/Dashboard"),
 );
+const InstructorRevenuePage = lazy(
+  () => import("./pages/InstructorRevenuePage"),
+);
 const CoursesManagement = lazy(
   () => import("./components/instructor/CoursesManagement"),
 );
@@ -50,6 +54,16 @@ const EditCourse = lazy(() => import("./components/instructor/EditCourse"));
 const ChapterManagement = lazy(
   () => import("./components/instructor/ChapterManagement"),
 );
+const QuizManagement = lazy(
+  () => import("./components/instructor/QuizManagement"),
+);
+const QuestionManagement = lazy(
+  () => import("./components/instructor/QuestionManagement"),
+);
+const InstructorStudents = lazy(
+  () => import("./components/instructor/InstructorStudents"),
+);
+const InstructorQAPage = lazy(() => import("./pages/InstructorQAPage"));
 const Cart = lazy(() => import("./components/cart/Cart"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const LearningPage = lazy(() => import("./pages/LearningPage"));
@@ -167,6 +181,16 @@ function App() {
                   <WithMainLayout>
                     <Suspense fallback={<PageLoader />}>
                       <PaymentSuccessPage />
+                    </Suspense>
+                  </WithMainLayout>
+                }
+              />
+              <Route
+                path="/payment/result"
+                element={
+                  <WithMainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <PaymentResultPage />
                     </Suspense>
                   </WithMainLayout>
                 }
@@ -338,6 +362,68 @@ function App() {
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <ChapterManagement />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_QUIZ}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <QuizManagement />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_QUIZ_QUESTIONS}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <QuestionManagement />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_STUDENTS}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <InstructorStudents />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_QA}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <InstructorQAPage />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ── Instructor Revenue/Withdrawal ── */}
+              <Route
+                path={ROUTES.INSTRUCTOR_REVENUE}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <InstructorRevenuePage />
                       </Suspense>
                     </WithDashboard>
                   </ProtectedRoute>

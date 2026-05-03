@@ -10,14 +10,15 @@ const cartSlice = createSlice({
   reducers: {
     setCart: (state, action) => {
       state.items = action.payload.items || [];
-      state.total = action.payload.total || 0;
+      state.total = action.payload.totalAmount ?? action.payload.total ?? 0;
     },
     addToCart: (state, action) => {
       const exists = state.items.find(i => i.courseId === action.payload.courseId);
       if (!exists) state.items.push(action.payload);
     },
     removeFromCart: (state, action) => {
-      state.items = state.items.filter(i => i.courseId !== action.payload);
+      // action.payload is cartItemId (item.id), not courseId
+      state.items = state.items.filter(i => i.id !== action.payload);
     },
     clearCart: (state) => {
       state.items = [];

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../store/authSlice";
 import { authService } from "../services/authService";
-import { ROUTES, ROLES } from "../utils/constants";
+import { ROUTES, ROLES, hasRole } from "../utils/constants";
 import { getInitials, getDisplayName } from "../utils/helpers";
 import "./DashboardLayout.css";
 
@@ -173,7 +173,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   const displayName = getDisplayName(user);
-  const isStudent = user?.role === ROLES.STUDENT;
+  const isStudent = hasRole(user?.role, [ROLES.STUDENT]);
 
   // ─── STUDENT LAYOUT (header-only, no sidebar) ───
   if (isStudent) {
@@ -382,7 +382,7 @@ const DashboardLayout = ({ children }) => {
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">{displayName}</div>
               <div className="sidebar-user-role">
-                {user?.role === ROLES.INSTRUCTOR
+                {hasRole(user?.role, [ROLES.INSTRUCTOR])
                   ? "Giảng viên"
                   : "Quản trị viên"}
               </div>

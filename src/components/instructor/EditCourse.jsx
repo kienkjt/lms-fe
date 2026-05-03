@@ -23,6 +23,14 @@ const LEVEL_DISPLAY = {
   4: "Tất cả cấp độ",
 };
 
+// Map level values to enum names for backend
+const LEVEL_VALUE_TO_NAME = {
+  1: "BEGINNER",
+  2: "INTERMEDIATE",
+  3: "ADVANCED",
+  4: "ALL_LEVEL",
+};
+
 const EditCourse = () => {
   const { courseId } = useParams();
   const { user } = useSelector((state) => state.auth);
@@ -162,6 +170,10 @@ const EditCourse = () => {
       toast.error("Vui lòng chọn danh mục");
       return;
     }
+    if (!formData.level) {
+      toast.error("Vui lòng chọn mức độ");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -170,7 +182,9 @@ const EditCourse = () => {
         shortDescription: formData.shortDescription,
         fullDescription: formData.fullDescription || null,
         categoryId: formData.categoryId,
-        level: formData.level,
+        // Send enum name (BEGINNER, INTERMEDIATE, etc.) instead of value (1, 2, etc.)
+        // This works with standard Jackson enum deserialization
+        level: LEVEL_VALUE_TO_NAME[formData.level] || formData.level,
         price: formData.price,
         discountPrice: formData.discountPrice || null,
         totalDuration: formData.totalDuration || null,
@@ -180,6 +194,8 @@ const EditCourse = () => {
         whatYouWillLearn: formData.whatYouWillLearn || null,
       };
 
+      console.log("[EditCourse] Submitting course data:", courseData);
+
       await courseService.update(courseId, courseData);
       toast.success("Cập nhật khóa học thành công!");
 
@@ -187,11 +203,15 @@ const EditCourse = () => {
       if (thumbnailFile) {
         try {
           setUploadingMedia(true);
+          console.log("[EditCourse] Uploading thumbnail...");
           await courseService.uploadCourseImage(courseId, thumbnailFile);
           toast.success("Tải lên hình ảnh khóa học thành công!");
         } catch (err) {
-          toast.warning("Cập nhật thành công nhưng không thể tải lên hình ảnh");
-          console.error("Thumbnail upload error:", err);
+          console.error("[EditCourse] Thumbnail upload error:", err);
+          toast.warning(
+            "Cập nhật thành công nhưng không thể tải lên hình ảnh: " +
+              (err.response?.data?.message || err.message),
+          );
         }
       }
 
@@ -199,16 +219,18 @@ const EditCourse = () => {
       if (previewVideoFile) {
         try {
           setUploadingMedia(true);
+          console.log("[EditCourse] Uploading preview video...");
           await courseService.uploadCoursePreviewVideo(
             courseId,
             previewVideoFile,
           );
           toast.success("Tải lên video preview thành công!");
         } catch (err) {
+          console.error("[EditCourse] Preview video upload error:", err);
           toast.warning(
-            "Cập nhật thành công nhưng không thể tải lên video preview",
+            "Cập nhật thành công nhưng không thể tải lên video preview: " +
+              (err.response?.data?.message || err.message),
           );
-          console.error("Preview video upload error:", err);
         }
       }
 
@@ -216,7 +238,12 @@ const EditCourse = () => {
         navigate(ROUTES.INSTRUCTOR_COURSES);
       }, 1500);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Không thể cập nhật khóa học");
+      console.error("[EditCourse] Update error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Không thể cập nhật khóa học";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
       setUploadingMedia(false);

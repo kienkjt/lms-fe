@@ -5,30 +5,19 @@ export const userService = {
    * Get user profile
    */
   getProfile: async () => {
-    try {
-      const response = await api.get('/api/v1/user/profile');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return api.get('/api/v1/user/profile');
   },
 
   /**
    * Update user profile
-   * @param {Object} data - Profile update data (fullName, gender, phoneNumber, bio)
+   * @param {Object} data - Profile update data (fullName, phone, bio)
    */
   updateProfile: async (data) => {
-    try {
-      const response = await api.put('/api/v1/user/profile', {
-        fullName: data.fullName,
-        gender: data.gender || null,
-        phoneNumber: data.phoneNumber || null,
-        bio: data.bio || null,
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return api.put('/api/v1/user/profile', {
+      fullName: data.fullName,
+      phone: data.phone || data.phoneNumber || null,
+      bio: data.bio || null,
+    });
   },
 
   /**
@@ -36,16 +25,11 @@ export const userService = {
    * @param {Object} data - Password change data (currentPassword, newPassword, confirmNewPassword)
    */
   changePassword: async (data) => {
-    try {
-      const response = await api.post('/api/v1/user/change-password', {
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-        confirmNewPassword: data.confirmNewPassword,
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return api.post('/api/v1/user/change-password', {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+      confirmNewPassword: data.confirmNewPassword,
+    });
   },
 
   /**
@@ -53,29 +37,16 @@ export const userService = {
    * @param {File} file - Avatar file
    */
   uploadAvatar: async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await api.post('/api/v1/user/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const formData = new FormData();
+    formData.append('file', file);
+    // Don't set Content-Type header - let axios handle it with proper boundary
+    return api.post('/api/v1/user/avatar', formData);
   },
 
   /**
    * Delete avatar
    */
   deleteAvatar: async () => {
-    try {
-      const response = await api.delete('/api/v1/user/avatar');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return api.delete('/api/v1/user/avatar');
   },
 };

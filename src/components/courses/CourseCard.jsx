@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { addToCart } from "../../store/cartSlice";
 import { cartService } from "../../services/cartService";
+import { wishlistService } from "../../services/wishlistService";
 import {
   formatPrice,
   formatDuration,
@@ -18,6 +19,7 @@ import {
   FaUsers,
   FaFileAlt,
   FaClock,
+  FaHeart,
 } from "react-icons/fa";
 import "./CourseCard.css";
 
@@ -32,10 +34,13 @@ const levelClass = {
   ADVANCED: "badge-error",
 };
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onWishlistChange }) => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state) => state.auth);
   const { items } = useSelector((state) => state.cart);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
+  
   const inCart = items.some((i) => i.courseId === course.id);
 
   const handleAddToCart = async (e) => {
@@ -57,11 +62,43 @@ const CourseCard = ({ course }) => {
     }
   };
 
+  const handleWishlistToggle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để lưu khóa học yêu thích");
+      return;
+    }
+
+    try {
+      setLoadingWishlist(true);
+      if (inWishlist) {
+        await wishlistService.remove(course.id);
+        setInWishlist(false);
+        toast.success("Đã xóa khỏi danh sách yêu thích");
+      } else {
+        await wishlistService.add(course.id);
+        setInWishlist(true);
+        toast.success("Đã lưu vào danh sách yêu thích");
+      }
+      if (onWishlistChange) {
+        onWishlistChange(course.id, !inWishlist);
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 
+                       (inWishlist ? "Không thể xóa" : "Không thể thêm vào danh sách yêu thích");
+      toast.error(errorMsg);
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
   const stars = getStarArray(course.avgRating || 0);
 
   return (
     <Link
-      to={`/courses/${course.slug || course.id}`}
+      to={`/courses/${course.id}`}
       className="course-card"
       id={`course-card-${course.id}`}
     >
@@ -74,6 +111,17 @@ const CourseCard = ({ course }) => {
             <FaBook size={32} />
           </div>
         )}
+
+        {/* Wishlist Button */}
+        <button
+          className={`wishlist-btn ${inWishlist ? 'active' : ''}`}
+          onClick={handleWishlistToggle}
+          disabled={loadingWishlist}
+          title={inWishlist ? 'Xóa khỏi yêu thích' : 'Lưu vào yêu thích'}
+          id={`wishlist-btn-${course.id}`}
+        >
+          <FaHeart size={20} />
+        </button>
 
         {/* Overlay */}
         <div className="course-overlay">

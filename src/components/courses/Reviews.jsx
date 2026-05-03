@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { reviewService } from "../../services/reviewService";
-import { FaStar, FaTrash, FaEdit, FaPaperPlane } from "react-icons/fa";
+import { ROLES, hasRole } from "../../utils/constants";
+import {
+  FaStar,
+  FaTrash,
+  FaEdit,
+  FaPaperPlane,
+  FaReply,
+  FaTimes,
+} from "react-icons/fa";
 import "./Reviews.css";
 
-const ReviewForm = ({
-  courseId,
-  onSubmit,
-  initialData = null,
-  onCancel = null,
-}) => {
+const ReviewForm = ({ onSubmit, initialData = null, onCancel = null }) => {
   const { user } = useSelector((state) => state.auth);
   const [rating, setRating] = useState(initialData?.rating || 5);
   const [comment, setComment] = useState(initialData?.comment || "");
@@ -102,14 +105,83 @@ const ReviewForm = ({
   );
 };
 
-const ReviewCard = ({ review, isOwn, onDelete, onEdit }) => {
+const ReplyForm = ({ onSubmit, onCancel, submitting = false }) => {
+  const [reply, setReply] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!reply.trim()) {
+      toast.error("Vui lòng nhập câu trả lời");
+      return;
+    }
+    onSubmit(reply);
+    setReply("");
+  };
+
+  return (
+    <form className="reply-form" onSubmit={handleSubmit}>
+      <textarea
+        value={reply}
+        onChange={(e) => setReply(e.target.value)}
+        placeholder="Nhập câu trả lời của bạn..."
+        rows={3}
+        maxLength={2000}
+        required
+      />
+      <span className="char-count">{reply.length}/2000</span>
+      <div className="form-actions">
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={onCancel}
+          disabled={submitting}
+        >
+          Hủy
+        </button>
+        <button
+          type="submit"
+          className="btn btn-primary btn-sm"
+          disabled={submitting}
+        >
+          {submitting ? "Đang gửi..." : "Gửi câu trả lời"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+const ReviewCard = ({
+  review,
+  isOwn,
+  isInstructor,
+  onDelete,
+  onEdit,
+  onReply,
+}) => {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleReplySubmit = async (replyText) => {
+    try {
+      setSubmitting(true);
+      await onReply(review.id, replyText);
+      setShowReplyForm(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="review-card">
       {/* Header */}
       <div className="review-header">
         <div className="reviewer-info">
           <div className="reviewer-avatar">
-            {review.studentName?.charAt(0)?.toUpperCase()}
+            {review.studentAvatar ? (
+              <img src={review.studentAvatar} alt={review.studentName} />
+            ) : (
+              review.studentName?.charAt(0)?.toUpperCase()
+            )}
           </div>
           <div className="reviewer-details">
             <h4 className="reviewer-name">
@@ -148,12 +220,51 @@ const ReviewCard = ({ review, isOwn, onDelete, onEdit }) => {
       <div className="review-comment">
         <p>{review.comment}</p>
       </div>
+
+      {/* Instructor Reply */}
+      {review.instructorReply && (
+        <div className="instructor-reply">
+          <div className="reply-header">
+            <FaReply size={14} />
+            <span className="reply-label">Phản hồi từ giảng viên</span>
+            {review.repliedAt && (
+              <span className="reply-date">
+                {new Date(review.repliedAt).toLocaleDateString("vi-VN")}
+              </span>
+            )}
+          </div>
+          <p className="reply-text">{review.instructorReply}</p>
+        </div>
+      )}
+
+      {/* Reply Form (for instructors) */}
+      {isInstructor && !review.instructorReply && (
+        <>
+          {!showReplyForm ? (
+            <button
+              className="btn-reply-small"
+              onClick={() => setShowReplyForm(true)}
+            >
+              <FaReply size={12} /> Phản hồi
+            </button>
+          ) : (
+            <ReplyForm
+              onSubmit={handleReplySubmit}
+              onCancel={() => setShowReplyForm(false)}
+              submitting={submitting}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
 
-const Reviews = ({ courseId }) => {
+const Reviews = ({ courseId, canReview = false }) => {
   const { user } = useSelector((state) => state.auth);
+  const isInstructor = hasRole(user?.role, [ROLES.INSTRUCTOR]);
+  const isStudent = hasRole(user?.role, [ROLES.STUDENT]);
+
   const [reviews, setReviews] = useState([]);
   const [myReview, setMyReview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -164,16 +275,12 @@ const Reviews = ({ courseId }) => {
   const [stats, setStats] = useState(null);
 
   // Load reviews
-  useEffect(() => {
-    loadReviews();
-  }, [courseId, page]);
-
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setLoading(true);
 
       // Load my review if authenticated
-      if (user) {
+      if (user && isStudent) {
         try {
           const myRes = await reviewService.getMyReview(courseId);
           setMyReview(myRes.data);
@@ -190,11 +297,14 @@ const Reviews = ({ courseId }) => {
 
       if (page === 1) {
         setReviews(reviewsList);
+        setHasMore(reviewsList.length < total);
       } else {
-        setReviews((prev) => [...prev, ...reviewsList]);
+        setReviews((prev) => {
+          const updated = [...prev, ...reviewsList];
+          setHasMore(updated.length < total);
+          return updated;
+        });
       }
-
-      setHasMore(reviews.length + reviewsList.length < total);
 
       // Load rating stats
       try {
@@ -205,59 +315,68 @@ const Reviews = ({ courseId }) => {
       }
     } catch (error) {
       console.error("Error loading reviews:", error);
-      toast.error("Lỗi tải bình luận");
+      toast.error("Lỗi tải đánh giá");
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId, user, isStudent, page]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
 
   const handleCreateReview = async (data) => {
     try {
-      await reviewService.create({
-        courseId,
-        rating: data.rating,
-        comment: data.comment,
-      });
-      toast.success("Bình luận đã được gửi");
+      await reviewService.create(courseId, data);
+      toast.success("Đánh giá đã được gửi");
       setShowForm(false);
       setPage(1);
       loadReviews();
     } catch (error) {
-      toast.error("Lỗi khi gửi bình luận");
+      toast.error(error.response?.data?.message || "Không thể gửi đánh giá");
     }
   };
 
   const handleUpdateReview = async (data) => {
     try {
-      await reviewService.update(editingReview.id, {
-        rating: data.rating,
-        comment: data.comment,
-      });
-      toast.success("Bình luận đã được cập nhật");
+      await reviewService.updateMyReview(courseId, data);
+      toast.success("Đánh giá đã được cập nhật");
       setEditingReview(null);
       setPage(1);
       loadReviews();
     } catch (error) {
-      toast.error("Lỗi khi cập nhật bình luận");
+      toast.error(
+        error.response?.data?.message || "Không thể cập nhật đánh giá",
+      );
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
+  const handleDeleteReview = async () => {
+    if (!window.confirm("Bạn có chắc muốn xóa đánh giá này?")) return;
 
     try {
-      await reviewService.delete(reviewId);
-      toast.success("Bình luận đã được xóa");
+      await reviewService.deleteMyReview(courseId);
+      toast.success("Đánh giá đã được xóa");
       setPage(1);
       loadReviews();
     } catch (error) {
-      toast.error("Lỗi khi xóa bình luận");
+      toast.error(error.response?.data?.message || "Không thể xóa đánh giá");
+    }
+  };
+
+  const handleReplyReview = async (reviewId, replyText) => {
+    try {
+      await reviewService.replyReview(courseId, reviewId, { reply: replyText });
+      toast.success("Câu trả lời đã được gửi");
+      loadReviews();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Lỗi khi gửi câu trả lời");
     }
   };
 
   return (
     <div className="reviews-section">
-      <h2>Bình luận & Đánh giá</h2>
+      <h2>Đánh giá khóa học</h2>
 
       {/* Rating Summary */}
       {stats && (
@@ -274,7 +393,7 @@ const Reviews = ({ courseId }) => {
                 ))}
               </div>
               <span className="review-count">
-                ({stats.totalReviews} bình luận)
+                ({stats.totalReviews} đánh giá)
               </span>
             </div>
           </div>
@@ -282,18 +401,35 @@ const Reviews = ({ courseId }) => {
       )}
 
       {/* My Review Form */}
-      {user && !myReview && !editingReview && (
+      {!user && (
+        <div className="review-access-note">
+          Đăng nhập bằng tài khoản học viên đã đăng ký khóa học để viết đánh giá.
+        </div>
+      )}
+
+      {user && isStudent && !canReview && (
+        <div className="review-access-note">
+          Backend chỉ cho phép học viên đã đăng ký khóa học viết đánh giá.
+        </div>
+      )}
+
+      {user && isInstructor && (
+        <div className="review-access-note">
+          Giảng viên có thể phản hồi đánh giá của học viên, không thể tự đánh giá khóa học.
+        </div>
+      )}
+
+      {canReview && !myReview && !editingReview && (
         <>
           {!showForm ? (
             <button
               className="btn btn-primary btn-new-review"
               onClick={() => setShowForm(true)}
             >
-              Viết bình luận
+              Viết đánh giá
             </button>
           ) : (
             <ReviewForm
-              courseId={courseId}
               onSubmit={handleCreateReview}
               onCancel={() => setShowForm(false)}
             />
@@ -304,7 +440,6 @@ const Reviews = ({ courseId }) => {
       {/* Editing Review */}
       {editingReview && (
         <ReviewForm
-          courseId={courseId}
           initialData={editingReview}
           onSubmit={handleUpdateReview}
           onCancel={() => setEditingReview(null)}
@@ -315,12 +450,14 @@ const Reviews = ({ courseId }) => {
       <div className="reviews-list">
         {myReview && (
           <div className="my-review-section">
-            <h3>Bình luận của bạn</h3>
+            <h3>Đánh giá của bạn</h3>
             <ReviewCard
               review={myReview}
               isOwn={true}
-              onDelete={() => handleDeleteReview(myReview.id)}
+              isInstructor={isInstructor}
+              onDelete={handleDeleteReview}
               onEdit={() => setEditingReview(myReview)}
+              onReply={handleReplyReview}
             />
           </div>
         )}
@@ -333,26 +470,31 @@ const Reviews = ({ courseId }) => {
                 key={review.id}
                 review={review}
                 isOwn={review.studentId === user?.id}
-                onDelete={() => handleDeleteReview(review.id)}
+                isInstructor={isInstructor}
+                onDelete={() =>
+                  window.confirm("Bạn có chắc muốn xóa bình luận này?") &&
+                  handleDeleteReview()
+                }
                 onEdit={() => setEditingReview(review)}
+                onReply={handleReplyReview}
               />
             ))}
         </div>
 
-        {loading && <div className="loading">Đang tải bình luận...</div>}
+        {loading && <div className="loading">Đang tải đánh giá...</div>}
 
         {hasMore && (
           <button
             className="btn btn-outline btn-load-more"
             onClick={() => setPage((p) => p + 1)}
           >
-            Xem thêm bình luận
+            Xem thêm đánh giá
           </button>
         )}
 
         {!loading && reviews.length === 0 && !myReview && (
           <div className="empty-reviews">
-            <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+            <p>Chưa có đánh giá nào.</p>
           </div>
         )}
       </div>
@@ -363,4 +505,4 @@ const Reviews = ({ courseId }) => {
 export default Reviews;
 
 // Export sub-components for testing
-export { ReviewForm, ReviewCard };
+export { ReviewForm, ReviewCard, ReplyForm };

@@ -105,7 +105,6 @@ export const chapterService = {
   deleteChapter: async (courseId, chapterId) => {
     try {
       console.log('[chapterService.deleteChapter] Deleting chapter:', chapterId);
-      // Backend uses POST for delete
       const response = await api.post(`/api/v1/courses/${courseId}/chapters/${chapterId}`);
       console.log('[chapterService.deleteChapter] Success');
       return { data: response.data?.data || response.data || { message: 'Xóa chương thành công' } };

@@ -305,7 +305,7 @@ export const isValidAmount = (amount) => {
   return amount >= MIN_AMOUNT && amount <= MAX_AMOUNT;
 };
 
-export default {
+export const vnpayService = {
   generatePaymentUrl,
   verifySignature,
   parseVNPAYResponse,
@@ -313,3 +313,5 @@ export default {
   formatAmount,
   isValidAmount,
 };
+
+export default vnpayService;

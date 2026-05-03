@@ -16,7 +16,9 @@ const WishListPage = () => {
       try {
         setLoading(true);
         const response = await wishlistService.getWishlist();
-        setItems(Array.isArray(response.data) ? response.data : []);
+        // Response data has { content: [...], pageNumber, pageSize, etc }
+        const data = response.data?.content || response.data || [];
+        setItems(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load wishlist:", error);
         toast.error("Khong the tai danh sach yeu thich");
@@ -33,11 +35,11 @@ const WishListPage = () => {
       setRemovingId(courseId);
       await wishlistService.remove(courseId);
       setItems((prev) => prev.filter((item) => item.courseId !== courseId));
-      toast.success("Da xoa khoi danh sach yeu thich");
+      toast.success("Đã xóa khỏi danh sách yêu thích");
     } catch (error) {
       console.error("Remove wishlist item failed:", error);
       toast.error(
-        error.response?.data?.message || "Khong the xoa khoi yeu thich",
+        error.response?.data?.message || "Không thể xóa khỏi yêu thích",
       );
     } finally {
       setRemovingId("");
@@ -47,18 +49,18 @@ const WishListPage = () => {
   return (
     <div className="wishlist-page animate-fade-in">
       <div className="wishlist-header">
-        <h1>Danh sach yeu thich</h1>
-        <p>Luu lai cac khoa hoc ban quan tam de hoc sau.</p>
+        <h1>Danh sách yêu thích</h1>
+        <p>Lưu lại các khóa học bạn quan tâm để học sau.</p>
       </div>
 
       {loading ? (
-        <div className="wishlist-state">Dang tai danh sach...</div>
+        <div className="wishlist-state">Đang tải danh sách...</div>
       ) : items.length === 0 ? (
         <div className="wishlist-empty">
-          <h3>Chua co khoa hoc nao trong danh sach yeu thich</h3>
-          <p>Ban co the them khoa hoc yeu thich tu trang chi tiet khoa hoc.</p>
+          <h3>Chưa có khóa học nào trong danh sách yêu thích</h3>
+          <p>Bạn có thể thêm khóa học yêu thích từ trang chi tiết khóa học.</p>
           <Link to={ROUTES.COURSES} className="btn btn-primary btn-sm">
-            Kham pha khoa hoc
+            Khám phá khóa học
           </Link>
         </div>
       ) : (
@@ -77,7 +79,7 @@ const WishListPage = () => {
               </div>
 
               <div className="wishlist-item-content">
-                <h3>{item.course?.title || "Khoa hoc"}</h3>
+                <h3>{item.course?.title || "Khóa học"}</h3>
                 <p>
                   {item.course?.shortDescription ||
                     item.course?.description ||
@@ -85,23 +87,23 @@ const WishListPage = () => {
                 </p>
                 <div className="wishlist-item-meta">
                   <span>{formatPrice(item.course?.price || 0)}</span>
-                  <span>Them ngay: {formatDate(item.addedAt)}</span>
+                  <span>Thêm ngày: {formatDate(item.createdAt)}</span>
                 </div>
               </div>
 
               <div className="wishlist-item-actions">
                 <Link
-                  to={`/courses/${item.course?.slug || item.courseId}`}
+                  to={`/courses/${item.course?.id || item.courseId}`}
                   className="btn btn-outline btn-sm"
                 >
-                  Xem chi tiet
+                  Xem chi tiết
                 </Link>
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => handleRemove(item.courseId)}
                   disabled={removingId === item.courseId}
                 >
-                  Xoa
+                  Xóa
                 </button>
               </div>
             </article>

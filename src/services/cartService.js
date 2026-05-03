@@ -1,5 +1,5 @@
 import api from './api';
-import { mockCart, mockCourses } from '../utils/mockData';
+import { mockCart } from '../utils/mockData';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -19,7 +19,18 @@ export const cartService = {
       console.error('[cartService.getCart] API error, using mock data:', error);
       // Fallback to mock
       await delay(200);
-      return { data: mockCart };
+      // Return CartResponseDto-shaped fallback
+      const items = mockCart.map(item => ({
+        id: item.id,
+        courseId: item.courseId,
+        courseTitle: item.course?.title || item.courseTitle,
+        courseThumbnail: item.course?.thumbnail || item.course?.image || item.courseThumbnail,
+        instructorName: item.course?.instructorName || item.course?.instructor?.name,
+        price: item.course?.discountPrice || item.course?.price || item.price || 0,
+        originalPrice: item.course?.originalPrice || item.course?.price || item.originalPrice || 0,
+      }));
+      const totalAmount = items.reduce((s, it) => s + (it.price || 0), 0);
+      return { data: { id: 'mock-cart', totalAmount, items } };
     }
   },
 
@@ -36,21 +47,31 @@ export const cartService = {
       console.log('[cartService.addItem] Success');
       return { data: cart };
     } catch (error) {
-      console.error('[cartService.addItem] API error, using mock data:', error);
-      // Fallback to mock
+      console.error('[cartService.addItem] API error:', error);
+      // Fallback to mock behavior: add item and return CartResponseDto
       await delay(200);
-      const course = mockCourses.find(c => c.id === courseId);
-      if (!course) throw { response: { status: 404, data: { message: 'Khóa học không tìm thấy' } } };
-      const exists = mockCart.some(item => item.courseId === courseId);
-      if (exists) throw { response: { data: { message: 'Khóa học đã có trong giỏ hàng' } } };
+      const course = undefined; // we don't have course detail here in mock fallback
       const cartItem = {
         id: `cart-${Date.now()}`,
         courseId,
-        course,
-        addedAt: new Date().toISOString().split('T')[0],
+        courseTitle: course?.title || `Khóa học ${courseId}`,
+        courseThumbnail: course?.thumbnail || null,
+        instructorName: course?.instructorName || null,
+        price: course?.discountPrice || course?.price || 0,
+        originalPrice: course?.originalPrice || course?.price || 0,
       };
       mockCart.push(cartItem);
-      return { data: cartItem };
+      const items = mockCart.map(it => ({
+        id: it.id,
+        courseId: it.courseId,
+        courseTitle: it.courseTitle || it.course?.title,
+        courseThumbnail: it.courseThumbnail || it.course?.thumbnail,
+        instructorName: it.instructorName || it.course?.instructorName,
+        price: it.price || (it.course?.discountPrice || it.course?.price) || 0,
+        originalPrice: it.originalPrice || it.course?.originalPrice || it.course?.price || 0,
+      }));
+      const totalAmount = items.reduce((s, it) => s + (it.price || 0), 0);
+      return { data: { id: 'mock-cart', totalAmount, items } };
     }
   },
 
@@ -67,13 +88,23 @@ export const cartService = {
       console.log('[cartService.removeItem] Success');
       return { data: cart };
     } catch (error) {
-      console.error('[cartService.removeItem] API error, using mock data:', error);
-      // Fallback to mock
+      console.error('[cartService.removeItem] API error:', error);
+      // Fallback to mock: remove by id and return CartResponseDto
       await delay(200);
       const index = mockCart.findIndex(item => item.id === cartItemId);
       if (index === -1) throw { response: { status: 404, data: { message: 'Khóa học không có trong giỏ hàng' } } };
       mockCart.splice(index, 1);
-      return { data: { message: 'Xóa khỏi giỏ hàng thành công' } };
+      const items = mockCart.map(it => ({
+        id: it.id,
+        courseId: it.courseId,
+        courseTitle: it.courseTitle || it.course?.title,
+        courseThumbnail: it.courseThumbnail || it.course?.thumbnail,
+        instructorName: it.instructorName || it.course?.instructorName,
+        price: it.price || (it.course?.discountPrice || it.course?.price) || 0,
+        originalPrice: it.originalPrice || it.course?.originalPrice || it.course?.price || 0,
+      }));
+      const totalAmount = items.reduce((s, it) => s + (it.price || 0), 0);
+      return { data: { id: 'mock-cart', totalAmount, items } };
     }
   },
 
@@ -86,13 +117,14 @@ export const cartService = {
       console.log('[cartService.clearCart] Clearing cart');
       const response = await api.delete('/api/v1/cart/clear');
       console.log('[cartService.clearCart] Success');
-      return { data: response.data?.data || response.data || { message: 'Xóa toàn bộ giỏ hàng thành công' } };
+      const cart = response.data?.data || response.data || { id: null, totalAmount: 0, items: [] };
+      return { data: cart };
     } catch (error) {
       console.error('[cartService.clearCart] API error, using mock data:', error);
       // Fallback to mock
       await delay(200);
       mockCart.length = 0;
-      return { data: { message: 'Xóa toàn bộ giỏ hàng thành công' } };
+      return { data: { id: 'mock-cart', totalAmount: 0, items: [] } };
     }
   },
 };

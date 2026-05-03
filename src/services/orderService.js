@@ -8,7 +8,7 @@ export const orderService = {
    */
   checkout: async (data) => {
     try {
-      console.log('[orderService.checkout] Creating order');
+      console.log('[orderService.checkout] Creating order from cart');
       const response = await api.post('/api/v1/orders/checkout', {
         paymentMethod: data.paymentMethod, // VNPAY, BANK_TRANSFER, FREE
         note: data.note || '',
@@ -18,6 +18,28 @@ export const orderService = {
       return { data: order };
     } catch (error) {
       console.error('[orderService.checkout] Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Checkout a single course directly without using cart
+   * @param {string} courseId - Course ID to checkout
+   * @param {object} data - Checkout data { paymentMethod, note? }
+   * @returns Response with OrderResponseDto
+   */
+  checkoutCourse: async (courseId, data) => {
+    try {
+      console.log('[orderService.checkoutCourse] Checking out course:', courseId);
+      const response = await api.post(`/api/v1/orders/checkout/courses/${courseId}`, {
+        paymentMethod: data.paymentMethod, // VNPAY, BANK_TRANSFER, FREE
+        note: data.note || '',
+      });
+      const order = response.data?.data || response.data;
+      console.log('[orderService.checkoutCourse] Success:', order.id);
+      return { data: order };
+    } catch (error) {
+      console.error('[orderService.checkoutCourse] Error:', error);
       throw error;
     }
   },
@@ -93,6 +115,29 @@ export const orderService = {
       return { data: order };
     } catch (error) {
       console.error('[orderService.getOrder] Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Initialize payment for an order
+   * @param {string} orderId - Order ID
+   * @param {object} data - Payment initialization data { paymentMethod }
+   * @returns Response with payment URL (for VNPAY)
+   */
+  initPayment: async (orderId, data) => {
+    try {
+      console.log('[orderService.initPayment] Initializing payment for order:', orderId);
+      const response = await api.post(`/api/v1/orders/${orderId}/pay/init`, {
+        paymentMethod: data.paymentMethod,
+        language: data.language || 'vn',
+        bankCode: data.bankCode || '',
+      });
+      const order = response.data?.data || response.data;
+      console.log('[orderService.initPayment] Success');
+      return { data: order };
+    } catch (error) {
+      console.error('[orderService.initPayment] Error:', error);
       throw error;
     }
   },

@@ -44,6 +44,17 @@ export const enrollmentService = {
    * @returns Response
    */
   unenroll: async (courseId) => {
+    const isUnsupportedByBackend = true;
+    if (isUnsupportedByBackend) {
+      console.warn('[enrollmentService.unenroll] Backend does not expose an unenroll endpoint:', courseId);
+      throw {
+        response: {
+          status: 501,
+          data: { message: 'Backend chua ho tro huy dang ky khoa hoc' },
+        },
+      };
+    }
+
     try {
       console.log('[enrollmentService.unenroll] Unenrolling from course:', courseId);
       const response = await api.post(`/api/v1/learning/courses/${courseId}/unenroll`);
@@ -148,7 +159,7 @@ export const enrollmentService = {
       const page = params?.page || 1;
       const size = params?.size || 10;
       console.log('[enrollmentService.getStudentCoursesPaginated] Fetching with pagination');
-      const response = await api.get(`/api/v1/learning/my-courses?page=${page}&size=${size}`);
+      const response = await api.get(`/api/v1/learning/my-courses?page=${page}&pageSize=${size}`);
       const pageData = response.data?.data || response.data;
       console.log('[enrollmentService.getStudentCoursesPaginated] Success');
       return { data: pageData };
@@ -172,8 +183,9 @@ export const enrollmentService = {
   getCourseStudents: async (courseId) => {
     try {
       console.log('[enrollmentService.getCourseStudents] Fetching students for course:', courseId);
-      const response = await api.get(`/api/v1/learning/courses/${courseId}/students`);
-      const students = response.data?.data || response.data || [];
+      const response = await api.get(`/api/v1/learning/instructor/courses/${courseId}/students?pageSize=100`);
+      const pageData = response.data?.data || response.data || {};
+      const students = pageData?.content || pageData || [];
       console.log('[enrollmentService.getCourseStudents] Success, found:', students.length);
       return { data: students };
     } catch (error) {
@@ -197,7 +209,7 @@ export const enrollmentService = {
       const size = params?.size || 10;
       console.log('[enrollmentService.getCourseStudentsPaginated] Fetching for course:', courseId);
       const response = await api.get(
-        `/api/v1/learning/courses/${courseId}/students?page=${page}&size=${size}`
+        `/api/v1/learning/instructor/courses/${courseId}/students?page=${page}&pageSize=${size}`
       );
       const pageData = response.data?.data || response.data;
       console.log('[enrollmentService.getCourseStudentsPaginated] Success');
@@ -211,6 +223,27 @@ export const enrollmentService = {
       const size = params?.size || 10;
       const start = (page - 1) * size;
       return { data: { content: students.slice(start, start + size), totalElements: students.length } };
+    }
+  },
+
+  /**
+   * Get detailed progress for a student in a specific course (instructor only)
+   * @param {string} courseId - Course ID
+   * @param {string} studentId - Student ID
+   * @returns Response with StudentCourseProgressResponseDto
+   */
+  getStudentProgressForInstructor: async (courseId, studentId) => {
+    try {
+      console.log('[enrollmentService.getStudentProgressForInstructor] Fetching student progress:', { courseId, studentId });
+      const response = await api.get(
+        `/api/v1/learning/instructor/courses/${courseId}/students/${studentId}/progress`
+      );
+      const progressData = response.data?.data || response.data;
+      console.log('[enrollmentService.getStudentProgressForInstructor] Success');
+      return { data: progressData };
+    } catch (error) {
+      console.error('[enrollmentService.getStudentProgressForInstructor] Error:', error);
+      throw error;
     }
   },
 };

@@ -1,0 +1,147 @@
+.certificates-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.certificates-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.certificates-header h1 {
+  margin: 0;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.certificates-header p {
+  margin-top: 6px;
+  color: var(--text-secondary);
+}
+
+.certificates-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.certificates-stat-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.certificates-stat-card.latest {
+  border-color: rgba(6, 182, 212, 0.35);
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.certificates-stat-card span {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.certificates-stat-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.certificates-state,
+.certificates-empty {
+  background: var(--bg-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+}
+
+.certificates-empty h3 {
+  margin: 10px 0 6px;
+}
+
+.certificates-empty p {
+  margin-bottom: 16px;
+}
+
+.certificates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.certificate-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.certificate-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--success-alpha);
+  color: var(--success-dark);
+  font-size: 24px;
+}
+
+.certificate-content h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.certificate-instructor {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.certificate-meta {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.certificate-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.certificate-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 800px) {
+  .certificates-stats,
+  .certificate-card {
+    grid-template-columns: 1fr;
+  }
+
+  .certificate-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}

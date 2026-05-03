@@ -7,17 +7,25 @@ export const ROLES = {
   ADMIN: 'ROLE_ADMIN',
 };
 
+export const normalizeRole = (role) => {
+  if (!role) return '';
+  const normalized = String(role).toUpperCase();
+  return normalized.startsWith('ROLE_') ? normalized : `ROLE_${normalized}`;
+};
+
+export const hasRole = (role, allowedRoles = []) => {
+  const currentRole = normalizeRole(role);
+  return allowedRoles.map(normalizeRole).includes(currentRole);
+};
+
 // Helper function to get user-friendly role display
 export const getRoleDisplay = (role) => {
-  switch (role) {
+  switch (normalizeRole(role)) {
     case 'ROLE_INSTRUCTOR':
-    case 'INSTRUCTOR':
       return 'Giảng viên';
     case 'ROLE_ADMIN':
-    case 'ADMIN':
       return 'Quản trị viên';
     case 'ROLE_STUDENT':
-    case 'STUDENT':
     default:
       return 'Học viên';
   }
@@ -86,6 +94,7 @@ export const ROUTES = {
   INSTRUCTOR_COURSE_DETAIL: '/instructor/courses/:courseId',
   INSTRUCTOR_STUDENTS: '/instructor/students',
   INSTRUCTOR_QUIZ: '/instructor/courses/:courseId/quiz',
+  INSTRUCTOR_QUIZ_QUESTIONS: '/instructor/courses/:courseId/quiz/:quizId/questions',
   INSTRUCTOR_REVENUE: '/instructor/revenue',
   INSTRUCTOR_QA: '/instructor/qa',
 
