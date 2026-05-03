@@ -588,11 +588,13 @@ const LearningPage = () => {
           )}
         </div>
         <button
-          onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}
-          title="Quay lại danh sách khóa học"
-          title="Quay lại danh sách khóa học"
+          className="btn-back-header btn-exit-learning"
+          onClick={() => navigate(ROUTES.STUDENT_COURSES)}
+          title="Thoát khỏi trang học"
+          aria-label="Thoát khỏi trang học và về khóa học của tôi"
         >
-          <FaArrowLeft />
+          <FaArrowLeft aria-hidden="true" />
+          <span>Thoát</span>
         </button>
       </div>
 
