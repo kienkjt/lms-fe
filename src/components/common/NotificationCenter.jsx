@@ -83,7 +83,7 @@ const NotificationCenter = () => {
       setHasLoaded(true);
     } catch (fetchError) {
       console.error("Failed to fetch notifications:", fetchError);
-      setError("Khong the tai thong bao");
+      setError("Không thể tải thông báo");
       setNotifications([]);
     } finally {
       setLoading(false);
@@ -177,7 +177,7 @@ const NotificationCenter = () => {
               <button
                 className="notification-action-btn"
                 onClick={handleMarkAllRead}
-                title="Danh dau da doc"
+                title="Đánh dấu đã đọc"
               >
                 <FiCheck size={14} />
               </button>
@@ -185,11 +185,11 @@ const NotificationCenter = () => {
           </div>
 
           {loading ? (
-            <div className="notification-state">Dang tai thong bao...</div>
+            <div className="notification-state">Đang tải thông báo...</div>
           ) : error ? (
             <div className="notification-state error">{error}</div>
           ) : notifications.length === 0 ? (
-            <div className="notification-state">Chua co thong bao nao</div>
+            <div className="notification-state">Chưa có thông báo nào</div>
           ) : (
             <div className="notification-list">
               {notifications.map((notification) => (

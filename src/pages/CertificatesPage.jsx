@@ -71,7 +71,7 @@ const CertificatesPage = () => {
       } catch (error) {
         console.error("Failed to fetch certificates:", error);
         toast.error(
-          error.response?.data?.message || "Khong the tai danh sach chung chi",
+          error.response?.data?.message || "Không thể tải danh sách chứng chỉ",
         );
         setCertificates([]);
       } finally {
@@ -92,7 +92,7 @@ const CertificatesPage = () => {
 
   const handleDownload = async (certificate) => {
     if (!certificate.id) {
-      toast.error("Chung chi khong co ma de tai xuong");
+      toast.error("Chứng chỉ không có mã để tải xuống");
       return;
     }
 
@@ -102,7 +102,7 @@ const CertificatesPage = () => {
       toast.success("Da tai chung chi");
     } catch (error) {
       console.error("Download certificate failed:", error);
-      toast.error(error.response?.data?.message || "Khong the tai chung chi");
+      toast.error(error.response?.data?.message || "Không thể tải chứng chỉ");
     } finally {
       setDownloadingId("");
     }
@@ -128,20 +128,20 @@ const CertificatesPage = () => {
           <strong>{stats.total}</strong>
         </div>
         <div className="certificates-stat-card latest">
-          <span>Moi nhat</span>
+          <span>Mới nhất</span>
           <strong>{stats.latest ? formatDate(stats.latest) : "-"}</strong>
         </div>
       </div>
 
       {loading ? (
-        <div className="certificates-state">Dang tai danh sach chung chi...</div>
+        <div className="certificates-state">Đang tải danh sách chứng chỉ...</div>
       ) : certificates.length === 0 ? (
         <div className="certificates-empty">
           <FaListAlt size={44} />
-          <h3>Ban chua co chung chi nao</h3>
-          <p>Chung chi se hien thi khi ban hoan thanh 100% khoa hoc co cap chung chi.</p>
+          <h3>Bạn chưa có chứng chỉ nào</h3>
+          <p>Chứng chỉ sẽ hiển thị khi bạn hoàn thành 100% khóa học có cấp chứng chỉ.</p>
           <Link to={ROUTES.STUDENT_COURSES} className="btn btn-primary btn-sm">
-            Di den khoa hoc cua toi
+            Đi đến khóa học của tôi
           </Link>
         </div>
       ) : (
@@ -162,15 +162,15 @@ const CertificatesPage = () => {
                   <h3>{certificate.courseTitle}</h3>
                   {certificate.instructorName && (
                     <p className="certificate-instructor">
-                      Giang vien: {certificate.instructorName}
+                      Giảng viên: {certificate.instructorName}
                     </p>
                   )}
                   <div className="certificate-meta">
                     <span>
-                      <FaCalendarAlt /> Ngay cap:{" "}
+                      <FaCalendarAlt /> Ngày cấp:{" "}
                       {certificate.issuedAt ? formatDate(certificate.issuedAt) : "-"}
                     </span>
-                    {certificate.code && <span>Ma: {certificate.code}</span>}
+                    {certificate.code && <span>Mã: {certificate.code}</span>}
                   </div>
                 </div>
 
@@ -180,7 +180,7 @@ const CertificatesPage = () => {
                       to={`/courses/${coursePath}`}
                       className="btn btn-outline btn-sm"
                     >
-                      Xem khoa hoc
+                      Xem khóa học
                     </Link>
                   )}
                   <button
@@ -190,7 +190,7 @@ const CertificatesPage = () => {
                     disabled={downloadingId === certificate.id}
                   >
                     <FaDownload />
-                    {downloadingId === certificate.id ? "Dang tai..." : "Tai PDF"}
+                    {downloadingId === certificate.id ? "Đang tải..." : "Tải PDF"}
                   </button>
                 </div>
               </article>

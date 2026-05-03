@@ -21,7 +21,7 @@ const WishListPage = () => {
         setItems(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load wishlist:", error);
-        toast.error("Khong the tai danh sach yeu thich");
+        toast.error("Không thể tải danh sách yêu thích");
       } finally {
         setLoading(false);
       }
