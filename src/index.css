@@ -4,42 +4,42 @@
    CSS VARIABLES / DESIGN TOKENS
    ========================================= */
 :root {
-  /* Primary - Vibrant Indigo/Violet */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-darker: #4338ca;
-  --primary-light: #818cf8;
-  --primary-lighter: #a5b4fc;
-  --primary-alpha: rgba(99, 102, 241, 0.1);
-  --primary-alpha-md: rgba(99, 102, 241, 0.15);
+  /* Primary - Brand Blue */
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-darker: #1e40af;
+  --primary-light: #3b82f6;
+  --primary-lighter: #93c5fd;
+  --primary-alpha: rgba(37, 99, 235, 0.1);
+  --primary-alpha-md: rgba(37, 99, 235, 0.16);
 
-  /* Secondary - Electric Blue */
-  --secondary: #3b82f6;
-  --secondary-dark: #2563eb;
-  --secondary-light: #60a5fa;
-  --secondary-alpha: rgba(59, 130, 246, 0.1);
+  /* Secondary - Sky */
+  --secondary: #0ea5e9;
+  --secondary-dark: #0284c7;
+  --secondary-light: #38bdf8;
+  --secondary-alpha: rgba(14, 165, 233, 0.1);
 
-  /* Accent - Vivid Cyan */
-  --accent: #06b6d4;
-  --accent-dark: #0891b2;
-  --accent-light: #22d3ee;
-  --accent-alpha: rgba(6, 182, 212, 0.1);
+  /* Accent - Teal */
+  --accent: #14b8a6;
+  --accent-dark: #0f766e;
+  --accent-light: #5eead4;
+  --accent-alpha: rgba(20, 184, 166, 0.1);
 
   /* Status Colors */
-  --success: #22c55e;
+  --success: #16a34a;
   --success-dark: #15803d;
   --success-light: #4ade80;
-  --success-alpha: rgba(34, 197, 94, 0.1);
+  --success-alpha: rgba(22, 163, 74, 0.1);
 
   --warning: #f59e0b;
   --warning-dark: #d97706;
   --warning-light: #fbbf24;
   --warning-alpha: rgba(245, 158, 11, 0.1);
 
-  --error: #ef4444;
+  --error: #dc2626;
   --error-dark: #dc2626;
   --error-light: #f87171;
-  --error-alpha: rgba(239, 68, 68, 0.1);
+  --error-alpha: rgba(220, 38, 38, 0.1);
 
   --info: #06b6d4;
   --info-alpha: rgba(6, 182, 212, 0.1);
@@ -89,10 +89,10 @@
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-card: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(139, 92, 246, 0.06));
-  --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  --gradient-card: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(14, 165, 233, 0.06));
+  --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   --gradient-success: linear-gradient(135deg, #22c55e, #16a34a);
   --gradient-warm: linear-gradient(135deg, #f59e0b, #ef4444);
   --gradient-cool: linear-gradient(135deg, #06b6d4, #3b82f6, #6366f1);
@@ -133,7 +133,7 @@
   --navbar-height: 72px;
   --sidebar-width: 280px;
   --sidebar-collapsed: 72px;
-  --max-width: 1400px;
+  --max-width: 1200px;
 }
 
 /* =========================================
@@ -153,7 +153,7 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.65;
   color: var(--text-primary);
   background-color: var(--bg-secondary);
@@ -183,10 +183,20 @@ button {
   font-family: inherit;
   border: none;
   background: none;
+  min-height: 44px;
 }
 
 input, textarea, select {
   font-family: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 ul, ol {
@@ -206,6 +216,13 @@ ul, ol {
 .container-fluid {
   width: 100%;
   padding: 0 var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .container,
+  .container-fluid {
+    padding: 0 var(--space-4);
+  }
 }
 
 /* =========================================
@@ -244,7 +261,8 @@ p { color: var(--text-secondary); line-height: 1.7; }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 22px;
+  min-height: 44px;
+  padding: 0 20px;
   font-size: 14px;
   font-weight: 600;
   border: 2px solid transparent;
@@ -878,6 +896,15 @@ p { color: var(--text-secondary); line-height: 1.7; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes fadeInUp {

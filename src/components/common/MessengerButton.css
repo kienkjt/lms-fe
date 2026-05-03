@@ -1,0 +1,39 @@
+.messenger-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: #0084ff;
+  color: var(--text-inverse);
+  box-shadow: 0 10px 24px rgba(0, 132, 255, 0.3);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.messenger-button:hover {
+  transform: translateY(-2px);
+  background: #006aff;
+  color: var(--text-inverse);
+  box-shadow: 0 14px 30px rgba(0, 106, 255, 0.36);
+}
+
+.messenger-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .messenger-button {
+    right: 16px;
+    bottom: 16px;
+    width: 52px;
+    height: 52px;
+  }
+}

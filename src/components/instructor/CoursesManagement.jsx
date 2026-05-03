@@ -19,6 +19,23 @@ import {
 } from "react-icons/fa";
 import "./CoursesManagement.css";
 
+const PAGE_SIZE = 10;
+
+const COURSE_STATUS_META = {
+  [COURSE_STATUS.DRAFT]: { label: "Nháp", badge: "badge-gray" },
+  [COURSE_STATUS.PENDING_REVIEW]: {
+    label: "Chờ duyệt",
+    badge: "badge-warning",
+  },
+  [COURSE_STATUS.APPROVED]: { label: "Đã duyệt", badge: "badge-info" },
+  [COURSE_STATUS.PUBLISHED]: {
+    label: "Công khai",
+    badge: "badge-success",
+  },
+  [COURSE_STATUS.REJECTED]: { label: "Bị từ chối", badge: "badge-danger" },
+  [COURSE_STATUS.ARCHIVED]: { label: "Lưu trữ", badge: "badge-gray" },
+};
+
 const CoursesManagement = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -26,37 +43,57 @@ const CoursesManagement = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [uploadingId, setUploadingId] = useState(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (nextPage = page) => {
     if (!user?.id) return;
     try {
       setLoading(true);
-      const res = await courseService.getMyInstructorCourses({
-        page: 1,
-        size: 50,
-      });
-      setCourses(res.data?.content || res.data || []);
+      const res = await courseService.searchManagedCourses(
+        {
+          keyword: search.trim() || undefined,
+          courseStatus: filter !== "all" ? filter : undefined,
+        },
+        {
+          page: nextPage,
+          size: PAGE_SIZE,
+        },
+      );
+      const pageData = res.data || {};
+      const content = Array.isArray(pageData)
+        ? pageData
+        : pageData.content || [];
+      setCourses(content);
+      setTotalElements(pageData.totalElements ?? content.length);
+      setTotalPages(Math.max(1, pageData.totalPages || 1));
+      setPage(nextPage);
     } catch (error) {
       console.error("Fetch courses error:", error);
       toast.error("Không thể tải danh sách khóa học");
+      setCourses([]);
+      setTotalElements(0);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCourses();
-  }, [user?.id]);
+    fetchCourses(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, page, filter, search]);
 
   const handleDelete = async (courseId) => {
     if (!window.confirm("Bạn chắc chắn muốn xóa khóa học này?")) return;
     try {
       await courseService.delete(courseId);
-      setCourses(courses.filter((c) => c.id !== courseId));
       toast.success("Xóa khóa học thành công");
+      fetchCourses(courses.length === 1 && page > 1 ? page - 1 : page);
     } catch (error) {
       console.error("Delete course error:", error);
       toast.error(error.response?.data?.message || "Không thể xóa khóa học");
@@ -69,6 +106,7 @@ const CoursesManagement = () => {
       const updated = await courseService.publishCourse(course.id);
       setCourses(courses.map((c) => (c.id === course.id ? updated.data : c)));
       toast.success("Công khai khóa học thành công");
+      fetchCourses(page);
     } catch (error) {
       console.error("Publish course error:", error);
       toast.error(
@@ -87,6 +125,7 @@ const CoursesManagement = () => {
       const updated = await courseService.unpublishCourse(course.id);
       setCourses(courses.map((c) => (c.id === course.id ? updated.data : c)));
       toast.success("Hủy công khai khóa học thành công");
+      fetchCourses(page);
     } catch (error) {
       console.error("Unpublish course error:", error);
       toast.error(
@@ -143,13 +182,6 @@ const CoursesManagement = () => {
     setShowMediaModal(true);
   };
 
-  const filteredCourses = courses.filter((c) => {
-    if (filter !== "all" && c.status !== filter) return false;
-    if (search && !c.title.toLowerCase().includes(search.toLowerCase()))
-      return false;
-    return true;
-  });
-
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -185,26 +217,36 @@ const CoursesManagement = () => {
               type="text"
               placeholder="Tìm kiếm khóa học..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="input"
               style={{ flex: 1, minWidth: "250px" }}
             />
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setPage(1);
+              }}
               className="input"
               style={{ minWidth: "180px" }}
             >
               <option value="all">Tất cả trạng thái</option>
               <option value={COURSE_STATUS.DRAFT}>Nháp</option>
+              <option value={COURSE_STATUS.PENDING_REVIEW}>Chờ duyệt</option>
+              <option value={COURSE_STATUS.APPROVED}>Đã duyệt</option>
               <option value={COURSE_STATUS.PUBLISHED}>Công khai</option>
+              <option value={COURSE_STATUS.REJECTED}>Bị từ chối</option>
+              <option value={COURSE_STATUS.ARCHIVED}>Lưu trữ</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Courses Table */}
-      {filteredCourses.length === 0 ? (
+      {courses.length === 0 ? (
         <div className="empty-state" style={{ padding: "60px 20px" }}>
           <div className="empty-state-icon">
             <FaBook size={48} />
@@ -240,7 +282,13 @@ const CoursesManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredCourses.map((course) => (
+                {courses.map((course) => {
+                  const statusMeta = COURSE_STATUS_META[course.status] || {
+                    label: course.status || "Không rõ",
+                    badge: "badge-gray",
+                  };
+
+                  return (
                   <tr key={course.id}>
                     <td>
                       <div
@@ -288,16 +336,8 @@ const CoursesManagement = () => {
                     <td>{course.price?.toLocaleString("vi") || "0"} đ</td>
                     <td>{course.totalStudents || 0}</td>
                     <td>
-                      <span
-                        className={`badge ${
-                          course.status === COURSE_STATUS.PUBLISHED
-                            ? "badge-success"
-                            : "badge-gray"
-                        }`}
-                      >
-                        {course.status === COURSE_STATUS.PUBLISHED
-                          ? "Công khai"
-                          : "Nháp"}
+                      <span className={`badge ${statusMeta.badge}`}>
+                        {statusMeta.label}
                       </span>
                     </td>
                     <td>
@@ -398,9 +438,44 @@ const CoursesManagement = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+          <div className="courses-management-footer">
+            <span>
+              Hiển thị {courses.length} / {totalElements} khóa học
+            </span>
+            {totalPages > 1 && (
+              <div className="pagination courses-management-pagination">
+                <button
+                  className="page-btn"
+                  onClick={() => setPage((value) => Math.max(value - 1, 1))}
+                  disabled={page <= 1}
+                >
+                  ‹
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <button
+                    key={index + 1}
+                    className={`page-btn ${page === index + 1 ? "active" : ""}`}
+                    onClick={() => setPage(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  className="page-btn"
+                  onClick={() =>
+                    setPage((value) => Math.min(value + 1, totalPages))
+                  }
+                  disabled={page >= totalPages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

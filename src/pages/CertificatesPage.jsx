@@ -115,16 +115,18 @@ const CertificatesPage = () => {
           <h1>
             <FaCertificate /> Chung chi cua toi
           </h1>
-          <p>Theo doi va tai xuong chung chi da nhan sau khi hoan thanh khoa hoc.</p>
+          <p>
+            Theo dõi và tải xuống chứng chỉ đã nhận sau khi hoàn thành khóa học.
+          </p>
         </div>
         <Link to={ROUTES.STUDENT_COURSES} className="btn btn-outline btn-sm">
-          <FaBookOpen /> Khoa hoc cua toi
+          <FaBookOpen /> Khóa học của tôi
         </Link>
       </div>
 
       <div className="certificates-stats">
         <div className="certificates-stat-card">
-          <span>Tong chung chi</span>
+          <span>Tổng chứng chỉ</span>
           <strong>{stats.total}</strong>
         </div>
         <div className="certificates-stat-card latest">
@@ -134,12 +136,17 @@ const CertificatesPage = () => {
       </div>
 
       {loading ? (
-        <div className="certificates-state">Đang tải danh sách chứng chỉ...</div>
+        <div className="certificates-state">
+          Đang tải danh sách chứng chỉ...
+        </div>
       ) : certificates.length === 0 ? (
         <div className="certificates-empty">
           <FaListAlt size={44} />
           <h3>Bạn chưa có chứng chỉ nào</h3>
-          <p>Chứng chỉ sẽ hiển thị khi bạn hoàn thành 100% khóa học có cấp chứng chỉ.</p>
+          <p>
+            Chứng chỉ sẽ hiển thị khi bạn hoàn thành 100% khóa học có cấp chứng
+            chỉ.
+          </p>
           <Link to={ROUTES.STUDENT_COURSES} className="btn btn-primary btn-sm">
             Đi đến khóa học của tôi
           </Link>
@@ -168,7 +175,9 @@ const CertificatesPage = () => {
                   <div className="certificate-meta">
                     <span>
                       <FaCalendarAlt /> Ngày cấp:{" "}
-                      {certificate.issuedAt ? formatDate(certificate.issuedAt) : "-"}
+                      {certificate.issuedAt
+                        ? formatDate(certificate.issuedAt)
+                        : "-"}
                     </span>
                     {certificate.code && <span>Mã: {certificate.code}</span>}
                   </div>
@@ -190,7 +199,9 @@ const CertificatesPage = () => {
                     disabled={downloadingId === certificate.id}
                   >
                     <FaDownload />
-                    {downloadingId === certificate.id ? "Đang tải..." : "Tải PDF"}
+                    {downloadingId === certificate.id
+                      ? "Đang tải..."
+                      : "Tải PDF"}
                   </button>
                 </div>
               </article>

@@ -1,0 +1,294 @@
+.learning-assistant-widget {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  z-index: 9998;
+  font-family: inherit;
+}
+
+.learning-assistant-launcher {
+  width: 58px;
+  height: 58px;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.32);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.learning-assistant-launcher svg {
+  width: 27px;
+  height: 27px;
+}
+
+.learning-assistant-launcher:hover {
+  transform: translateY(-2px);
+  color: var(--text-inverse);
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.38);
+}
+
+.learning-assistant-panel {
+  width: min(390px, calc(100vw - 32px));
+  height: min(620px, calc(100vh - 128px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
+}
+
+.learning-assistant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: #0f172a;
+  color: var(--text-inverse);
+}
+
+.learning-assistant-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.learning-assistant-title strong,
+.learning-assistant-title span {
+  display: block;
+}
+
+.learning-assistant-title strong {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.learning-assistant-title span {
+  margin-top: 1px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.learning-assistant-avatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.12);
+  color: #93c5fd;
+}
+
+.learning-assistant-avatar svg {
+  width: 20px;
+  height: 20px;
+}
+
+.learning-assistant-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.learning-assistant-icon-btn {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.78);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.learning-assistant-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-inverse);
+}
+
+.learning-assistant-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 14px;
+  background: var(--bg-secondary);
+}
+
+.learning-assistant-message {
+  max-width: 88%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: var(--shadow-xs);
+}
+
+.learning-assistant-message.user {
+  align-self: flex-end;
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+.learning-assistant-message.assistant {
+  align-self: flex-start;
+}
+
+.learning-assistant-message.error {
+  border-color: rgba(220, 38, 38, 0.2);
+  background: var(--error-alpha);
+  color: var(--error-dark);
+}
+
+.learning-assistant-message.pending {
+  color: var(--text-secondary);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.learning-assistant-prompts {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-primary);
+}
+
+.learning-assistant-prompts button {
+  min-height: 34px;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.learning-assistant-prompts button:hover:not(:disabled) {
+  border-color: var(--primary-light);
+  background: var(--primary-alpha);
+  color: var(--primary);
+}
+
+.learning-assistant-prompts button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.learning-assistant-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-primary);
+}
+
+.learning-assistant-form textarea {
+  width: 100%;
+  min-height: 48px;
+  max-height: 112px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.45;
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.learning-assistant-form textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-alpha);
+}
+
+.learning-assistant-form textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.learning-assistant-send {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--text-inverse);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.learning-assistant-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--primary-dark);
+  color: var(--text-inverse);
+}
+
+.learning-assistant-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .learning-assistant-widget {
+    right: 16px;
+    bottom: 82px;
+  }
+
+  .learning-assistant-panel {
+    width: calc(100vw - 32px);
+    height: min(560px, calc(100vh - 110px));
+  }
+
+  .learning-assistant-header {
+    align-items: flex-start;
+  }
+
+  .learning-assistant-title span {
+    display: none;
+  }
+
+  .learning-assistant-message {
+    max-width: 94%;
+  }
+}

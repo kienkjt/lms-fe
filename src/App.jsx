@@ -14,6 +14,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { PageLoader } from "./components/common/Loading";
 import AuthInit from "./components/common/AuthInit";
+import LearningAssistant from "./components/common/LearningAssistant";
 
 // Auth Pages
 import Login from "./components/auth/Login";
@@ -440,6 +441,7 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
+          <LearningAssistant />
         </AuthInit>
 
         <ToastContainer

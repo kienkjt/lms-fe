@@ -169,6 +169,28 @@
   color: var(--text-tertiary);
 }
 
+.notification-load-more {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--gray-100);
+  background: #fff;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px;
+  transition: background var(--transition-fast);
+}
+
+.notification-load-more:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.notification-load-more:disabled {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
 .notification-state {
   padding: 20px 14px;
   text-align: center;

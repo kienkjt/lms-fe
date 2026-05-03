@@ -801,3 +801,290 @@
     font-size: 12px;
   }
 }
+
+/* Refined learning workspace */
+.learning-page {
+  background: #f6f7fb;
+  color: #172033;
+}
+
+.learning-header {
+  min-height: 64px;
+  padding: 10px 24px;
+  background: #111827;
+  color: #ffffff;
+  border-bottom: 1px solid #243044;
+  box-shadow: none;
+}
+
+.header-content h1 {
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.progress-bar-small {
+  width: 180px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.progress-fill {
+  background: #22c55e;
+}
+
+.progress-text {
+  color: #d1d5db;
+  font-size: 12px;
+}
+
+.btn-sidebar-toggle,
+.btn-back-header {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+.btn-sidebar-toggle:hover,
+.btn-back-header:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.learning-container {
+  min-height: 0;
+  background: linear-gradient(180deg, #f6f7fb 0%, #eef2f7 100%);
+}
+
+.learning-sidebar {
+  width: 360px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar-header {
+  min-height: 68px;
+  padding: 16px 18px;
+  background: #ffffff;
+}
+
+.sidebar-header h3 {
+  font-size: 15px;
+}
+
+.lesson-count,
+.lesson-badge,
+.quiz-card-meta span {
+  border-radius: 999px;
+}
+
+.chapter-item {
+  border-bottom: 1px solid #eef0f4;
+}
+
+.chapter-header {
+  min-height: 52px;
+  padding: 12px 18px;
+  gap: 10px;
+}
+
+.chapter-header:hover {
+  background: #f8fafc;
+}
+
+.chapter-title {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.lessons-list {
+  background: #f8fafc;
+  padding: 4px 0 8px;
+}
+
+.lesson-item {
+  min-height: 44px;
+  padding: 9px 14px 9px 42px;
+  color: #4b5563;
+  border-left-width: 4px;
+}
+
+.lesson-item:hover:not(:disabled) {
+  background: #eef6ff;
+}
+
+.lesson-item.active {
+  background: #eaf3ff;
+  color: #075985;
+  border-left-color: #0284c7;
+}
+
+.lesson-item.quiz {
+  color: #6d4c00;
+}
+
+.lesson-item.quiz .lesson-icon {
+  color: #b45309;
+}
+
+.lesson-item.locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.lesson-title {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.lesson-duration {
+  padding-left: 8px;
+}
+
+.learning-main {
+  max-width: none;
+  padding: 28px;
+  margin: 0;
+}
+
+.lesson-content {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.lesson-header {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eef0f4;
+  margin-bottom: 22px;
+}
+
+.lesson-header h2 {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.lesson-meta {
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 999px;
+}
+
+.lesson-document,
+.no-content,
+.lesson-description,
+.lesson-notes,
+.lesson-quizzes,
+.quiz-lesson-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.lesson-actions {
+  padding: 18px 0 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.btn-primary {
+  background: #0f766e;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #115e59;
+}
+
+.btn-ghost,
+.btn-outline {
+  background: #ffffff;
+  border: 1px solid #d7dde7;
+}
+
+.quiz-lesson-panel {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 22px;
+  background: #fffaf0;
+  border-color: #fde7b2;
+}
+
+.quiz-lesson-content h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #172033;
+}
+
+.quiz-lesson-content p {
+  margin: 0 0 10px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.quiz-card {
+  background: #ffffff;
+}
+
+.quiz-card-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.note-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.note-input {
+  min-height: 76px;
+}
+
+.lesson-navigation {
+  padding-top: 4px;
+}
+
+@media (max-width: 1024px) {
+  .learning-sidebar {
+    width: 320px;
+  }
+
+  .learning-main {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .learning-sidebar {
+    left: 0;
+    top: 64px;
+    height: calc(100% - 64px);
+  }
+
+  .lesson-content {
+    padding: 18px;
+  }
+
+  .quiz-lesson-panel,
+  .note-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-lesson-panel .btn {
+    width: 100%;
+  }
+}

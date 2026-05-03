@@ -21,3 +21,4 @@ export { noteService } from './noteService';
 export { vnpayService } from './vnpayService';
 export { certificateService } from './certificateService';
 export { quizService } from './quizService';
+export { learningAssistantService } from './learningAssistantService';

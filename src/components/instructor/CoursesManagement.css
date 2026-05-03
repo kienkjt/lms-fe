@@ -24,3 +24,26 @@
 .data-table tbody tr:hover {
   background: var(--bg-secondary);
 }
+
+.courses-management-footer {
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.courses-management-pagination {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .courses-management-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

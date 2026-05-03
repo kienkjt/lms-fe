@@ -23,6 +23,25 @@ const normalizeNotifications = (payload) => {
   }));
 };
 
+const getPageInfo = (payload, fallbackPage = 0) => {
+  if (Array.isArray(payload)) {
+    return { page: fallbackPage, totalPages: 1, hasNext: false };
+  }
+
+  const page =
+    payload?.number ?? payload?.pageNumber ?? payload?.page ?? fallbackPage;
+  const totalPages = payload?.totalPages ?? 1;
+  const hasNext =
+    payload?.hasNext ??
+    (payload?.last !== undefined ? payload.last === false : page + 1 < totalPages);
+
+  return {
+    page,
+    totalPages: Math.max(1, totalPages),
+    hasNext: Boolean(hasNext),
+  };
+};
+
 const formatRelativeTime = (timestamp) => {
   if (!timestamp) return "";
 
@@ -50,6 +69,11 @@ const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState("");
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    totalPages: 1,
+    hasNext: false,
+  });
 
   const containerRef = useRef(null);
 
@@ -72,14 +96,24 @@ const NotificationCenter = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async ({ page = 0, reset = true } = {}) => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await notificationService.getAll();
+      const response = await notificationService.getAll({ page, size: 10 });
       const payload = response.data?.data || response.data;
-      setNotifications(normalizeNotifications(payload));
+      const nextNotifications = normalizeNotifications(payload);
+      setNotifications((prev) => {
+        if (reset) return nextNotifications;
+
+        const existingIds = new Set(prev.map((item) => item.id));
+        const uniqueNext = nextNotifications.filter(
+          (item) => !existingIds.has(item.id),
+        );
+        return [...prev, ...uniqueNext];
+      });
+      setPageInfo(getPageInfo(payload, page));
       setHasLoaded(true);
     } catch (fetchError) {
       console.error("Failed to fetch notifications:", fetchError);
@@ -95,7 +129,7 @@ const NotificationCenter = () => {
     setOpen(nextOpen);
 
     if (nextOpen && !hasLoaded) {
-      fetchNotifications();
+      fetchNotifications({ page: 0, reset: true });
     }
   };
 
@@ -133,16 +167,10 @@ const NotificationCenter = () => {
       prev.map((notification) => ({ ...notification, isRead: true })),
     );
 
-    const validUnreadIds = unread
-      .filter((notification) => !String(notification.id).startsWith("temp-"))
-      .map((notification) => notification.id);
-
-    if (validUnreadIds.length > 0) {
-      await Promise.allSettled(
-        validUnreadIds.map((notificationId) =>
-          notificationService.markRead(notificationId),
-        ),
-      );
+    try {
+      await notificationService.markAllRead();
+    } catch (markError) {
+      console.error("Failed to mark all notifications as read:", markError);
     }
   };
 
@@ -168,7 +196,7 @@ const NotificationCenter = () => {
             <div className="notification-header-actions">
               <button
                 className="notification-action-btn"
-                onClick={fetchNotifications}
+                onClick={() => fetchNotifications({ page: 0, reset: true })}
                 disabled={loading}
                 title="Tai lai"
               >
@@ -218,6 +246,21 @@ const NotificationCenter = () => {
                   )}
                 </button>
               ))}
+              {pageInfo.hasNext && (
+                <button
+                  type="button"
+                  className="notification-load-more"
+                  onClick={() =>
+                    fetchNotifications({
+                      page: pageInfo.page + 1,
+                      reset: false,
+                    })
+                  }
+                  disabled={loading}
+                >
+                  {loading ? "Đang tải..." : "Tải thêm"}
+                </button>
+              )}
             </div>
           )}
         </div>

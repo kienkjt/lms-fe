@@ -360,7 +360,7 @@ const InstructorRevenuePage = () => {
           <h2>Tạo yêu cầu rút tiền</h2>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div
             style={{
               display: "grid",
@@ -388,8 +388,7 @@ const InstructorRevenuePage = () => {
             <input
               className="form-input"
               type="number"
-              step="10000"
-              min="1"
+              inputMode="numeric"
               placeholder="Số tiền muốn rút (sẽ bị trừ hoa hồng)"
               value={withdrawForm.requestedAmount}
               onChange={(e) =>
@@ -441,66 +440,20 @@ const InstructorRevenuePage = () => {
             />
           </div>
 
-          {/* Commission Calculation Preview */}
-          {withdrawForm.requestedAmount &&
-            Number(withdrawForm.requestedAmount) > 0 && (
-              <div
-                style={{
-                  background: "#f5f5f5",
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  marginBottom: "16px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Tính toán hoa hồng (10%):
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: "12px",
-                    fontSize: "14px",
-                  }}
-                >
-                  <div>Số tiền yêu cầu:</div>
-                  <div style={{ fontWeight: "600" }}>
-                    {formatPrice(Number(withdrawForm.requestedAmount) || 0)}
-                  </div>
-                  <div>Hoa hồng (10%):</div>
-                  <div style={{ color: "var(--danger)", fontWeight: "600" }}>
-                    -{" "}
-                    {formatPrice(
-                      Number(withdrawForm.requestedAmount) * 0.1 || 0,
-                    )}
-                  </div>
-                  <div
-                    style={{ borderTop: "1px solid #ddd", paddingTop: "8px" }}
-                  >
-                    Bạn sẽ nhận:
-                  </div>
-                  <div
-                    style={{
-                      color: "var(--success)",
-                      fontWeight: "700",
-                      borderTop: "1px solid #ddd",
-                      paddingTop: "8px",
-                    }}
-                  >
-                    {formatPrice(
-                      Number(withdrawForm.requestedAmount) * 0.9 || 0,
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* Note: Commission is deducted at payment time (already applied to wallet). */}
+          <div
+            style={{
+              background: "#f5f5f5",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "16px",
+              color: "#444",
+              fontSize: "14px",
+            }}
+          >
+            <strong>Lưu ý:</strong> Phí giao dịch đã được trừ khi thanh toán (Thanh toán thành công). Số tiền bạn nhập là số tiền bạn sẽ rút (không bị trừ thêm phí).
+          </div>
 
           <button
             type="submit"
@@ -770,8 +723,8 @@ const InstructorRevenuePage = () => {
                 </p>
               </div>
 
-              {selectedRequest.commissionRate &&
-                Number(selectedRequest.commissionRate) > 0 && (
+              {selectedRequest.commissionAmount &&
+                Number(selectedRequest.commissionAmount) > 0 && (
                   <>
                     <div
                       style={{

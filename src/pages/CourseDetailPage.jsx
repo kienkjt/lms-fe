@@ -29,6 +29,7 @@ import { chapterService } from "../services/chapterService";
 import { cartService } from "../services/cartService";
 import { enrollmentService } from "../services/enrollmentService";
 import { lessonService } from "../services/lessonService";
+import { orderService } from "../services/orderService";
 import { wishlistService } from "../services/wishlistService";
 import Reviews from "../components/courses/Reviews";
 import api from "../services/api";
@@ -107,6 +108,7 @@ const CourseDetailPage = () => {
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrollLoading, setEnrollLoading] = useState(false);
+  const [buyNowLoading, setBuyNowLoading] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(null);
   const [activeTab, setActiveTab] = useState("curriculum");
   const [previewLesson, setPreviewLesson] = useState(null);
@@ -226,6 +228,51 @@ const CourseDetailPage = () => {
       );
     } finally {
       setEnrollLoading(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+
+    try {
+      setBuyNowLoading(true);
+
+      const orderRes = await orderService.checkoutCourse(course.id, {
+        paymentMethod: "VNPAY",
+        note: "",
+      });
+
+      const order = orderRes.data;
+      let paymentUrl =
+        order?.paymentUrl || order?.paymentURL || order?.paymentLink;
+
+      if (!paymentUrl && order?.id) {
+        const paymentRes = await orderService.initPayment(order.id, {
+          paymentMethod: "VNPAY",
+          language: "vn",
+          bankCode: "",
+        });
+        paymentUrl =
+          paymentRes.data?.paymentUrl ||
+          paymentRes.data?.paymentURL ||
+          paymentRes.data?.paymentLink;
+      }
+
+      if (!paymentUrl) {
+        throw new Error("Không nhận được URL thanh toán");
+      }
+
+      window.location.href = paymentUrl;
+    } catch (error) {
+      console.error("Buy now failed:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể bắt đầu thanh toán",
+      );
+    } finally {
+      setBuyNowLoading(false);
     }
   };
 
@@ -672,10 +719,17 @@ const CourseDetailPage = () => {
 
                   <button
                     className="btn btn-outline btn-full"
-                    onClick={handleEnroll}
-                    disabled={enrollLoading}
+                    onClick={handleBuyNow}
+                    disabled={buyNowLoading}
                   >
-                    Mua ngay
+                    {buyNowLoading ? (
+                      <>
+                        <span className="spinner spinner-sm"></span> Đang xử
+                        lý...
+                      </>
+                    ) : (
+                      "Mua ngay"
+                    )}
                   </button>
                 </>
               )}

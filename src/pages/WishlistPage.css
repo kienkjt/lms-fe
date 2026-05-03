@@ -98,6 +98,21 @@
   justify-content: center;
 }
 
+.wishlist-pagination-row {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 12px;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.wishlist-pagination-row .pagination {
+  margin: 0;
+}
+
 @media (max-width: 840px) {
   .wishlist-item {
     grid-template-columns: 1fr;
@@ -106,5 +121,10 @@
   .wishlist-item-actions {
     flex-direction: row;
     justify-content: flex-start;
+  }
+
+  .wishlist-pagination-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

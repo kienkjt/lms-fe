@@ -26,6 +26,8 @@ const HomePage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchError, setSearchError] = useState("");
+  const [homeError, setHomeError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,8 +44,18 @@ const HomePage = () => {
           setNewestCourses(newestRes.value.data?.slice(0, 6) || []);
         if (catRes.status === "fulfilled")
           setCategories(catRes.value.data?.slice(0, 8) || []);
+
+        const hasAnyData =
+          popularRes.status === "fulfilled" ||
+          newestRes.status === "fulfilled" ||
+          catRes.status === "fulfilled";
+
+        if (!hasAnyData) {
+          setHomeError(true);
+        }
       } catch (error) {
         console.error("Error fetching courses:", error);
+        setHomeError(true);
       }
       setLoading(false);
     };
@@ -52,8 +64,15 @@ const HomePage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim())
-      navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(search.trim())}`);
+    const searchValue = search.trim();
+
+    if (!searchValue) {
+      setSearchError("Vui lòng nhập từ khóa để tìm kiếm");
+      return;
+    }
+
+    setSearchError("");
+    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}`);
   };
 
   const features = [
@@ -77,8 +96,13 @@ const HomePage = () => {
   return (
     <div className="home-page">
       {/* HERO BANNER */}
-      <section className="hero-section">
-        <div className="hero-gradient-bg"></div>
+      <section className="hero-section" aria-labelledby="homepage-hero-title">
+        <div className="hero-gradient-bg">
+          <div className="hero-orb hero-orb-1"></div>
+          <div className="hero-orb hero-orb-2"></div>
+          <div className="hero-orb hero-orb-3"></div>
+          <div className="hero-grid-lines"></div>
+        </div>
         <div className="container">
           <div className="hero-wrapper">
             <div className="hero-left">
@@ -86,7 +110,7 @@ const HomePage = () => {
                 <FaRocket style={{ marginRight: "8px" }} />
                 Nền tảng học trực tuyến #1 Việt Nam
               </div>
-              <h1 className="hero-title">
+              <h1 className="hero-title" id="homepage-hero-title">
                 Nâng cao kỹ năng,{" "}
                 <span className="highlight">mở rộng tương lai</span>
               </h1>
@@ -96,50 +120,105 @@ const HomePage = () => {
               </p>
 
               <form className="hero-search-form" onSubmit={handleSearch}>
-                <div className="search-input-wrapper">
-                  <svg
-                    className="search-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Bạn muốn học gì hôm nay?"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="search-input"
-                    id="hero-search-input"
-                  />
+                <div className="hero-search-controls">
+                  <div className="search-input-wrapper">
+                    <svg
+                      className="search-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Bạn muốn học gì hôm nay?"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        if (searchError) {
+                          setSearchError("");
+                        }
+                      }}
+                      className="search-input"
+                      id="hero-search-input"
+                      aria-label="Tìm kiếm khóa học"
+                      aria-invalid={Boolean(searchError)}
+                      aria-describedby={
+                        searchError ? "hero-search-error" : undefined
+                      }
+                    />
+                  </div>
+                  <button type="submit" className="hero-search-btn">
+                    Tìm khóa học
+                  </button>
                 </div>
+                {searchError && (
+                  <p
+                    id="hero-search-error"
+                    className="hero-search-error"
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    {searchError}
+                  </p>
+                )}
               </form>
 
-              <div className="hero-tags">
-                {[
-                  "React.js",
-                  "Python",
-                  "UI/UX Design",
-                  "Data Science",
-                  "Marketing",
-                ].map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className="hero-tag-btn"
-                    onClick={() => navigate(`${ROUTES.SEARCH}?q=${tag}`)}
-                  >
-                    {tag}
-                  </button>
-                ))}
+              <div
+                className="hero-trust-points"
+                role="list"
+                aria-label="Thống kê nhanh"
+              >
+                <div className="hero-trust-item" role="listitem">
+                  <strong>1,000+</strong>
+                  <span>Khóa học thực chiến</span>
+                </div>
+                <div className="hero-trust-item" role="listitem">
+                  <strong>10K+</strong>
+                  <span>Học viên đang theo học</span>
+                </div>
+                <div className="hero-trust-item" role="listitem">
+                  <strong>98%</strong>
+                  <span>Đánh giá hài lòng</span>
+                </div>
               </div>
             </div>
 
             <div className="hero-right">
-              <div className="hero-illustration"></div>
+              <div className="hero-illustration">
+                <div className="hero-visual-center">
+                  <div className="hero-visual-ring hero-visual-ring-1"></div>
+                  <div className="hero-visual-ring hero-visual-ring-2"></div>
+                  <div className="hero-visual-ring hero-visual-ring-3"></div>
+                  <div className="hero-visual-core">
+                    <FaRocket size={36} />
+                  </div>
+                </div>
+                <div className="illustration-item item-1">
+                  <div className="item-icon">🎓</div>
+                  <div>
+                    <div className="item-text">1,000+ Khóa học</div>
+                    <div className="item-sub">Cập nhật liên tục</div>
+                  </div>
+                </div>
+                <div className="illustration-item item-2">
+                  <div className="item-icon">⭐</div>
+                  <div>
+                    <div className="item-text">Đánh giá 4.9/5</div>
+                    <div className="item-sub">Từ 10K+ học viên</div>
+                  </div>
+                </div>
+                <div className="illustration-item item-3">
+                  <div className="item-icon">🏆</div>
+                  <div>
+                    <div className="item-text">Chứng chỉ uy tín</div>
+                    <div className="item-sub">Được công nhận rộng rãi</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -170,11 +249,16 @@ const HomePage = () => {
       </section>
 
       {/* TOP COURSES SECTION */}
-      <section className="courses-section">
+      <section
+        className="courses-section"
+        aria-labelledby="popular-courses-title"
+      >
         <div className="container">
           <div className="section-title-block">
             <div>
-              <h2 className="section-title">Khóa học phổ biến</h2>
+              <h2 className="section-title" id="popular-courses-title">
+                Khóa học phổ biến
+              </h2>
               <p className="section-subtitle">
                 Các khóa học được yêu thích nhất của chúng tôi
               </p>
@@ -194,27 +278,39 @@ const HomePage = () => {
             </Link>
           </div>
           <div className="courses-grid stagger-children">
-            {loading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))
-              : popularCourses.length > 0
-                ? popularCourses
-                    .slice(0, 4)
-                    .map((course) => (
-                      <CourseCard key={course.id} course={course} />
-                    ))
-                : null}
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : popularCourses.length > 0 ? (
+              popularCourses
+                .slice(0, 4)
+                .map((course) => <CourseCard key={course.id} course={course} />)
+            ) : (
+              <div className="home-empty-state">
+                <h3>Chưa có khóa học phổ biến</h3>
+                <p>
+                  Dữ liệu đang được cập nhật. Bạn có thể khám phá toàn bộ danh
+                  sách khóa học ngay bây giờ.
+                </p>
+                <Link to={ROUTES.COURSES} className="btn btn-outline">
+                  Xem danh sách khóa học
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* CATEGORIES SECTION */}
-      <section className="categories-section">
+      <section
+        className="categories-section"
+        aria-labelledby="categories-title"
+      >
         <div className="container">
           <div className="section-title-block">
             <div>
-              <h2 className="section-title">Khám phá danh mục</h2>
+              <h2 className="section-title" id="categories-title">
+                Khám phá danh mục
+              </h2>
               <p className="section-subtitle">
                 Tìm khóa học phù hợp với mục tiêu của bạn
               </p>
@@ -234,41 +330,52 @@ const HomePage = () => {
             </Link>
           </div>
           <div className="categories-grid stagger-children">
-            {loading
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="skeleton-box"
-                    style={{ height: "80px" }}
-                  ></div>
-                ))
-              : categories.length > 0
-                ? categories.map((cat, idx) => {
-                    const categoryIcons = [
-                      FaLaptop,
-                      FaPalette,
-                      FaMobileAlt,
-                      FaChartBar,
-                      FaBook,
-                      FaGlobe,
-                      FaFilm,
-                      FaMusic,
-                    ];
-                    const IconComponent = categoryIcons[idx % 8];
-                    return (
-                      <Link
-                        key={cat.id}
-                        to={`${ROUTES.COURSES}?category=${cat.id}`}
-                        className="category-item"
-                      >
-                        <span className="category-icon">
-                          <IconComponent size={24} />
-                        </span>
-                        <h3 className="category-name">{cat.name}</h3>
-                      </Link>
-                    );
-                  })
-                : null}
+            {loading ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="skeleton-box"
+                  style={{ height: "80px" }}
+                ></div>
+              ))
+            ) : categories.length > 0 ? (
+              categories.map((cat, idx) => {
+                const categoryIcons = [
+                  FaLaptop,
+                  FaPalette,
+                  FaMobileAlt,
+                  FaChartBar,
+                  FaBook,
+                  FaGlobe,
+                  FaFilm,
+                  FaMusic,
+                ];
+                const IconComponent = categoryIcons[idx % 8];
+                return (
+                  <Link
+                    key={cat.id}
+                    to={`${ROUTES.COURSES}?category=${cat.id}`}
+                    className="category-item"
+                  >
+                    <span className="category-icon">
+                      <IconComponent size={24} />
+                    </span>
+                    <h3 className="category-name">{cat.name}</h3>
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="home-empty-state">
+                <h3>Danh mục đang được cập nhật</h3>
+                <p>
+                  Chưa có danh mục hiển thị lúc này. Vui lòng quay lại sau hoặc
+                  xem toàn bộ khóa học.
+                </p>
+                <Link to={ROUTES.COURSES} className="btn btn-outline">
+                  Xem tất cả khóa học
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -276,14 +383,7 @@ const HomePage = () => {
       {/* FEATURES / WHY US */}
       <section className="features-section">
         <div className="container">
-          <div
-            className="section-title-block"
-            style={{
-              justifyContent: "center",
-              textAlign: "center",
-              marginBottom: "var(--space-12)",
-            }}
-          >
+          <div className="section-title-block section-title-centered">
             <div>
               <h2 className="section-title">Tại sao chọn EduLearn?</h2>
               <p className="section-subtitle">
@@ -304,25 +404,52 @@ const HomePage = () => {
       </section>
 
       {/* NEWEST COURSES SECTION */}
-      {newestCourses.length > 0 && (
-        <section
-          className="courses-section"
-          style={{ background: "var(--bg-secondary)" }}
-        >
-          <div className="container">
-            <div className="section-title-block">
-              <div>
-                <h2 className="section-title">Khóa học mới nhất</h2>
-                <p className="section-subtitle">
-                  Các khóa học vừa được phát hành
+      <section
+        className="courses-section courses-section-muted"
+        aria-labelledby="newest-courses-title"
+      >
+        <div className="container">
+          <div className="section-title-block">
+            <div>
+              <h2 className="section-title" id="newest-courses-title">
+                Khóa học mới nhất
+              </h2>
+              <p className="section-subtitle">
+                Các khóa học vừa được phát hành
+              </p>
+            </div>
+          </div>
+          <div className="courses-grid stagger-children">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : newestCourses.length > 0 ? (
+              newestCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))
+            ) : (
+              <div className="home-empty-state">
+                <h3>Chưa có khóa học mới</h3>
+                <p>
+                  Nội dung mới đang được chuẩn bị. Theo dõi thêm các khóa học
+                  nổi bật trong lúc chờ cập nhật.
                 </p>
               </div>
-            </div>
-            <div className="courses-grid stagger-children">
-              {newestCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {homeError && (
+        <section className="home-error-state" role="status" aria-live="polite">
+          <div className="container">
+            <h3>Đang gặp sự cố khi tải dữ liệu</h3>
+            <p>
+              Một vài dữ liệu trang chủ chưa thể hiển thị đầy đủ. Bạn vẫn có thể
+              tiếp tục duyệt khóa học ở trang danh sách.
+            </p>
+            <Link to={ROUTES.COURSES} className="btn btn-primary">
+              Mở trang khóa học
+            </Link>
           </div>
         </section>
       )}
@@ -330,6 +457,11 @@ const HomePage = () => {
       {/* CTA SECTION */}
       <section className="cta-section">
         <div className="cta-content">
+          <div className="cta-sparkles">
+            <span className="sparkle s1">✦</span>
+            <span className="sparkle s2">✦</span>
+            <span className="sparkle s3">✧</span>
+          </div>
           <h2 className="cta-title">
             Bắt đầu hành trình học tập của bạn ngay hôm nay
           </h2>

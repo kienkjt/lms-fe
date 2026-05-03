@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../services/api";
@@ -21,6 +21,7 @@ import {
   FaTimes,
   FaTrash,
   FaStickyNote,
+  FaPlayCircle,
 } from "react-icons/fa";
 import "./LearningPage.css";
 
@@ -38,11 +39,83 @@ const isChoiceQuestion = (type) =>
 const isVideoLesson = (lesson) =>
   String(lesson?.type || "").toUpperCase() === "VIDEO";
 
+const isQuizItem = (item) => item?.itemType === "QUIZ";
+
+const createQuizItem = (quiz) => ({
+  ...quiz,
+  id: `quiz-${quiz.id}`,
+  quizId: quiz.id,
+  itemType: "QUIZ",
+  type: "QUIZ",
+  duration: quiz.timeLimitMinutes ? quiz.timeLimitMinutes * 60 : 0,
+  quizData: quiz,
+});
+
+const getQuizSource = (item) => item?.quizData || item;
+
+const mergeQuizzesIntoChapters = (chapters, quizzes, enrolled) => {
+  if (!enrolled || !Array.isArray(quizzes) || quizzes.length === 0) {
+    return chapters;
+  }
+
+  const quizzesByLesson = new Map();
+
+  quizzes.forEach((quiz) => {
+    if (!quiz.lessonId) return;
+    const key = String(quiz.lessonId);
+    quizzesByLesson.set(key, [...(quizzesByLesson.get(key) || []), quiz]);
+  });
+
+  const merged = chapters.map((chapter) => ({
+    ...chapter,
+    lessons: (chapter.lessons || []).flatMap((lesson) => [
+      lesson,
+      ...(quizzesByLesson.get(String(lesson.id)) || []).map(createQuizItem),
+    ]),
+  }));
+
+  const placedQuizIds = new Set(
+    merged
+      .flatMap((chapter) => chapter.lessons || [])
+      .filter(isQuizItem)
+      .map((quiz) => String(quiz.quizId)),
+  );
+  const remainingQuizzes = quizzes.filter(
+    (quiz) => !placedQuizIds.has(String(quiz.id)),
+  );
+
+  if (remainingQuizzes.length === 0) return merged;
+  if (merged.length === 0) {
+    return [
+      {
+        id: "course-quizzes",
+        title: "Bai kiem tra",
+        lessons: remainingQuizzes.map(createQuizItem),
+      },
+    ];
+  }
+
+  const lastIndex = merged.length - 1;
+  return merged.map((chapter, index) =>
+    index === lastIndex
+      ? {
+          ...chapter,
+          lessons: [
+            ...(chapter.lessons || []),
+            ...remainingQuizzes.map(createQuizItem),
+          ],
+        }
+      : chapter,
+  );
+};
+
 const isPreviewLesson = (lesson) =>
   Boolean(lesson?.freePreview ?? lesson?.isFreePreview);
 
 const canViewLesson = (lesson, enrolled) =>
-  enrolled || (isVideoLesson(lesson) && isPreviewLesson(lesson));
+  isQuizItem(lesson)
+    ? enrolled
+    : enrolled || (isVideoLesson(lesson) && isPreviewLesson(lesson));
 
 const getPreviewLesson = (chapters) =>
   chapters
@@ -110,6 +183,7 @@ const LearningPage = () => {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const [completing, setCompleting] = useState(false);
   const [quizzes, setQuizzes] = useState([]);
   const [quizModalOpen, setQuizModalOpen] = useState(false);
@@ -209,7 +283,7 @@ const LearningPage = () => {
             if (previewLesson) {
               setPreviewMode(true);
               setCurrentLesson(previewLesson);
-            } else {
+              toast.info("Bạn chưa đăng ký khóa học này");
               toast.info("Bạn chưa đăng ký khóa học này");
               setTimeout(() => {
                 navigate(
@@ -236,7 +310,7 @@ const LearningPage = () => {
           setQuizzes([]);
         }
       } catch (error) {
-        console.error("Error loading learning page:", error);
+        toast.error("Không thể tải khóa học");
         toast.error("Không thể tải khóa học");
         navigate(ROUTES.STUDENT_DASHBOARD);
       } finally {
@@ -275,10 +349,8 @@ const LearningPage = () => {
       if (completedIds.length > 0) {
         setCompletedLessons(new Set(completedIds));
       }
-
       toast.success("Bài học đã hoàn thành!");
     } catch (error) {
-      console.error("Error completing lesson:", error);
       toast.error("Lỗi khi hoàn thành bài học");
     } finally {
       setCompleting(false);
@@ -294,17 +366,22 @@ const LearningPage = () => {
   };
 
   const getVisibleQuizzes = () => {
-    if (!currentLesson || !isEnrolled) return [];
+    if (!currentLesson || !isEnrolled || isQuizItem(currentLesson)) return [];
     const lessonQuizzes = quizzes.filter(
       (quiz) => quiz.lessonId && quiz.lessonId === currentLesson.id,
     );
-    const courseQuizzes = quizzes.filter((quiz) => !quiz.lessonId);
-    return [...lessonQuizzes, ...courseQuizzes];
+    return lessonQuizzes;
   };
 
   const getVisibleChapters = () => {
-    if (!previewMode) return chapters;
-    return chapters
+    const chaptersWithQuizzes = mergeQuizzesIntoChapters(
+      chapters,
+      quizzes,
+      isEnrolled,
+    );
+
+    if (!previewMode) return chaptersWithQuizzes;
+    return chaptersWithQuizzes
       .map((chapter) => ({
         ...chapter,
         lessons: (chapter.lessons || []).filter((lesson) =>
@@ -321,10 +398,11 @@ const LearningPage = () => {
       setQuizResult(null);
       setQuizAnswers({});
 
-      const response = await quizService.getQuiz(quiz.id);
-      setSelectedQuiz(response.data || quiz);
+      const source = getQuizSource(quiz);
+      const response = await quizService.getQuiz(source.id || source.quizId);
+      setSelectedQuiz(response.data || source);
     } catch (error) {
-      console.error("Error loading quiz:", error);
+      toast.error(error.response?.data?.message || "Không thể tải quiz");
       toast.error(error.response?.data?.message || "Không thể tải quiz");
       setQuizModalOpen(false);
     } finally {
@@ -387,10 +465,10 @@ const LearningPage = () => {
       const response = await quizService.submitAttempt(selectedQuiz.id, {
         answers,
       });
-      setQuizResult(response.data);
+      toast.success("Đã nộp bài quiz");
       toast.success("Đã nộp bài quiz");
     } catch (error) {
-      console.error("Error submitting quiz:", error);
+      toast.error(error.response?.data?.message || "Không thể nộp bài quiz");
       toast.error(error.response?.data?.message || "Không thể nộp bài quiz");
     } finally {
       setQuizSubmitting(false);
@@ -399,7 +477,7 @@ const LearningPage = () => {
 
   // Load notes for current lesson
   const loadNotes = async () => {
-    if (!currentLesson || !isEnrolled) return;
+    if (!currentLesson || !isEnrolled || isQuizItem(currentLesson)) return;
 
     try {
       setLoadingNotes(true);
@@ -432,13 +510,12 @@ const LearningPage = () => {
       const response = await noteService.create(courseId, {
         lessonId: currentLesson.id,
         content: newNote,
-        videoTimestamp: 0,
+        videoTimestamp: Math.round(currentVideoTime),
       });
       setNotes([...notes, response.data]);
       setNewNote("");
       toast.success("Ghi chú đã được thêm");
     } catch (error) {
-      console.error("Error creating note:", error);
       toast.error("Không thể thêm ghi chú");
     }
   };
@@ -447,10 +524,10 @@ const LearningPage = () => {
   const handleDeleteNote = async (noteId) => {
     try {
       await noteService.delete(courseId, noteId);
-      setNotes(notes.filter((note) => note.id !== noteId));
+      toast.success("Ghi chú đã được xóa");
       toast.success("Ghi chú đã được xóa");
     } catch (error) {
-      console.error("Error deleting note:", error);
+      toast.error("Không thể xóa ghi chú");
       toast.error("Không thể xóa ghi chú");
     }
   };
@@ -492,7 +569,7 @@ const LearningPage = () => {
           className="btn-sidebar-toggle"
           title={sidebarOpen ? "Ẩn" : "Hiện"}
         >
-          {sidebarOpen ? "✕" : "☰"}
+          {sidebarOpen ? "×" : "☰"}
         </button>
         <div className="header-content">
           <h1>{course.title}</h1>
@@ -512,7 +589,7 @@ const LearningPage = () => {
         </div>
         <button
           onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}
-          className="btn-back-header"
+          title="Quay lại danh sách khóa học"
           title="Quay lại danh sách khóa học"
         >
           <FaArrowLeft />
@@ -562,7 +639,7 @@ const LearningPage = () => {
                               currentLesson?.id === lesson.id ? "active" : ""
                             } ${completedLessons.has(lesson.id) ? "completed" : ""} ${
                               !viewable ? "locked" : ""
-                            }`}
+                            } ${isQuizItem(lesson) ? "quiz" : ""}`}
                             onClick={() => viewable && setCurrentLesson(lesson)}
                             disabled={!viewable}
                             title={
@@ -572,18 +649,22 @@ const LearningPage = () => {
                             }
                           >
                             <span className="lesson-icon">
-                              {completedLessons.has(lesson.id) ? (
+                              {isQuizItem(lesson) ? (
+                                <FaQuestionCircle size={13} />
+                              ) : completedLessons.has(lesson.id) ? (
                                 <FaCheck size={12} />
                               ) : (
-                                "▶"
+                                <FaPlayCircle size={13} />
                               )}
                             </span>
                             <span className="lesson-title">{lesson.title}</span>
-                            {lesson.duration && (
+                            {isQuizItem(lesson) ? (
+                              <span className="lesson-kind">Quiz</span>
+                            ) : Number(lesson.duration) > 0 ? (
                               <span className="lesson-duration">
-                                {formatDuration(lesson.duration)}
+                                {formatDuration(Number(lesson.duration))}
                               </span>
-                            )}
+                            ) : null}
                           </button>
                         );
                       })}
@@ -601,9 +682,9 @@ const LearningPage = () => {
             <div className="lesson-content">
               <div className="lesson-header">
                 <h2>{currentLesson.title}</h2>
-                {currentLesson.duration && (
+                {Number(currentLesson.duration) > 0 && (
                   <span className="lesson-meta">
-                    ⏱ {formatDuration(currentLesson.duration)}
+                    {formatDuration(Number(currentLesson.duration))}
                   </span>
                 )}
               </div>
@@ -616,11 +697,44 @@ const LearningPage = () => {
               )}
 
               {/* Video player or content */}
-              {isVideoLesson(currentLesson) ? (
+              {isQuizItem(currentLesson) ? (
+                <div className="quiz-lesson-panel">
+                  <div className="quiz-card-icon">
+                    <FaQuestionCircle />
+                  </div>
+                  <div className="quiz-lesson-content">
+                    <h3>{currentLesson.title}</h3>
+                    {currentLesson.description && (
+                      <p>{currentLesson.description}</p>
+                    )}
+                    <div className="quiz-card-meta">
+                      <span>
+                        {currentLesson.totalQuestions ||
+                          currentLesson.questions?.length ||
+                          0}{" "}
+                        câu hỏi
+                      </span>
+                      <span>Điểm đạt {currentLesson.passScore ?? 0}%</span>
+                      <span>
+                        {currentLesson.timeLimitMinutes
+                          ? `${currentLesson.timeLimitMinutes} phút`
+                          : "Không giới hạn"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => openQuiz(currentLesson)}
+                  >
+                    Làm quiz
+                  </button>
+                </div>
+              ) : isVideoLesson(currentLesson) ? (
                 <VideoPlayer
                   videoUrl={getLessonVideoUrl(currentLesson)}
                   videoTitle={currentLesson.title}
                   onCompleted={handleCompleteLesson}
+                  onProgress={setCurrentVideoTime}
                 />
               ) : currentLesson.content ? (
                 <div className="lesson-document">{currentLesson.content}</div>
@@ -631,35 +745,37 @@ const LearningPage = () => {
               )}
 
               {/* Actions */}
-              <div className="lesson-actions">
-                <button
-                  className={`btn btn-primary ${
-                    completedLessons.has(currentLesson.id) ? "completed" : ""
-                  }`}
-                  onClick={handleCompleteLesson}
-                  disabled={
-                    !isEnrolled ||
-                    completing ||
-                    completedLessons.has(currentLesson.id)
-                  }
-                >
-                  {completedLessons.has(currentLesson.id) ? (
-                    <>
-                      <FaCheck /> Đã hoàn thành
-                    </>
-                  ) : (
-                    <>
-                      <FaCheck /> Đánh dấu hoàn thành
-                    </>
-                  )}
-                </button>
-                <button className="btn btn-ghost">
-                  <FaBookmark /> Đánh dấu
-                </button>
-              </div>
+              {!isQuizItem(currentLesson) && (
+                <div className="lesson-actions">
+                  <button
+                    className={`btn btn-primary ${
+                      completedLessons.has(currentLesson.id) ? "completed" : ""
+                    }`}
+                    onClick={handleCompleteLesson}
+                    disabled={
+                      !isEnrolled ||
+                      completing ||
+                      completedLessons.has(currentLesson.id)
+                    }
+                  >
+                    {completedLessons.has(currentLesson.id) ? (
+                      <>
+                        <FaCheck /> Đã hoàn thành
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck /> Đánh dấu hoàn thành
+                      </>
+                    )}
+                  </button>
+                  <button className="btn btn-ghost">
+                    <FaBookmark /> Đánh dấu
+                  </button>
+                </div>
+              )}
 
               {/* Description */}
-              {currentLesson.description && (
+              {!isQuizItem(currentLesson) && currentLesson.description && (
                 <div className="lesson-description">
                   <h3>Mô tả bài học</h3>
                   <p>{currentLesson.description}</p>
@@ -667,7 +783,7 @@ const LearningPage = () => {
               )}
 
               {/* Notes */}
-              {isEnrolled && (
+              {isEnrolled && !isQuizItem(currentLesson) && (
                 <div className="lesson-notes">
                   <div className="lesson-notes-header">
                     <h3>
@@ -706,6 +822,17 @@ const LearningPage = () => {
                               {new Date(note.createdAt).toLocaleDateString(
                                 "vi-VN",
                               )}
+                              {note.videoTimestamp > 0 && (
+                                <span className="note-timestamp">
+                                  {" "}
+                                  (Thời gian:{" "}
+                                  {Math.floor(note.videoTimestamp / 60)}:
+                                  {String(
+                                    Math.floor(note.videoTimestamp % 60),
+                                  ).padStart(2, "0")}
+                                  )
+                                </span>
+                              )}
                             </small>
                             <button
                               className="btn-delete-note"
@@ -724,10 +851,10 @@ const LearningPage = () => {
                 </div>
               )}
 
-              {isEnrolled && visibleQuizzes.length > 0 && (
+              {isEnrolled && !isQuizItem(currentLesson) && visibleQuizzes.length > 0 && (
                 <div className="lesson-quizzes">
                   <div className="lesson-quizzes-header">
-                    <h3>Quiz</h3>
+                    <span>{visibleQuizzes.length} bài</span>
                     <span>{visibleQuizzes.length} bài</span>
                   </div>
                   <div className="quiz-list">
@@ -857,7 +984,7 @@ const LearningPage = () => {
             <button
               className="quiz-modal-close"
               type="button"
-              onClick={closeQuiz}
+              title="Đóng"
               title="Đóng"
             >
               <FaTimes />
