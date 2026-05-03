@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { courseService } from "../services/courseService";
 import { categoryService } from "../services/categoryService";
 import CourseCard from "../components/courses/CourseCard";
@@ -25,10 +25,7 @@ const HomePage = () => {
   const [newestCourses, setNewestCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [searchError, setSearchError] = useState("");
   const [homeError, setHomeError] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,19 +58,6 @@ const HomePage = () => {
     };
     fetchData();
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const searchValue = search.trim();
-
-    if (!searchValue) {
-      setSearchError("Vui lòng nhập từ khóa để tìm kiếm");
-      return;
-    }
-
-    setSearchError("");
-    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}`);
-  };
 
   const features = [
     {
@@ -114,77 +98,6 @@ const HomePage = () => {
                 Nâng cao kỹ năng,{" "}
                 <span className="highlight">mở rộng tương lai</span>
               </h1>
-              <p className="hero-subtitle">
-                Khám phá hàng ngàn khóa học chất lượng từ các giảng viên hàng
-                đầu. Học mọi lúc, mọi nơi với EduLearn.
-              </p>
-
-              <form className="hero-search-form" onSubmit={handleSearch}>
-                <div className="hero-search-controls">
-                  <div className="search-input-wrapper">
-                    <svg
-                      className="search-icon"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Bạn muốn học gì hôm nay?"
-                      value={search}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        if (searchError) {
-                          setSearchError("");
-                        }
-                      }}
-                      className="search-input"
-                      id="hero-search-input"
-                      aria-label="Tìm kiếm khóa học"
-                      aria-invalid={Boolean(searchError)}
-                      aria-describedby={
-                        searchError ? "hero-search-error" : undefined
-                      }
-                    />
-                  </div>
-                  <button type="submit" className="hero-search-btn">
-                    Tìm khóa học
-                  </button>
-                </div>
-                {searchError && (
-                  <p
-                    id="hero-search-error"
-                    className="hero-search-error"
-                    role="alert"
-                    aria-live="polite"
-                  >
-                    {searchError}
-                  </p>
-                )}
-              </form>
-
-              <div
-                className="hero-trust-points"
-                role="list"
-                aria-label="Thống kê nhanh"
-              >
-                <div className="hero-trust-item" role="listitem">
-                  <strong>1,000+</strong>
-                  <span>Khóa học thực chiến</span>
-                </div>
-                <div className="hero-trust-item" role="listitem">
-                  <strong>10K+</strong>
-                  <span>Học viên đang theo học</span>
-                </div>
-                <div className="hero-trust-item" role="listitem">
-                  <strong>98%</strong>
-                  <span>Đánh giá hài lòng</span>
-                </div>
-              </div>
             </div>
 
             <div className="hero-right">
