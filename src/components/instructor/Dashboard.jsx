@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { courseService } from "../../services/courseService";
 import { dashboardService } from "../../services/dashboardService";
-import { enrollmentService } from "../../services/enrollmentService";
 import { withdrawalService } from "../../services/withdrawalService";
 import { ROUTES } from "../../utils/constants";
 import { formatPrice } from "../../utils/helpers";
@@ -19,15 +17,13 @@ import {
   FaUsers,
   FaStar,
   FaPlus,
-  FaListUl,
   FaTimes,
 } from "react-icons/fa";
 import Loading from "../../components/common/Loading";
-import "../student/Dashboard.css";
+import "./Dashboard.css";
 
 const InstructorDashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const [courses, setCourses] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
@@ -65,37 +61,7 @@ const InstructorDashboard = () => {
 
   useEffect(() => {
     if (user?.id) {
-      const loadCoursesWithStudentCounts = async () => {
-        const res = await courseService.getByInstructor(user.id);
-        const courseList = res.data?.content || res.data || [];
-
-        const coursesWithStudentCounts = await Promise.all(
-          courseList.map(async (course) => {
-            try {
-              const studentsRes =
-                await enrollmentService.getCourseStudentsPaginated(course.id, {
-                  page: 1,
-                  size: 1,
-                });
-              const totalStudents =
-                studentsRes.data?.totalElements ??
-                studentsRes.data?.content?.length ??
-                course.totalStudents ??
-                0;
-
-              return { ...course, totalStudents };
-            } catch (error) {
-              console.error("Failed to load course student count:", error);
-              return course;
-            }
-          }),
-        );
-
-        setCourses(coursesWithStudentCounts);
-      };
-
       Promise.all([
-        loadCoursesWithStudentCounts().catch(() => setCourses([])),
         dashboardService
           .getInstructorDashboard()
           .then((res) => setDashboardStats(res.data || null))
@@ -219,31 +185,26 @@ const InstructorDashboard = () => {
   const stats = [
     {
       label: "Tổng khóa học",
-      value: dashboardStats?.totalCourses ?? courses.length,
+      value: dashboardStats?.totalCourses ?? 0,
       icon: <FaBook size={24} />,
       color: "var(--primary)",
     },
     {
       label: "Đang hoạt động",
-      value:
-        dashboardStats?.publishedCourses ??
-        courses.filter((c) => c.status === "PUBLISHED").length,
+      value: dashboardStats?.publishedCourses ?? 0,
       icon: <FaCheck size={24} />,
       color: "var(--success)",
     },
     {
       label: "Tổng học sinh",
-      value:
-        dashboardStats?.totalStudents ??
-        courses.reduce((a, c) => a + (c.totalStudents || 0), 0),
+      value: dashboardStats?.totalStudents ?? 0,
       icon: <FaUsers size={24} />,
       color: "var(--secondary)",
     },
     {
       label: "Đánh giá TB",
-      value: (
-        courses.reduce((a, c) => a + (c.avgRating || 0), 0) /
-        Math.max(courses.length, 1)
+      value: Number(
+        dashboardStats?.avgRating ?? dashboardStats?.averageRating ?? 0,
       ).toFixed(1),
       icon: <FaStar size={24} />,
       color: "var(--warning)",
@@ -253,7 +214,7 @@ const InstructorDashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="dashboard-page animate-fade-in">
+    <div className="dashboard-page instructor-dashboard-page animate-fade-in">
       <div className="welcome-banner">
         <div>
           <h1>
@@ -285,125 +246,6 @@ const InstructorDashboard = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h2>Khóa học của tôi</h2>
-          <Link to={ROUTES.INSTRUCTOR_COURSES} className="see-all-link">
-            Quản lý tất cả →
-          </Link>
-        </div>
-
-        {courses.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <FaBook size={48} />
-            </div>
-            <h3>Chưa có khóa học nào</h3>
-            <p>Tạo khóa học đầu tiên của bạn ngay hôm nay</p>
-            <Link
-              to={ROUTES.INSTRUCTOR_CREATE_COURSE}
-              className="btn btn-primary"
-            >
-              Tạo khóa học
-            </Link>
-          </div>
-        ) : (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "var(--radius-xl)",
-              border: "1px solid var(--border-color)",
-              overflow: "hidden",
-            }}
-          >
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Khóa học</th>
-                  <th>Trạng thái</th>
-                  <th>Học sinh</th>
-                  <th>Đánh giá</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {courses.map((course) => (
-                  <tr key={course.id}>
-                    <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                        }}
-                      >
-                        {course.thumbnail && (
-                          <img
-                            src={course.thumbnail}
-                            alt={course.title}
-                            style={{
-                              width: "48px",
-                              height: "36px",
-                              objectFit: "cover",
-                              borderRadius: "6px",
-                            }}
-                          />
-                        )}
-                        <span style={{ fontWeight: "600", fontSize: "14px" }}>
-                          {course.title}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`badge ${course.status === "PUBLISHED" ? "badge-success" : course.status === "DRAFT" ? "badge-gray" : "badge-warning"}`}
-                      >
-                        {course.status}
-                      </span>
-                    </td>
-                    <td>{course.totalStudents || 0}</td>
-                    <td>
-                      {course.avgRating ? (
-                        <>
-                          <FaStar style={{ marginRight: "4px" }} />{" "}
-                          {course.avgRating.toFixed(1)}
-                        </>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <Link
-                          to={`/courses/${course.id}`}
-                          className="btn btn-ghost btn-sm"
-                        >
-                          Xem
-                        </Link>
-                        <Link
-                          to={`${ROUTES.INSTRUCTOR_CHAPTERS.replace(":courseId", course.id)}`}
-                          className="btn btn-outline btn-sm"
-                          title="Quản lý chương"
-                        >
-                          <FaListUl style={{ marginRight: "4px" }} />
-                          Chương
-                        </Link>
-                        <Link
-                          to={`${ROUTES.INSTRUCTOR_EDIT_COURSE.replace(":courseId", course.id)}`}
-                          className="btn btn-outline btn-sm"
-                        >
-                          Sửa
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       {/* Withdrawal Detail Modal */}
@@ -649,7 +491,7 @@ const InstructorDashboard = () => {
                 </p>
               </div>
 
-              {selectedRequest.processedAt && (
+              {selectedRequest.approvedAt && (
                 <div
                   style={{
                     borderBottom: "1px solid var(--border-color)",
@@ -666,14 +508,14 @@ const InstructorDashboard = () => {
                     Ngày xử lý
                   </label>
                   <p style={{ margin: "4px 0 0 0", fontSize: "14px" }}>
-                    {new Date(selectedRequest.processedAt).toLocaleString(
+                    {new Date(selectedRequest.approvedAt).toLocaleString(
                       "vi-VN",
                     )}
                   </p>
                 </div>
               )}
 
-              {selectedRequest.rejectionReason && (
+              {selectedRequest.rejectReason && (
                 <div
                   style={{
                     background: "#fee",
@@ -698,7 +540,7 @@ const InstructorDashboard = () => {
                       color: "#c0392b",
                     }}
                   >
-                    {selectedRequest.rejectionReason}
+                    {selectedRequest.rejectReason}
                   </p>
                 </div>
               )}

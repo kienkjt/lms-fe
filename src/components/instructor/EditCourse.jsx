@@ -174,6 +174,10 @@ const EditCourse = () => {
       toast.error("Vui lòng chọn mức độ");
       return;
     }
+    if (Number(formData.discountPrice) > Number(formData.price)) {
+      toast.error("Giá giảm không được lớn hơn giá gốc");
+      return;
+    }
 
     setLoading(true);
     try {

@@ -1,0 +1,21 @@
+.instructor-dashboard-page .stat-label {
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.instructor-dashboard-page .stat-number {
+  color: var(--text-primary);
+}
+
+.instructor-dashboard-page .welcome-banner h1,
+.instructor-dashboard-page .welcome-banner p,
+.instructor-dashboard-page .section-header h2,
+.instructor-dashboard-page .data-table th,
+.instructor-dashboard-page .data-table td {
+  color: var(--text-primary);
+}
+
+.instructor-dashboard-page .data-table th {
+  color: var(--text-secondary);
+}

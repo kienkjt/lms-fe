@@ -98,19 +98,19 @@
   margin-bottom: 36px;
 }
 
-.stat-item {
+.auth-stats .stat-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.stat-value {
+.auth-stats .stat-value {
   font-size: 22px;
   font-weight: 800;
   color: #a5b4fc;
 }
 
-.stat-label {
+.auth-stats .stat-label {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
 }

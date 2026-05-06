@@ -16,6 +16,7 @@ export const quizService = {
     try {
       console.log('[quizService.createQuiz] Creating quiz for course:', courseId);
       const response = await api.post(`/api/v1/courses/${courseId}/quizzes`, {
+        chapterId: data.chapterId || null,
         lessonId: data.lessonId || null,
         title: data.title,
         description: data.description || '',
@@ -47,6 +48,24 @@ export const quizService = {
       return { data: quizzes };
     } catch (error) {
       console.error('[quizService.getCourseQuizzes] Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get chapters and lessons for quiz selection
+   * @param {string} courseId - Course ID
+   * @returns {Promise} Response with chapter/lesson hierarchy
+   */
+  getQuizSelection: async (courseId) => {
+    try {
+      console.log('[quizService.getQuizSelection] Fetching quiz selection tree for course:', courseId);
+      const response = await api.get(`/api/v1/courses/${courseId}/quiz-selection`);
+      const selection = response.data?.data || response.data || [];
+      console.log('[quizService.getQuizSelection] Success, found chapters:', selection.length);
+      return { data: selection };
+    } catch (error) {
+      console.error('[quizService.getQuizSelection] Error:', error);
       throw error;
     }
   },

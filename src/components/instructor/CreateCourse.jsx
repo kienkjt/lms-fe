@@ -147,6 +147,10 @@ const CreateCourse = () => {
       toast.error("Tiêu đề không được vượt quá 200 ký tự");
       return;
     }
+    if (Number(formData.discountPrice) > Number(formData.price)) {
+      toast.error("Giá giảm không được lớn hơn giá gốc");
+      return;
+    }
 
     setLoading(true);
     try {

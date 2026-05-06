@@ -49,45 +49,29 @@ const CoursesPage = () => {
     setCoursesError(null);
     try {
       console.log("[CoursesPage] Fetching courses with filters:", filters);
-      const requestParams = { page, size: PAGINATION.DEFAULT_SIZE };
-      const baseResponse = filters.category
-        ? await courseService.getByCategory(filters.category, requestParams)
-        : await courseService.getAll(requestParams);
-
-      const baseCourses = baseResponse.data?.content || baseResponse.data || [];
-
-      const filteredCourses = baseCourses.filter((course) => {
-        if (filters.level && course.level !== filters.level) return false;
-
-        const coursePrice = Number(course.discountPrice ?? course.price ?? 0);
-        const minPrice = filters.priceMin ? Number(filters.priceMin) : null;
-        const maxPrice = filters.priceMax ? Number(filters.priceMax) : null;
-
-        if (
-          minPrice !== null &&
-          Number.isFinite(minPrice) &&
-          coursePrice < minPrice
-        ) {
-          return false;
-        }
-        if (
-          maxPrice !== null &&
-          Number.isFinite(maxPrice) &&
-          coursePrice > maxPrice
-        ) {
-          return false;
-        }
-
-        return true;
+      const response = await courseService.search({
+        keyword: undefined,
+        categoryId: filters.category || undefined,
+        level: filters.level || undefined,
+        priceMin: filters.priceMin ? Number(filters.priceMin) : undefined,
+        priceMax: filters.priceMax ? Number(filters.priceMax) : undefined,
+        page,
+        size: PAGINATION.DEFAULT_SIZE,
       });
 
-      console.log("[CoursesPage] Courses response:", filteredCourses.length);
-      setCourses(filteredCourses);
-      setTotal(
-        filters.level || filters.priceMin || filters.priceMax
-          ? filteredCourses.length
-          : baseResponse.data?.totalElements || filteredCourses.length,
-      );
+      const pageData = response.data || {};
+      const list = Array.isArray(pageData)
+        ? pageData
+        : pageData.content || pageData.items || [];
+      const totalElements =
+        pageData.totalElements ??
+        pageData.total ??
+        pageData.totalItems ??
+        list.length;
+
+      console.log("[CoursesPage] Courses response:", list.length);
+      setCourses(list);
+      setTotal(totalElements);
     } catch (error) {
       console.error("[CoursesPage] Failed to fetch courses:", error);
       setCoursesError("Không thể tải danh sách khóa học");
@@ -125,7 +109,7 @@ const CoursesPage = () => {
     ADVANCED: "Nâng cao",
   };
 
-  const totalPages = Math.ceil(total / PAGINATION.DEFAULT_SIZE);
+  const totalPages = Math.max(1, Math.ceil(total / PAGINATION.DEFAULT_SIZE));
 
   return (
     <div className="courses-page">

@@ -105,12 +105,17 @@ const CoursesManagement = () => {
       setUploadingId(course.id);
       const updated = await courseService.publishCourse(course.id);
       setCourses(courses.map((c) => (c.id === course.id ? updated.data : c)));
-      toast.success("Công khai khóa học thành công");
+      toast.success(
+        updated.data?.status === COURSE_STATUS.PENDING_REVIEW
+          ? "Gửi duyệt khóa học thành công"
+          : "Công khai khóa học thành công",
+      );
       fetchCourses(page);
     } catch (error) {
       console.error("Publish course error:", error);
       toast.error(
-        error.response?.data?.message || "Không thể công khai khóa học",
+        error.response?.data?.message ||
+          "Không thể cập nhật trạng thái khóa học",
       );
     } finally {
       setUploadingId(null);
@@ -191,7 +196,7 @@ const CoursesManagement = () => {
   }
 
   return (
-    <div className="dashboard-page animate-fade-in">
+    <div className="dashboard-page courses-management-page animate-fade-in">
       <div className="page-header">
         <div>
           <h1>Quản lý khóa học</h1>
@@ -289,155 +294,171 @@ const CoursesManagement = () => {
                   };
 
                   return (
-                  <tr key={course.id}>
-                    <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                        }}
-                      >
-                        {course.thumbnail && (
-                          <img
-                            src={course.thumbnail}
-                            alt={course.title}
-                            style={{
-                              width: "48px",
-                              height: "36px",
-                              objectFit: "cover",
-                              borderRadius: "6px",
-                            }}
-                          />
-                        )}
-                        <div>
-                          <div style={{ fontWeight: "600", fontSize: "14px" }}>
-                            {course.title}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "var(--text-tertiary)",
-                            }}
-                          >
-                            ID: {course.id}
+                    <tr key={course.id}>
+                      <td>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                          }}
+                        >
+                          {course.thumbnail && (
+                            <img
+                              src={course.thumbnail}
+                              alt={course.title}
+                              style={{
+                                width: "48px",
+                                height: "36px",
+                                objectFit: "cover",
+                                borderRadius: "6px",
+                              }}
+                            />
+                          )}
+                          <div>
+                            <div
+                              style={{ fontWeight: "600", fontSize: "14px" }}
+                            >
+                              {course.title}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "var(--text-tertiary)",
+                              }}
+                            >
+                              ID: {course.id}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="badge badge-gray">
-                        {course.level === COURSE_LEVELS.BEGINNER && "Cơ bản"}
-                        {course.level === COURSE_LEVELS.INTERMEDIATE &&
-                          "Trung bình"}
-                        {course.level === COURSE_LEVELS.ADVANCED && "Nâng cao"}
-                      </span>
-                    </td>
-                    <td>{course.price?.toLocaleString("vi") || "0"} đ</td>
-                    <td>{course.totalStudents || 0}</td>
-                    <td>
-                      <span className={`badge ${statusMeta.badge}`}>
-                        {statusMeta.label}
-                      </span>
-                    </td>
-                    <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "6px",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <button
-                          onClick={() =>
-                            navigate(
-                              `${ROUTES.INSTRUCTOR_EDIT_COURSE.replace(":courseId", course.id)}`,
-                            )
-                          }
-                          className="btn btn-outline btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
+                      </td>
+                      <td>
+                        <span className="badge badge-gray">
+                          {course.level === COURSE_LEVELS.BEGINNER && "Cơ bản"}
+                          {course.level === COURSE_LEVELS.INTERMEDIATE &&
+                            "Trung bình"}
+                          {course.level === COURSE_LEVELS.ADVANCED &&
+                            "Nâng cao"}
+                        </span>
+                      </td>
+                      <td>{course.price?.toLocaleString("vi") || "0"} đ</td>
+                      <td>{course.totalStudents || 0}</td>
+                      <td>
+                        <span className={`badge ${statusMeta.badge}`}>
+                          {statusMeta.label}
+                        </span>
+                      </td>
+                      <td>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "6px",
+                            flexWrap: "wrap",
+                          }}
                         >
-                          <FaPen style={{ marginRight: "4px" }} /> Sửa
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(
-                              `${ROUTES.INSTRUCTOR_CHAPTERS.replace(":courseId", course.id)}`,
-                            )
-                          }
-                          className="btn btn-outline btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
-                          title="Quản lý chương"
-                        >
-                          <FaListUl style={{ marginRight: "4px" }} /> Chương
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(
-                              `${ROUTES.INSTRUCTOR_QUIZ.replace(":courseId", course.id)}`,
-                            )
-                          }
-                          className="btn btn-outline btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
-                          title="Tạo và quản lý quiz"
-                        >
-                          <FaQuestionCircle style={{ marginRight: "4px" }} /> Quiz
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(
-                              `${ROUTES.INSTRUCTOR_STUDENTS}?courseId=${course.id}`,
-                            )
-                          }
-                          className="btn btn-outline btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
-                          title="Xem danh sách học viên"
-                        >
-                          <FaUsers style={{ marginRight: "4px" }} /> Học viên
-                        </button>
-                        <button
-                          onClick={() => openMediaModal(course)}
-                          className="btn btn-outline btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
-                          title="Tải lên hình ảnh và video"
-                        >
-                          <FaImage style={{ marginRight: "4px" }} /> Media
-                        </button>
-                        {course.status === COURSE_STATUS.DRAFT && (
                           <button
-                            onClick={() => handlePublish(course)}
-                            disabled={uploadingId === course.id}
-                            className="btn btn-primary btn-sm"
+                            onClick={() =>
+                              navigate(
+                                `${ROUTES.INSTRUCTOR_EDIT_COURSE.replace(":courseId", course.id)}`,
+                              )
+                            }
+                            className="btn btn-outline btn-sm"
                             style={{ fontSize: "12px", padding: "6px 12px" }}
                           >
-                            <FaCheck style={{ marginRight: "4px" }} />
-                            {uploadingId === course.id ? "..." : "Công khai"}
+                            <FaPen style={{ marginRight: "4px" }} /> Sửa
                           </button>
-                        )}
-                        {course.status === COURSE_STATUS.PUBLISHED && (
                           <button
-                            onClick={() => handleUnpublish(course)}
+                            onClick={() =>
+                              navigate(
+                                `${ROUTES.INSTRUCTOR_CHAPTERS.replace(":courseId", course.id)}`,
+                              )
+                            }
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                            title="Quản lý chương"
+                          >
+                            <FaListUl style={{ marginRight: "4px" }} /> Chương
+                          </button>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `${ROUTES.INSTRUCTOR_QUIZ.replace(":courseId", course.id)}`,
+                              )
+                            }
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                            title="Tạo và quản lý quiz"
+                          >
+                            <FaQuestionCircle style={{ marginRight: "4px" }} />{" "}
+                            Quiz
+                          </button>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `${ROUTES.INSTRUCTOR_STUDENTS}?courseId=${course.id}`,
+                              )
+                            }
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                            title="Xem danh sách học viên"
+                          >
+                            <FaUsers style={{ marginRight: "4px" }} /> Học viên
+                          </button>
+                          <button
+                            onClick={() => openMediaModal(course)}
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                            title="Tải lên hình ảnh và video"
+                          >
+                            <FaImage style={{ marginRight: "4px" }} /> Media
+                          </button>
+                          {(course.status === COURSE_STATUS.DRAFT ||
+                            course.status === COURSE_STATUS.REJECTED) && (
+                            <button
+                              onClick={() => handlePublish(course)}
+                              disabled={uploadingId === course.id}
+                              className="btn btn-primary btn-sm"
+                              style={{ fontSize: "12px", padding: "6px 12px" }}
+                            >
+                              <FaCheck style={{ marginRight: "4px" }} />
+                              {uploadingId === course.id ? "..." : "Gửi duyệt"}
+                            </button>
+                          )}
+                          {course.status === COURSE_STATUS.APPROVED && (
+                            <button
+                              onClick={() => handlePublish(course)}
+                              disabled={uploadingId === course.id}
+                              className="btn btn-primary btn-sm"
+                              style={{ fontSize: "12px", padding: "6px 12px" }}
+                            >
+                              <FaCheck style={{ marginRight: "4px" }} />
+                              {uploadingId === course.id ? "..." : "Công khai"}
+                            </button>
+                          )}
+                          {course.status === COURSE_STATUS.PUBLISHED && (
+                            <button
+                              onClick={() => handleUnpublish(course)}
+                              disabled={uploadingId === course.id}
+                              className="btn btn-warning btn-sm"
+                              style={{ fontSize: "12px", padding: "6px 12px" }}
+                            >
+                              <FaTimes style={{ marginRight: "4px" }} />
+                              {uploadingId === course.id
+                                ? "..."
+                                : "Hủy công khai"}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(course.id)}
                             disabled={uploadingId === course.id}
-                            className="btn btn-warning btn-sm"
+                            className="btn btn-danger btn-sm"
                             style={{ fontSize: "12px", padding: "6px 12px" }}
                           >
-                            <FaTimes style={{ marginRight: "4px" }} />
-                            {uploadingId === course.id
-                              ? "..."
-                              : "Hủy công khai"}
+                            <FaTrash style={{ marginRight: "4px" }} /> Xóa
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(course.id)}
-                          disabled={uploadingId === course.id}
-                          className="btn btn-danger btn-sm"
-                          style={{ fontSize: "12px", padding: "6px 12px" }}
-                        >
-                          <FaTrash style={{ marginRight: "4px" }} /> Xóa
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>

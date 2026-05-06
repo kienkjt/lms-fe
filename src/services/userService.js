@@ -10,12 +10,13 @@ export const userService = {
 
   /**
    * Update user profile
-   * @param {Object} data - Profile update data (fullName, phone, bio)
+   * @param {Object} data - Profile update data (fullName, gender, phoneNumber, bio)
    */
   updateProfile: async (data) => {
     return api.put('/api/v1/user/profile', {
       fullName: data.fullName,
-      phone: data.phone || data.phoneNumber || null,
+      gender: data.gender || null,
+      phoneNumber: data.phoneNumber || data.phone || null,
       bio: data.bio || null,
     });
   },

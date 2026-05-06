@@ -40,8 +40,14 @@ export const notificationService = {
       const response = await api.post('/api/v1/notifications/read-all');
       return { data: response.data?.data || response.data };
     } catch (error) {
-      console.error('[notificationService.markAllRead] Error:', error);
-      throw error;
+      console.warn('[notificationService.markAllRead] Fallback endpoint /mark-all-read');
+      try {
+        const fallback = await api.post('/api/v1/notifications/mark-all-read');
+        return { data: fallback.data?.data || fallback.data };
+      } catch (fallbackError) {
+        console.error('[notificationService.markAllRead] Error:', fallbackError);
+        throw fallbackError;
+      }
     }
   },
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../services/api";
@@ -166,6 +166,34 @@ const getCompletedLessonIdsFromProgress = (progressData, chapters = []) => {
   return [];
 };
 
+const getQuizResultScore = (result) => {
+  if (!result) return null;
+
+  const candidates = [
+    result.score,
+    result.points,
+    result.obtainedScore,
+    result.totalScore,
+    result.rawScore,
+    result.percentScore,
+    result.percentage,
+  ];
+
+  const value = candidates.find(
+    (candidate) =>
+      candidate !== null && candidate !== undefined && candidate !== "",
+  );
+
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (typeof value === "number") return value;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : value;
+};
+
 const LearningPage = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -198,6 +226,7 @@ const LearningPage = () => {
     const loadData = async () => {
       try {
         setLoading(true);
+        let loadedProgress = null;
 
         // Load course
         const courseRes = await api.get(`/api/v1/courses/${courseId}`);
@@ -212,8 +241,8 @@ const LearningPage = () => {
 
           if (enrolled) {
             const progressRes = await enrollmentService.getProgress(courseId);
-            const progressData = progressRes.data;
-            setProgress(progressData);
+            loadedProgress = progressRes.data || null;
+            setProgress(loadedProgress);
             // Will process completedLessons after chapters are loaded
           }
         } catch {
@@ -260,21 +289,17 @@ const LearningPage = () => {
 
           setChapters(chaptersWithLessons);
 
-          // Update completed lessons from progress data (now that chapters are loaded)
-          if (enrolled && progress) {
+          if (enrolled && loadedProgress) {
             const completedIds = getCompletedLessonIdsFromProgress(
-              progress,
+              loadedProgress,
               chaptersWithLessons,
             );
-            if (completedIds.length > 0) {
-              setCompletedLessons(new Set(completedIds));
-            }
+            setCompletedLessons(new Set(completedIds));
           }
 
-          // Initialize expanded chapters
           const expanded = {};
           chaptersWithLessons.forEach((_, idx) => {
-            expanded[idx] = idx === 0; // Expand first chapter
+            expanded[idx] = idx === 0;
           });
           setExpandedChapters(expanded);
 
@@ -283,7 +308,6 @@ const LearningPage = () => {
             if (previewLesson) {
               setPreviewMode(true);
               setCurrentLesson(previewLesson);
-              toast.info("Bạn chưa đăng ký khóa học này");
               toast.info("Bạn chưa đăng ký khóa học này");
               setTimeout(() => {
                 navigate(
@@ -298,19 +322,18 @@ const LearningPage = () => {
           ) {
             setCurrentLesson(chaptersWithLessons[0].lessons[0]);
           }
-        } catch (error) {
-          console.error("Error loading chapters:", error);
+        } catch {
+          console.error("Error loading chapters");
         }
 
         try {
           const quizzesRes = await quizService.getCourseQuizzes(courseId);
           setQuizzes(Array.isArray(quizzesRes.data) ? quizzesRes.data : []);
-        } catch (error) {
-          console.error("Error loading quizzes:", error);
+        } catch {
+          console.error("Error loading quizzes");
           setQuizzes([]);
         }
-      } catch (error) {
-        toast.error("Không thể tải khóa học");
+      } catch {
         toast.error("Không thể tải khóa học");
         navigate(ROUTES.STUDENT_DASHBOARD);
       } finally {
@@ -319,7 +342,6 @@ const LearningPage = () => {
     };
 
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, navigate]);
 
   // Handle lesson completion
@@ -350,7 +372,7 @@ const LearningPage = () => {
         setCompletedLessons(new Set(completedIds));
       }
       toast.success("Bài học đã hoàn thành!");
-    } catch (error) {
+    } catch {
       toast.error("Lỗi khi hoàn thành bài học");
     } finally {
       setCompleting(false);
@@ -465,10 +487,9 @@ const LearningPage = () => {
       const response = await quizService.submitAttempt(selectedQuiz.id, {
         answers,
       });
-      toast.success("Đã nộp bài quiz");
+      setQuizResult(response.data || null);
       toast.success("Đã nộp bài quiz");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Không thể nộp bài quiz");
       toast.error(error.response?.data?.message || "Không thể nộp bài quiz");
     } finally {
       setQuizSubmitting(false);
@@ -476,7 +497,7 @@ const LearningPage = () => {
   };
 
   // Load notes for current lesson
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     if (!currentLesson || !isEnrolled || isQuizItem(currentLesson)) return;
 
     try {
@@ -497,7 +518,7 @@ const LearningPage = () => {
     } finally {
       setLoadingNotes(false);
     }
-  };
+  }, [courseId, currentLesson, isEnrolled]);
 
   // Create new note
   const handleCreateNote = async () => {
@@ -515,7 +536,7 @@ const LearningPage = () => {
       setNotes([...notes, response.data]);
       setNewNote("");
       toast.success("Ghi chú đã được thêm");
-    } catch (error) {
+    } catch {
       toast.error("Không thể thêm ghi chú");
     }
   };
@@ -525,20 +546,15 @@ const LearningPage = () => {
     try {
       await noteService.delete(courseId, noteId);
       toast.success("Ghi chú đã được xóa");
-      toast.success("Ghi chú đã được xóa");
-    } catch (error) {
-      toast.error("Không thể xóa ghi chú");
+    } catch {
       toast.error("Không thể xóa ghi chú");
     }
   };
 
   // Load notes when lesson changes
   useEffect(() => {
-    if (currentLesson && isEnrolled) {
-      loadNotes();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLesson?.id, isEnrolled]);
+    loadNotes();
+  }, [loadNotes]);
 
   if (loading) {
     return <Loading />;
@@ -853,47 +869,49 @@ const LearningPage = () => {
                 </div>
               )}
 
-              {isEnrolled && !isQuizItem(currentLesson) && visibleQuizzes.length > 0 && (
-                <div className="lesson-quizzes">
-                  <div className="lesson-quizzes-header">
-                    <span>{visibleQuizzes.length} bài</span>
-                    <span>{visibleQuizzes.length} bài</span>
-                  </div>
-                  <div className="quiz-list">
-                    {visibleQuizzes.map((quiz) => (
-                      <div className="quiz-card" key={quiz.id}>
-                        <div className="quiz-card-icon">
-                          <FaQuestionCircle />
-                        </div>
-                        <div className="quiz-card-content">
-                          <h4>{quiz.title}</h4>
-                          {quiz.description && <p>{quiz.description}</p>}
-                          <div className="quiz-card-meta">
-                            <span>
-                              {quiz.totalQuestions ||
-                                quiz.questions?.length ||
-                                0}{" "}
-                              câu hỏi
-                            </span>
-                            <span>Điểm đạt {quiz.passScore ?? 0}%</span>
-                            <span>
-                              {quiz.timeLimitMinutes
-                                ? `${quiz.timeLimitMinutes} phút`
-                                : "Không giới hạn"}
-                            </span>
+              {isEnrolled &&
+                !isQuizItem(currentLesson) &&
+                visibleQuizzes.length > 0 && (
+                  <div className="lesson-quizzes">
+                    <div className="lesson-quizzes-header">
+                      <span>{visibleQuizzes.length} bài</span>
+                      <span>{visibleQuizzes.length} bài</span>
+                    </div>
+                    <div className="quiz-list">
+                      {visibleQuizzes.map((quiz) => (
+                        <div className="quiz-card" key={quiz.id}>
+                          <div className="quiz-card-icon">
+                            <FaQuestionCircle />
                           </div>
+                          <div className="quiz-card-content">
+                            <h4>{quiz.title}</h4>
+                            {quiz.description && <p>{quiz.description}</p>}
+                            <div className="quiz-card-meta">
+                              <span>
+                                {quiz.totalQuestions ||
+                                  quiz.questions?.length ||
+                                  0}{" "}
+                                câu hỏi
+                              </span>
+                              <span>Điểm đạt {quiz.passScore ?? 0}%</span>
+                              <span>
+                                {quiz.timeLimitMinutes
+                                  ? `${quiz.timeLimitMinutes} phút`
+                                  : "Không giới hạn"}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => openQuiz(quiz)}
+                          >
+                            Làm quiz
+                          </button>
                         </div>
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => openQuiz(quiz)}
-                        >
-                          Làm quiz
-                        </button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Navigation */}
               <div className="lesson-navigation">
@@ -987,7 +1005,7 @@ const LearningPage = () => {
               className="quiz-modal-close"
               type="button"
               title="Đóng"
-              title="Đóng"
+              onClick={closeQuiz}
             >
               <FaTimes />
             </button>
@@ -1016,8 +1034,15 @@ const LearningPage = () => {
                   <div className="quiz-result">
                     <h3>Kết quả</h3>
                     <p>
-                      Điểm: <strong>{quizResult.score ?? 0}</strong>
+                      Điểm:{" "}
+                      <strong>{getQuizResultScore(quizResult) ?? 0}</strong>
                     </p>
+                    {quizResult.percentage !== undefined &&
+                      quizResult.percentage !== null && (
+                        <p>
+                          Tỷ lệ đúng: <strong>{quizResult.percentage}%</strong>
+                        </p>
+                      )}
                     {"passed" in quizResult && (
                       <p>
                         Trạng thái:{" "}

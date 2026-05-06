@@ -146,26 +146,23 @@ export const courseService = {
   search: async (data) => {
     console.log('[courseService.search] Called with filters:', data);
     try {
-      // Build search request body matching backend SearchCourseRequest DTO
-      const searchRequest = {
-        keyword: data.keyword,
-        categoryId: data.categoryId,
-        level: data.level,
-        priceMin: data.priceMin,
-        priceMax: data.priceMax,
-        status: data.status,
-      };
-
-      // Build pagination params
+      // Build query params for public endpoint GET /api/v1/courses
       const params = new URLSearchParams();
       const page = resolvePage(data.page);
       const size = resolveSize(data.size);
       params.append('page', page);
       params.append('pageSize', size);
 
-      console.log('[courseService.search] Calling backend API POST /api/v1/courses/search with:', searchRequest);
-      // Backend uses POST endpoint for advanced search
-      const response = await api.post(`/api/v1/courses/search?${params.toString()}`, searchRequest);
+      if (data.keyword) params.append('keyword', data.keyword);
+      if (data.categoryId) params.append('categoryId', data.categoryId);
+      if (data.level) params.append('level', data.level);
+      if (data.priceMin !== undefined && data.priceMin !== null) params.append('priceMin', data.priceMin);
+      if (data.priceMax !== undefined && data.priceMax !== null) params.append('priceMax', data.priceMax);
+      if (data.status) params.append('status', data.status);
+      if (data.sort) params.append('sort', data.sort);
+
+      console.log('[courseService.search] Calling backend API GET /api/v1/courses with params:', Object.fromEntries(params.entries()));
+      const response = await api.get(`/api/v1/courses?${params.toString()}`);
       
       console.log('[courseService.search] API response:', response);
       

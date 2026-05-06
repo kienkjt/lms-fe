@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaArrowLeft, FaPlus, FaPen, FaTrash, FaEye } from "react-icons/fa";
 import { quizService } from "../../services/quizService";
 import { courseService } from "../../services/courseService";
+import { ROUTES } from "../../utils/constants";
 import Loading from "../common/Loading";
 import "./QuizManagement.css";
 
@@ -23,29 +24,36 @@ const QuizManagement = () => {
     passScore: 70,
     maxAttempts: "",
     shuffleQuestions: false,
+    chapterId: "",
     lessonId: "",
   });
+  const [chapterSelection, setChapterSelection] = useState([]);
+  const [selectedChapterId, setSelectedChapterId] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, [courseId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [courseRes, quizzesRes] = await Promise.all([
+      const [courseRes, quizzesRes, selectionRes] = await Promise.all([
         courseService.getById(courseId),
         quizService.getCourseQuizzes(courseId),
+        quizService.getQuizSelection(courseId),
       ]);
       setCourse(courseRes.data || {});
       setQuizzes(quizzesRes.data || []);
+      setChapterSelection(
+        Array.isArray(selectionRes.data) ? selectionRes.data : [],
+      );
     } catch (error) {
       console.error("Failed to load quiz data:", error);
       toast.error("Không thể tải dữ liệu quiz");
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleOpenModal = (quiz = null) => {
     if (quiz) {
@@ -57,8 +65,15 @@ const QuizManagement = () => {
         passScore: quiz.passScore || 70,
         maxAttempts: quiz.maxAttempts || "",
         shuffleQuestions: quiz.shuffleQuestions || false,
+        chapterId: quiz.chapterId || "",
         lessonId: quiz.lessonId || "",
       });
+      const chapterId =
+        quiz.chapterId ||
+        chapterSelection.find((chapter) =>
+          (chapter.lessons || []).some((lesson) => lesson.id === quiz.lessonId),
+        )?.id || "";
+      setSelectedChapterId(chapterId);
     } else {
       setEditingQuiz(null);
       setFormData({
@@ -68,8 +83,10 @@ const QuizManagement = () => {
         passScore: 70,
         maxAttempts: "",
         shuffleQuestions: false,
+        chapterId: "",
         lessonId: "",
       });
+      setSelectedChapterId("");
     }
     setShowModal(true);
   };
@@ -77,6 +94,17 @@ const QuizManagement = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingQuiz(null);
+    setSelectedChapterId("");
+    setFormData({
+      title: "",
+      description: "",
+      timeLimitMinutes: "",
+      passScore: 70,
+      maxAttempts: "",
+      shuffleQuestions: false,
+      chapterId: "",
+      lessonId: "",
+    });
   };
 
   const handleInputChange = (e) => {
@@ -147,7 +175,7 @@ const QuizManagement = () => {
       <div className="quiz-header">
         <button
           className="btn-back"
-          onClick={() => navigate(`/instructor/courses/${courseId}/chapters`)}
+          onClick={() => navigate(ROUTES.INSTRUCTOR_COURSES)}
         >
           <FaArrowLeft /> Quay lại
         </button>
@@ -294,6 +322,29 @@ const QuizManagement = () => {
                     placeholder="Để trống = không giới hạn"
                   />
                 </div>
+              </div>
+
+              <div className="form-group checkbox">
+                <label>Chapter</label>
+                <select
+                  value={selectedChapterId}
+                  onChange={(e) => {
+                    const nextChapterId = e.target.value;
+                    setSelectedChapterId(nextChapterId);
+                    setFormData((prev) => ({
+                      ...prev,
+                      chapterId: nextChapterId || "",
+                      lessonId: "",
+                    }));
+                  }}
+                >
+                  <option value="">Không gắn chapter</option>
+                  {chapterSelection.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group checkbox">

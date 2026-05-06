@@ -80,10 +80,10 @@ const InstructorRevenuePage = () => {
       return false;
     }
 
-    if (!validateWithdrawalAmount(requestedAmount, wallet?.currentBalance)) {
-      if (Number(requestedAmount) > wallet?.currentBalance) {
+    if (!validateWithdrawalAmount(requestedAmount, wallet?.availableBalance)) {
+      if (Number(requestedAmount) > wallet?.availableBalance) {
         toast.error(
-          `Số tiền không được vượt quá ${formatPrice(wallet?.currentBalance || 0)}`,
+          `Số tiền không được vượt quá ${formatPrice(wallet?.availableBalance || 0)}`,
         );
       } else {
         toast.error("Vui lòng nhập số tiền hợp lệ");
@@ -221,10 +221,10 @@ const InstructorRevenuePage = () => {
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
-                {formatPrice(wallet.currentBalance || 0)}
+                {formatPrice(wallet.availableBalance || wallet.currentBalance || 0)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-                Sẵn sàng để rút tiền
+                Sẵn sàng để rút tiền (khả dụng)
               </div>
             </div>
 
@@ -389,7 +389,7 @@ const InstructorRevenuePage = () => {
               className="form-input"
               type="number"
               inputMode="numeric"
-              placeholder="Số tiền muốn rút (sẽ bị trừ hoa hồng)"
+              placeholder="Số tiền muốn rút"
               value={withdrawForm.requestedAmount}
               onChange={(e) =>
                 setWithdrawForm((prev) => ({
@@ -871,7 +871,7 @@ const InstructorRevenuePage = () => {
                 </p>
               </div>
 
-              {selectedRequest.processedAt && (
+              {selectedRequest.approvedAt && (
                 <div
                   style={{
                     paddingBottom: "16px",
@@ -888,14 +888,14 @@ const InstructorRevenuePage = () => {
                     Ngày xử lý
                   </label>
                   <p style={{ margin: "8px 0 0", fontSize: "14px" }}>
-                    {new Date(selectedRequest.processedAt).toLocaleString(
+                    {new Date(selectedRequest.approvedAt).toLocaleString(
                       "vi-VN",
                     )}
                   </p>
                 </div>
               )}
 
-              {selectedRequest.rejectionReason && (
+              {selectedRequest.rejectReason && (
                 <div
                   style={{
                     padding: "12px",
@@ -921,7 +921,7 @@ const InstructorRevenuePage = () => {
                       color: "#c0392b",
                     }}
                   >
-                    {selectedRequest.rejectionReason}
+                    {selectedRequest.rejectReason}
                   </p>
                 </div>
               )}

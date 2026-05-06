@@ -97,9 +97,20 @@ const SearchPage = () => {
         };
 
         const response = await courseService.search(payload);
-        const pageData = response.data;
-        setCourses(pageData?.content || pageData || []);
-        setTotalElements(pageData?.totalElements || 0);
+        const pageData = response.data || {};
+        const content = Array.isArray(pageData)
+          ? pageData
+          : pageData?.content || pageData?.items || [];
+        const total =
+          pageData?.totalElements ??
+          pageData?.total ??
+          pageData?.totalItems ??
+          (pageData?.totalPages
+            ? Number(pageData.totalPages) * PAGE_SIZE
+            : content.length);
+
+        setCourses(content);
+        setTotalElements(total);
       } catch (error) {
         console.error("Search failed:", error);
         setCourses([]);
@@ -116,6 +127,13 @@ const SearchPage = () => {
     () => Math.max(1, Math.ceil(totalElements / PAGE_SIZE)),
     [totalElements],
   );
+
+  useEffect(() => {
+    if (page > totalPages) {
+      handlePageChange(totalPages);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPages]);
 
   const updateSearchParams = (nextFilters, nextPage = 1) => {
     const params = new URLSearchParams();
