@@ -41,6 +41,9 @@ import {
 
 // Protected Pages (Lazy)
 const StudentDashboard = lazy(() => import("./components/student/Dashboard"));
+const StudentCoursesList = lazy(
+  () => import("./components/student/StudentCoursesList"),
+);
 const InstructorDashboard = lazy(
   () => import("./components/instructor/Dashboard"),
 );
@@ -252,7 +255,7 @@ function App() {
                   <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
-                        <StudentDashboard />
+                        <StudentCoursesList />
                       </Suspense>
                     </WithDashboard>
                   </ProtectedRoute>

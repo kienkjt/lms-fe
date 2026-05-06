@@ -111,3 +111,31 @@
   .courses-layout { grid-template-columns: 1fr; }
   .courses-filters { position: static; }
 }
+
+.courses-main .course-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.courses-keyword-input {
+  max-width: 320px;
+}
+
+@media (max-width: 768px) {
+  .courses-main .course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .courses-keyword-input {
+    max-width: 100%;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .courses-sort-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}

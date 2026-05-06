@@ -220,6 +220,7 @@ const LearningPage = () => {
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizSubmitting, setQuizSubmitting] = useState(false);
   const [quizResult, setQuizResult] = useState(null);
+  const [passedQuizIds, setPassedQuizIds] = useState(new Set());
 
   // Load course, chapters, and enrollment data
   useEffect(() => {
@@ -328,10 +329,38 @@ const LearningPage = () => {
 
         try {
           const quizzesRes = await quizService.getCourseQuizzes(courseId);
-          setQuizzes(Array.isArray(quizzesRes.data) ? quizzesRes.data : []);
+          const loadedQuizzes = Array.isArray(quizzesRes.data)
+            ? quizzesRes.data
+            : [];
+          setQuizzes(loadedQuizzes);
+
+          if (enrolled && loadedQuizzes.length > 0) {
+            const attemptsByQuiz = await Promise.all(
+              loadedQuizzes.map(async (quiz) => {
+                try {
+                  const attemptsRes = await quizService.getMyAttempts(quiz.id);
+                  return {
+                    quizId: quiz.id,
+                    attempts: Array.isArray(attemptsRes.data)
+                      ? attemptsRes.data
+                      : [],
+                  };
+                } catch {
+                  return { quizId: quiz.id, attempts: [] };
+                }
+              }),
+            );
+            const passedIds = attemptsByQuiz
+              .filter((entry) => quizService.isPassed(entry.attempts))
+              .map((entry) => entry.quizId);
+            setPassedQuizIds(new Set(passedIds));
+          } else {
+            setPassedQuizIds(new Set());
+          }
         } catch {
           console.error("Error loading quizzes");
           setQuizzes([]);
+          setPassedQuizIds(new Set());
         }
       } catch {
         toast.error("Không thể tải khóa học");
@@ -394,6 +423,14 @@ const LearningPage = () => {
     );
     return lessonQuizzes;
   };
+
+  const isLessonCompleted = useCallback(
+    (lesson) =>
+      isQuizItem(lesson)
+        ? passedQuizIds.has(lesson.quizId || lesson.id)
+        : completedLessons.has(lesson.id),
+    [completedLessons, passedQuizIds],
+  );
 
   const getVisibleChapters = () => {
     const chaptersWithQuizzes = mergeQuizzesIntoChapters(
@@ -487,7 +524,43 @@ const LearningPage = () => {
       const response = await quizService.submitAttempt(selectedQuiz.id, {
         answers,
       });
-      setQuizResult(response.data || null);
+      const attempt = response.data || null;
+
+      // Log để debug response structure
+      console.log("[submitQuiz] Response from backend:", attempt);
+
+      // Nếu backend không trả về 'passed', tính toán dựa trên score
+      if (attempt && !("passed" in attempt)) {
+        const passScore = parseFloat(selectedQuiz.passScore) || 0;
+        const score = parseFloat(attempt.score) || 0;
+        attempt.passed = score >= passScore;
+        console.log(
+          "[submitQuiz] Calculated passed:",
+          attempt.passed,
+          `(score: ${score}, passScore: ${passScore})`,
+        );
+      }
+
+      setQuizResult(attempt);
+
+      if (attempt?.passed) {
+        setPassedQuizIds((prev) => new Set([...prev, selectedQuiz.id]));
+      }
+
+      // Refresh progress to sync with backend
+      try {
+        const progressRes = await enrollmentService.getProgress(courseId);
+        const progressData = progressRes.data;
+        setProgress(progressData);
+        const completedIds = getCompletedLessonIdsFromProgress(
+          progressData,
+          chapters,
+        );
+        setCompletedLessons(new Set(completedIds));
+      } catch (err) {
+        console.warn("[submitQuiz] Could not refresh progress:", err.message);
+      }
+
       toast.success("Đã nộp bài quiz");
     } catch (error) {
       toast.error(error.response?.data?.message || "Không thể nộp bài quiz");
@@ -639,9 +712,8 @@ const LearningPage = () => {
                     </span>
                     <span className="chapter-title">{chapter.title}</span>
                     <span className="lesson-badge">
-                      {chapter.lessons?.filter((l) =>
-                        completedLessons.has(l.id),
-                      ).length || 0}
+                      {chapter.lessons?.filter((l) => isLessonCompleted(l))
+                        .length || 0}
                       /{chapter.lessons?.length || 0}
                     </span>
                   </button>
@@ -655,7 +727,7 @@ const LearningPage = () => {
                             key={lesson.id}
                             className={`lesson-item ${
                               currentLesson?.id === lesson.id ? "active" : ""
-                            } ${completedLessons.has(lesson.id) ? "completed" : ""} ${
+                            } ${isLessonCompleted(lesson) ? "completed" : ""} ${
                               !viewable ? "locked" : ""
                             } ${isQuizItem(lesson) ? "quiz" : ""}`}
                             onClick={() => viewable && setCurrentLesson(lesson)}
@@ -667,17 +739,21 @@ const LearningPage = () => {
                             }
                           >
                             <span className="lesson-icon">
-                              {isQuizItem(lesson) ? (
-                                <FaQuestionCircle size={13} />
-                              ) : completedLessons.has(lesson.id) ? (
+                              {isLessonCompleted(lesson) ? (
                                 <FaCheck size={12} />
+                              ) : isQuizItem(lesson) ? (
+                                <FaQuestionCircle size={13} />
                               ) : (
                                 <FaPlayCircle size={13} />
                               )}
                             </span>
                             <span className="lesson-title">{lesson.title}</span>
                             {isQuizItem(lesson) ? (
-                              <span className="lesson-kind">Quiz</span>
+                              <span className="lesson-kind">
+                                {passedQuizIds.has(lesson.quizId || lesson.id)
+                                  ? "Đã đạt"
+                                  : "Quiz"}
+                              </span>
                             ) : Number(lesson.duration) > 0 ? (
                               <span className="lesson-duration">
                                 {formatDuration(Number(lesson.duration))}
@@ -1043,11 +1119,16 @@ const LearningPage = () => {
                           Tỷ lệ đúng: <strong>{quizResult.percentage}%</strong>
                         </p>
                       )}
-                    {"passed" in quizResult && (
+                    {(quizResult.passed !== undefined ||
+                      "passed" in quizResult) && (
                       <p>
                         Trạng thái:{" "}
-                        <strong>
-                          {quizResult.passed ? "Đạt" : "Chưa đạt"}
+                        <strong
+                          style={{
+                            color: quizResult.passed ? "#22c55e" : "#ef4444",
+                          }}
+                        >
+                          {quizResult.passed ? "✓ Đạt" : "✗ Chưa đạt"}
                         </strong>
                       </p>
                     )}

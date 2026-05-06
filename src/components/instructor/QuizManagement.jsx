@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+﻿import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaArrowLeft, FaPlus, FaPen, FaTrash, FaEye } from "react-icons/fa";
@@ -29,6 +29,12 @@ const QuizManagement = () => {
   });
   const [chapterSelection, setChapterSelection] = useState([]);
   const [selectedChapterId, setSelectedChapterId] = useState("");
+  const selectedChapter = chapterSelection.find(
+    (chapter) => chapter.id === selectedChapterId,
+  );
+  const availableLessons = Array.isArray(selectedChapter?.lessons)
+    ? selectedChapter.lessons
+    : [];
 
   const loadData = useCallback(async () => {
     try {
@@ -72,7 +78,8 @@ const QuizManagement = () => {
         quiz.chapterId ||
         chapterSelection.find((chapter) =>
           (chapter.lessons || []).some((lesson) => lesson.id === quiz.lessonId),
-        )?.id || "";
+        )?.id ||
+        "";
       setSelectedChapterId(chapterId);
     } else {
       setEditingQuiz(null);
@@ -131,13 +138,38 @@ const QuizManagement = () => {
       toast.error("Điểm pass phải từ 0 đến 100");
       return;
     }
+    if (!selectedChapterId) {
+      toast.error("Vui lòng chọn chapter");
+      return;
+    }
+    if (!formData.lessonId) {
+      toast.error("Vui lòng chọn bài học để gắn quiz");
+      return;
+    }
 
     try {
+      const normalizeUuid = (value) => {
+        if (value === null || value === undefined) return "";
+        const v = String(value).trim();
+        if (
+          !v ||
+          v.toLowerCase() === "null" ||
+          v.toLowerCase() === "undefined"
+        ) {
+          return "";
+        }
+        return v;
+      };
+      const payload = {
+        ...formData,
+        chapterId: normalizeUuid(formData.chapterId || selectedChapterId),
+        lessonId: normalizeUuid(formData.lessonId),
+      };
       if (editingQuiz) {
-        await quizService.updateQuiz(editingQuiz.id, formData);
+        await quizService.updateQuiz(editingQuiz.id, payload);
         toast.success("Cập nhật quiz thành công");
       } else {
-        await quizService.createQuiz(courseId, formData);
+        await quizService.createQuiz(courseId, payload);
         toast.success("Tạo quiz thành công");
       }
       handleCloseModal();
@@ -342,6 +374,23 @@ const QuizManagement = () => {
                   {chapterSelection.map((chapter) => (
                     <option key={chapter.id} value={chapter.id}>
                       {chapter.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group checkbox">
+                <label>Bài học</label>
+                <select
+                  name="lessonId"
+                  value={formData.lessonId}
+                  onChange={handleInputChange}
+                  disabled={!selectedChapterId}
+                >
+                  <option value="">Chọn bài học</option>
+                  {availableLessons.map((lesson) => (
+                    <option key={lesson.id} value={lesson.id}>
+                      {lesson.title}
                     </option>
                   ))}
                 </select>

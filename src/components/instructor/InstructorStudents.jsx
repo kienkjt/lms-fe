@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -10,11 +10,10 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { courseService } from "../../services/courseService";
-import { enrollmentService } from "../../services/enrollmentService";
+import { learningAnalyticsService } from "../../services/learningAnalyticsService";
 import "./InstructorStudents.css";
 
 const PAGE_SIZE = 10;
-
 const getCourseId = (course) => course?.id || course?.courseId;
 
 const formatDate = (value) => {
@@ -41,63 +40,30 @@ const getInitials = (name, email) => {
 };
 
 const normalizePageData = (data) => {
-  const content = Array.isArray(data)
-    ? data
-    : data?.content || data?.students || data?.items || [];
+  const content = Array.isArray(data) ? data : data?.content || [];
   return {
     content,
     totalElements: data?.totalElements ?? content.length,
     totalPages: data?.totalPages ?? 1,
-    number: data?.number ?? data?.pageNumber,
-    size: data?.size ?? data?.pageSize ?? PAGE_SIZE,
   };
 };
 
-const normalizeStudent = (student) => {
-  const profile = student.student || student.user || student.account || {};
-  const studentId =
-    student.studentId || profile.id || student.userId || student.id;
-
-  return {
-    enrollmentId: student.enrollmentId || student.enrollment?.id || student.id,
-    studentId,
-    studentName:
-      student.studentName ||
-      profile.fullName ||
-      profile.name ||
-      student.fullName ||
-      student.name ||
-      "-",
-    studentEmail: student.studentEmail || profile.email || student.email || "-",
-    studentPhoneNumber:
-      student.studentPhoneNumber ||
-      profile.phoneNumber ||
-      profile.phone ||
-      student.phoneNumber ||
-      student.phone ||
-      "-",
-    studentAvatar:
-      student.studentAvatar ||
-      profile.avatar ||
-      profile.avatarUrl ||
-      student.avatar ||
-      student.avatarUrl,
-    progressPercent:
-      student.progressPercent ??
-      student.progressPercentage ??
-      student.progress ??
-      student.enrollment?.progressPercentage ??
-      0,
-    enrolledAt:
-      student.enrolledAt ||
-      student.enrollmentDate ||
-      student.enrollment?.enrollmentDate,
-    completedAt:
-      student.completedAt ||
-      student.completionDate ||
-      student.enrollment?.completionDate,
-  };
-};
+const normalizeStudent = (student) => ({
+  enrollmentId: student.enrollmentId || student.id,
+  studentId: student.studentId,
+  studentName: student.studentName || "-",
+  studentEmail: student.studentEmail || "-",
+  studentPhoneNumber: student.studentPhoneNumber || "-",
+  studentAvatar: student.studentAvatar,
+  progressPercent: Number(student.progressPercent || 0),
+  currentStreak: student.currentStreak || 0,
+  longestStreak: student.longestStreak || 0,
+  lastLearningDate: student.lastLearningDate || null,
+  inactiveDays: student.inactiveDays || 0,
+  atRisk: Boolean(student.atRisk),
+  enrolledAt: student.enrolledAt,
+  completedAt: student.completedAt,
+});
 
 const InstructorStudents = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -118,7 +84,6 @@ const InstructorStudents = () => {
 
   useEffect(() => {
     let mounted = true;
-
     const fetchCourses = async () => {
       try {
         setCourseLoading(true);
@@ -127,26 +92,21 @@ const InstructorStudents = () => {
           size: 100,
         });
         const courseList = res.data?.content || res.data || [];
-
         if (!mounted) return;
-
         setCourses(courseList);
         if (!initialCourseIdRef.current && courseList.length > 0) {
-          const firstCourseId = getCourseId(courseList[0]);
-          setSelectedCourseId(firstCourseId);
-          setSearchParams({ courseId: firstCourseId }, { replace: true });
-          initialCourseIdRef.current = firstCourseId;
+          const first = getCourseId(courseList[0]);
+          setSelectedCourseId(first);
+          setSearchParams({ courseId: first }, { replace: true });
+          initialCourseIdRef.current = first;
         }
       } catch (error) {
-        console.error("Fetch instructor courses error:", error);
         toast.error("Không thể tải danh sách khóa học");
       } finally {
         if (mounted) setCourseLoading(false);
       }
     };
-
     fetchCourses();
-
     return () => {
       mounted = false;
     };
@@ -157,21 +117,20 @@ const InstructorStudents = () => {
       setStudentsPage({ content: [], totalElements: 0, totalPages: 1 });
       return;
     }
-
     let mounted = true;
-
     const fetchStudents = async () => {
       try {
         setStudentLoading(true);
-        const res = await enrollmentService.getCourseStudentsPaginated(
-          selectedCourseId,
-          { page, size: PAGE_SIZE },
-        );
-        if (mounted) {
-          setStudentsPage(normalizePageData(res.data));
-        }
+        const res =
+          await learningAnalyticsService.getInstructorCourseStudentsEngagement(
+            selectedCourseId,
+            {
+              page,
+              pageSize: PAGE_SIZE,
+            },
+          );
+        if (mounted) setStudentsPage(normalizePageData(res.data));
       } catch (error) {
-        console.error("Fetch course students error:", error);
         toast.error(
           error.response?.data?.message || "Không thể tải danh sách học viên",
         );
@@ -179,33 +138,30 @@ const InstructorStudents = () => {
         if (mounted) setStudentLoading(false);
       }
     };
-
     fetchStudents();
-
     return () => {
       mounted = false;
     };
   }, [selectedCourseId, page]);
 
-  const selectedCourse = useMemo(
-    () => courses.find((course) => getCourseId(course) === selectedCourseId),
-    [courses, selectedCourseId],
+  const mappedStudents = useMemo(
+    () => studentsPage.content.map(normalizeStudent),
+    [studentsPage.content],
   );
-
-  const mappedStudents = useMemo(() => {
-    return studentsPage.content.map(normalizeStudent);
-  }, [studentsPage.content]);
 
   const filteredStudents = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     if (!keyword) return mappedStudents;
-
     return mappedStudents.filter((student) =>
       [
         student.studentName,
         student.studentEmail,
         student.studentPhoneNumber,
-      ].some((value) => value?.toLowerCase().includes(keyword)),
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(keyword),
+      ),
     );
   }, [mappedStudents, search]);
 
@@ -217,27 +173,23 @@ const InstructorStudents = () => {
     setSelectedCourseId(courseId);
     setPage(1);
     setSearch("");
-    if (courseId) {
-      setSearchParams({ courseId }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
+    if (courseId) setSearchParams({ courseId }, { replace: true });
+    else setSearchParams({}, { replace: true });
   };
 
-  if (courseLoading) {
+  if (courseLoading)
     return (
       <div className="dashboard-page">
         <p>Đang tải...</p>
       </div>
     );
-  }
 
   return (
     <div className="dashboard-page instructor-students-page animate-fade-in">
       <div className="page-header instructor-students-header">
         <div>
           <h1>Học viên</h1>
-          <p>Theo dõi danh sách học viên đã đăng ký theo từng khóa học.</p>
+          <p>Theo dõi mức độ chăm chỉ, streak và nguy cơ bỏ học.</p>
         </div>
       </div>
 
@@ -308,9 +260,9 @@ const InstructorStudents = () => {
           </div>
           <div>
             <div className="stat-number">
-              {studentsPage.totalElements ?? selectedCourse?.totalStudents ?? 0}
+              {mappedStudents.filter((s) => s.atRisk).length}
             </div>
-            <div className="stat-label">Trong khóa học</div>
+            <div className="stat-label">Nguy cơ bỏ học</div>
           </div>
         </div>
       </div>
@@ -332,6 +284,8 @@ const InstructorStudents = () => {
                   <th>Học viên</th>
                   <th>Liên hệ</th>
                   <th>Tiến độ</th>
+                  <th>Streak</th>
+                  <th>Hoạt động gần nhất</th>
                   <th>Ngày đăng ký</th>
                   <th>Hoàn thành</th>
                 </tr>
@@ -339,82 +293,92 @@ const InstructorStudents = () => {
               <tbody>
                 {studentLoading ? (
                   <tr>
-                    <td colSpan={5} className="students-message-cell">
+                    <td colSpan={7} className="students-message-cell">
                       Đang tải học viên...
                     </td>
                   </tr>
                 ) : filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="students-message-cell">
+                    <td colSpan={7} className="students-message-cell">
                       Không có học viên phù hợp
                     </td>
                   </tr>
                 ) : (
-                  filteredStudents.map((student) => {
-                    const progress = Number(student.progressPercent || 0);
-                    return (
-                      <tr key={student.enrollmentId || student.studentId}>
-                        <td>
-                          <div className="student-person">
-                            {student.studentAvatar ? (
-                              <img
-                                src={student.studentAvatar}
-                                alt={
-                                  student.studentName || student.studentEmail
-                                }
-                                className="student-avatar"
-                              />
-                            ) : (
-                              <div className="student-avatar student-avatar-fallback">
-                                {getInitials(
-                                  student.studentName,
-                                  student.studentEmail,
-                                )}
-                              </div>
-                            )}
-                            <div>
-                              <div className="student-name">
-                                {student.studentName || "Chưa cập nhật"}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="student-contact">
-                            <span>
-                              <FaEnvelope /> {student.studentEmail || "-"}
-                            </span>
-                            <span>
-                              <FaPhone /> {student.studentPhoneNumber || "-"}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="student-progress">
-                            <div className="progress progress-sm">
-                              <div
-                                className="progress-bar"
-                                style={{
-                                  width: `${Math.min(Math.max(progress, 0), 100)}%`,
-                                }}
-                              />
-                            </div>
-                            <span>{progress.toFixed(0)}%</span>
-                          </div>
-                        </td>
-                        <td>{formatDate(student.enrolledAt)}</td>
-                        <td>
-                          {student.completedAt ? (
-                            <span className="badge badge-success">
-                              {formatDate(student.completedAt)}
-                            </span>
+                  filteredStudents.map((student) => (
+                    <tr key={student.enrollmentId || student.studentId}>
+                      <td>
+                        <div className="student-person">
+                          {student.studentAvatar ? (
+                            <img
+                              src={student.studentAvatar}
+                              alt={student.studentName || student.studentEmail}
+                              className="student-avatar"
+                            />
                           ) : (
-                            <span className="badge badge-gray">Chưa xong</span>
+                            <div className="student-avatar student-avatar-fallback">
+                              {getInitials(
+                                student.studentName,
+                                student.studentEmail,
+                              )}
+                            </div>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })
+                          <div>
+                            <div className="student-name">
+                              {student.studentName || "Chưa cập nhật"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="student-contact">
+                          <span>
+                            <FaEnvelope /> {student.studentEmail || "-"}
+                          </span>
+                          <span>
+                            <FaPhone /> {student.studentPhoneNumber || "-"}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="student-progress">
+                          <div className="progress progress-sm">
+                            <div
+                              className="progress-bar"
+                              style={{
+                                width: `${Math.min(Math.max(student.progressPercent, 0), 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <span>{student.progressPercent.toFixed(0)}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="badge badge-success">
+                          🔥 {student.currentStreak}
+                        </span>
+                      </td>
+                      <td>
+                        <div>
+                          <div>{student.lastLearningDate || "-"}</div>
+                          {student.atRisk && (
+                            <span className="badge badge-warning">
+                              {student.inactiveDays} ngày không học
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{formatDate(student.enrolledAt)}</td>
+                      <td>
+                        {student.completedAt ? (
+                          <span className="badge badge-success">
+                            {formatDate(student.completedAt)}
+                          </span>
+                        ) : (
+                          <span className="badge badge-gray">Chưa xong</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>

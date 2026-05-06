@@ -50,10 +50,10 @@ const InstructorRevenuePage = () => {
 
       const requestData = requestsRes.data;
       if (requestData?.content) {
-        setRequests(requestData.content);
+        setRequests((requestData.content || []).filter((item) => item?.type === "EARNINGS"));
         setTotalPages(requestData.totalPages || 1);
       } else if (Array.isArray(requestData)) {
-        setRequests(requestData);
+        setRequests(requestData.filter((item) => item?.type === "EARNINGS"));
         setTotalPages(1);
       } else {
         setRequests([]);
@@ -548,7 +548,8 @@ const InstructorRevenuePage = () => {
                           >
                             Chi tiết
                           </button>
-                          {request.status === "PENDING" && (
+                          {request.status === "PENDING" &&
+                            request.type === "EARNINGS" && (
                             <button
                               className="btn btn-danger btn-sm"
                               onClick={() => handleCancel(request.id)}
@@ -928,7 +929,8 @@ const InstructorRevenuePage = () => {
             </div>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-              {selectedRequest.status === "PENDING" && (
+              {selectedRequest.status === "PENDING" &&
+                selectedRequest.type === "EARNINGS" && (
                 <button
                   className="btn btn-danger"
                   onClick={() => {

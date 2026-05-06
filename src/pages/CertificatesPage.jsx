@@ -113,7 +113,7 @@ const CertificatesPage = () => {
       <div className="certificates-header">
         <div>
           <h1>
-            <FaCertificate /> Chung chi cua toi
+            <FaCertificate /> Chứng chỉ của tôi
           </h1>
           <p>
             Theo dõi và tải xuống chứng chỉ đã nhận sau khi hoàn thành khóa học.

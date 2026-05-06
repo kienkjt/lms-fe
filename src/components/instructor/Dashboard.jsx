@@ -53,7 +53,7 @@ const InstructorDashboard = () => {
       const requestList = Array.isArray(requestData)
         ? requestData
         : requestData?.content || [];
-      setWithdrawals(requestList);
+      setWithdrawals(requestList.filter((item) => item?.type === "EARNINGS"));
     } catch (error) {
       console.error("Failed to load withdrawal data:", error);
     }
@@ -553,7 +553,8 @@ const InstructorDashboard = () => {
                 marginTop: "24px",
               }}
             >
-              {selectedRequest.status === "PENDING" && (
+              {selectedRequest.status === "PENDING" &&
+                selectedRequest.type === "EARNINGS" && (
                 <button
                   className="btn btn-danger"
                   onClick={() => {

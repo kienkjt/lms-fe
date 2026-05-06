@@ -19,6 +19,7 @@ const CoursesPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(PAGINATION.DEFAULT_PAGE);
   const [filters, setFilters] = useState({
+    keyword: searchParams.get("keyword") || "",
     category: searchParams.get("category") || "",
     level: searchParams.get("level") || "",
     priceMin: "",
@@ -50,7 +51,7 @@ const CoursesPage = () => {
     try {
       console.log("[CoursesPage] Fetching courses with filters:", filters);
       const response = await courseService.search({
-        keyword: undefined,
+        keyword: filters.keyword?.trim() || undefined,
         categoryId: filters.category || undefined,
         level: filters.level || undefined,
         priceMin: filters.priceMin ? Number(filters.priceMin) : undefined,
@@ -94,6 +95,7 @@ const CoursesPage = () => {
 
   const clearFilters = () => {
     setFilters({
+      keyword: "",
       category: "",
       level: "",
       priceMin: "",
@@ -224,6 +226,13 @@ const CoursesPage = () => {
               <span className="results-count">
                 {loading ? "Đang tải..." : `${total} khóa học`}
               </span>
+              <input
+                type="text"
+                className="form-input courses-keyword-input"
+                placeholder="Tìm theo tên khóa học..."
+                value={filters.keyword}
+                onChange={(e) => handleFilterChange("keyword", e.target.value)}
+              />
             </div>
 
             {/* Grid */}

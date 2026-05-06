@@ -15,9 +15,15 @@ export const quizService = {
   createQuiz: async (courseId, data) => {
     try {
       console.log('[quizService.createQuiz] Creating quiz for course:', courseId);
+      const normalizeUuid = (value) => {
+        if (value === null || value === undefined) return null;
+        const v = String(value).trim();
+        if (!v || v.toLowerCase() === "null" || v.toLowerCase() === "undefined") return null;
+        return v;
+      };
       const response = await api.post(`/api/v1/courses/${courseId}/quizzes`, {
-        chapterId: data.chapterId || null,
-        lessonId: data.lessonId || null,
+        chapterId: normalizeUuid(data.chapterId),
+        lessonId: normalizeUuid(data.lessonId),
         title: data.title,
         description: data.description || '',
         timeLimitMinutes: data.timeLimitMinutes || null,
@@ -217,8 +223,15 @@ export const quizService = {
         answers: data.answers || [], // Array of { questionId, selectedAnswer }
         timeSpent: data.timeSpent || 0, // In seconds
       });
-      const attempt = response.data?.data || response.data;
+      let attempt = response.data?.data || response.data;
       console.log('[quizService.submitAttempt] Success, score:', attempt.score);
+      
+      // Ensure 'passed' field exists
+      if (attempt && !("passed" in attempt) && attempt.score !== undefined && attempt.totalPoints !== undefined) {
+        attempt.passed = attempt.score >= (attempt.totalPoints * 0.5);
+        console.log('[quizService.submitAttempt] Calculated passed:', attempt.passed);
+      }
+      
       return { data: attempt };
     } catch (error) {
       console.error('[quizService.submitAttempt] Error:', error);
@@ -235,7 +248,18 @@ export const quizService = {
     try {
       console.log('[quizService.getMyAttempts] Fetching my attempts for quiz:', quizId);
       const response = await api.get(`/api/v1/quizzes/${quizId}/attempts/my`);
-      const attempts = response.data?.data || response.data || [];
+      let attempts = response.data?.data || response.data || [];
+      
+      // Ensure each attempt has 'passed' field
+      attempts = attempts.map(attempt => {
+        if (!("passed" in attempt) && attempt.score !== undefined && attempt.totalPoints !== undefined) {
+          // Calculate passed as (score >= totalPoints * passScore / 100) if totalPoints exists
+          // Or just assume 50% is pass score if not specified
+          attempt.passed = attempt.score >= (attempt.totalPoints * 0.5);
+        }
+        return attempt;
+      });
+      
       console.log('[quizService.getMyAttempts] Success, found:', attempts.length);
       return { data: attempts };
     } catch (error) {
