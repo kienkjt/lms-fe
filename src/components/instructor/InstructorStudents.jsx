@@ -100,7 +100,7 @@ const InstructorStudents = () => {
           setSearchParams({ courseId: first }, { replace: true });
           initialCourseIdRef.current = first;
         }
-      } catch (error) {
+      } catch {
         toast.error("Không thể tải danh sách khóa học");
       } finally {
         if (mounted) setCourseLoading(false);

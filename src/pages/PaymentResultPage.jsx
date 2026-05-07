@@ -63,7 +63,7 @@ const PaymentResultPage = () => {
     };
 
     loadOrder();
-  }, [orderId]);
+  }, [orderId, message, result, status, success]);
 
   const getErrorMessage = () => {
     if (message) return message;

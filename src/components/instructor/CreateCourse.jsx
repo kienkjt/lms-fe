@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { categoryService } from "../../services/categoryService";
 import { ROUTES } from "../../utils/constants";
@@ -40,7 +39,6 @@ const LEVEL_VALUE_TO_NAME = {
 };
 
 const CreateCourse = () => {
-  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -66,7 +64,6 @@ const CreateCourse = () => {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [previewVideoFile, setPreviewVideoFile] = useState(null);
-  const [createdCourseId, setCreatedCourseId] = useState(null);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -175,8 +172,6 @@ const CreateCourse = () => {
       // Create the course first
       const courseResponse = await courseService.create(courseData);
       const newCourseId = courseResponse.data.id;
-      setCreatedCourseId(newCourseId);
-
       toast.success("Tạo khóa học thành công!");
 
       // Upload thumbnail if provided

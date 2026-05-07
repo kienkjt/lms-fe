@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   FaPlay,
   FaPause,
@@ -126,7 +126,7 @@ const VideoPlayer = ({
   };
 
   // Play/Pause
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -135,15 +135,15 @@ const VideoPlayer = ({
       }
       setIsPlaying(!isPlaying);
     }
-  };
+  }, [isPlaying]);
 
   // Mute/Unmute
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
-  };
+  }, [isMuted]);
 
   // Volume change
   const handleVolumeChange = (e) => {
@@ -223,7 +223,16 @@ const VideoPlayer = ({
 
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [isPlaying, isMuted, isFullscreen, playbackRate, currentTime, duration]);
+  }, [
+    isPlaying,
+    isMuted,
+    isFullscreen,
+    playbackRate,
+    currentTime,
+    duration,
+    toggleMute,
+    togglePlayPause,
+  ]);
 
   // Show/hide controls on mouse move
   const handleMouseMove = () => {

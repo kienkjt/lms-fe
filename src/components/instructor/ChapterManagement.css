@@ -520,10 +520,12 @@
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
+  width: 100%;
 }
 
 .tab-button {
   flex: 1;
+  min-width: 0;
   padding: 10px 16px;
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -533,6 +535,11 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.lesson-form input[type="file"].form-input {
+  padding: 10px;
+  background: var(--bg-primary);
 }
 
 .tab-button:hover {

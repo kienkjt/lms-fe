@@ -1,18 +1,5 @@
 import api from './api';
 
-const PAGE_DEFAULT = 1;
-const PAGE_SIZE_DEFAULT = 10;
-
-const resolvePage = (value) => {
-  const page = Number(value);
-  return Number.isFinite(page) && page > 0 ? page : PAGE_DEFAULT;
-};
-
-const resolveSize = (value, fallback = PAGE_SIZE_DEFAULT) => {
-  const size = Number(value);
-  return Number.isFinite(size) && size > 0 ? size : fallback;
-};
-
 export const chapterService = {
   /**
    * Create a new chapter for a course

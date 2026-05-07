@@ -45,17 +45,6 @@ const getConfig = () => {
 };
 
 /**
- * Generate MD5 hash for VNPAY signature
- * @param {string} str - String to hash
- * @returns {string} MD5 hash in hex
- */
-const generateMD5 = (str) => {
-  // In browser, use crypto.subtle API
-  // For now, using simple fallback (in production use crypto library)
-  return str; // Placeholder - real implementation needs proper crypto library
-};
-
-/**
  * Generate HMAC-SHA-512 signature
  * @param {string} data - Data to sign
  * @param {string} secret - Secret key
@@ -66,7 +55,11 @@ const generateSignature = (data, secret) => {
   // 1. Import crypto-js: npm install crypto-js
   // 2. Use: CryptoJS.HmacSHA512(data, secret).toString()
   // For now, return placeholder
-  console.warn('[VNPAY Service] Real signature generation requires crypto-js library');
+  console.warn(
+    "[VNPAY Service] Real signature generation requires crypto-js library",
+    data?.length,
+    Boolean(secret),
+  );
   return '0'.repeat(128); // Placeholder
 };
 

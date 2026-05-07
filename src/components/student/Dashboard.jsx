@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { enrollmentService } from "../../services/enrollmentService";
@@ -33,7 +33,7 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("year"); // 30days, 3months, 6months, year
 
-  const getDateRangeParams = () => {
+  const getDateRangeParams = useCallback(() => {
     const toDate = new Date();
     const fromDate = new Date();
     
@@ -59,9 +59,7 @@ const StudentDashboard = () => {
       fromDate: fromDate.toISOString().slice(0, 10),
       toDate: toDate.toISOString().slice(0, 10)
     };
-  };
-
-  const { fromDate, toDate } = getDateRangeParams();
+  }, [dateRange]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -87,7 +85,7 @@ const StudentDashboard = () => {
         setHeatmap([]);
       })
       .finally(() => setLoading(false));
-  }, [user, dateRange]);
+  }, [user, dateRange, getDateRangeParams]);
 
   const getActivityLabel = (count) => {
     if (count === 0) return "Không học";

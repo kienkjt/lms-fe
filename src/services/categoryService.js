@@ -1,8 +1,6 @@
 import { mockCategories } from '../utils/mockData';
 import api from './api'; // API instance sẽ được tạo khi backend sẵn sàng
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 /**
  * Extract only necessary fields from category response
  * 

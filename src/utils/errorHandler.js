@@ -27,12 +27,12 @@ export const extractValidationErrors = (error) => {
  */
 export const handleApiError = (error) => {
   const errorData = error.response?.data || {};
-  const { message, data, code } = errorData;
+  const { message, data } = errorData;
 
   // Ưu tiên 1: Nếu data chứa validation errors (object), combine lại
   if (data && typeof data === 'object' && !Array.isArray(data)) {
     const errorMessages = Object.entries(data)
-      .map(([field, msg]) => msg)
+      .map(([, msg]) => msg)
       .filter(msg => msg);
     
     if (errorMessages.length > 0) {

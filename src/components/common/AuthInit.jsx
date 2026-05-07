@@ -27,7 +27,7 @@ const AuthInit = ({ children }) => {
     if (isAuthenticated && (!user || !user.id)) {
       fetchProfile();
     }
-  }, [isAuthenticated, user?.id, dispatch]);
+  }, [isAuthenticated, user, user?.id, dispatch]);
 
   return children;
 };

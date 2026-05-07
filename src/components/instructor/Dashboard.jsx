@@ -1,181 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { dashboardService } from "../../services/dashboardService";
-import { withdrawalService } from "../../services/withdrawalService";
 import { ROUTES } from "../../utils/constants";
 import { formatPrice } from "../../utils/helpers";
-import {
-  validateBankAccount,
-  validateWithdrawalAmount,
-  validateRequired,
-} from "../../utils/validators";
-import {
-  FaBook,
-  FaCheck,
-  FaUsers,
-  FaStar,
-  FaPlus,
-  FaTimes,
-} from "react-icons/fa";
+import { FaBook, FaCheck, FaUsers, FaStar, FaPlus, FaTimes } from "react-icons/fa";
 import Loading from "../../components/common/Loading";
 import "./Dashboard.css";
+
+const normalizeSeries = (series = [], metric = "amount") =>
+  (Array.isArray(series) ? series : [])
+    .map((item, index) => ({
+      label: item?.label || `N${index + 1}`,
+      value: Number(metric === "count" ? item?.count ?? 0 : item?.amount ?? 0),
+    }))
+    .filter((item) => Number.isFinite(item.value));
 
 const InstructorDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [dashboardStats, setDashboardStats] = useState(null);
-  const [wallet, setWallet] = useState(null);
-  const [withdrawals, setWithdrawals] = useState([]);
-  const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false);
-  const [cancelingId, setCancelingId] = useState("");
-  const [withdrawForm, setWithdrawForm] = useState({
-    requestedAmount: "",
-    accountHolder: "",
-    bankName: "",
-    bankAccount: "",
-    reason: "",
-  });
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadWithdrawalData = async () => {
-    try {
-      const [walletRes, requestsRes] = await Promise.all([
-        withdrawalService.getWallet(),
-        withdrawalService.getMyRequests({ page: 0, size: 5 }),
-      ]);
-
-      setWallet(walletRes.data || null);
-
-      const requestData = requestsRes.data;
-      const requestList = Array.isArray(requestData)
-        ? requestData
-        : requestData?.content || [];
-      setWithdrawals(requestList.filter((item) => item?.type === "EARNINGS"));
-    } catch (error) {
-      console.error("Failed to load withdrawal data:", error);
-    }
-  };
-
   useEffect(() => {
     if (user?.id) {
-      Promise.all([
-        dashboardService
-          .getInstructorDashboard()
-          .then((res) => setDashboardStats(res.data || null))
-          .catch(() => setDashboardStats(null)),
-        loadWithdrawalData(),
-      ]).finally(() => setLoading(false));
+      dashboardService
+        .getInstructorDashboard()
+        .then((res) => setDashboardStats(res.data || null))
+        .catch(() => setDashboardStats(null))
+        .finally(() => setLoading(false));
     }
   }, [user]);
-
-  const validateWithdrawalForm = () => {
-    const { requestedAmount, accountHolder, bankName, bankAccount } =
-      withdrawForm;
-
-    if (!validateRequired(requestedAmount)) {
-      toast.error("Vui lòng nhập số tiền muốn rút");
-      return false;
-    }
-
-    if (!validateWithdrawalAmount(requestedAmount, wallet?.availableBalance)) {
-      if (Number(requestedAmount) > wallet?.availableBalance) {
-        toast.error(
-          `Số tiền không được vượt quá ${formatPrice(wallet?.availableBalance || 0)}`,
-        );
-      } else {
-        toast.error("Vui lòng nhập số tiền hợp lệ");
-      }
-      return false;
-    }
-
-    if (!validateRequired(accountHolder)) {
-      toast.error("Vui lòng nhập tên chủ tài khoản");
-      return false;
-    }
-
-    if (!validateRequired(bankName)) {
-      toast.error("Vui lòng nhập tên ngân hàng");
-      return false;
-    }
-
-    if (!validateRequired(bankAccount)) {
-      toast.error("Vui lòng nhập số tài khoản");
-      return false;
-    }
-
-    if (!validateBankAccount(bankAccount)) {
-      toast.error("Số tài khoản phải là 9-20 chữ số");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleWithdrawInputChange = (field, value) => {
-    setWithdrawForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleCreateWithdrawal = async (e) => {
-    e.preventDefault();
-
-    if (!validateWithdrawalForm()) {
-      return;
-    }
-
-    try {
-      setSubmittingWithdrawal(true);
-      await withdrawalService.createRequest({
-        requestedAmount: Number(withdrawForm.requestedAmount),
-        accountHolder: withdrawForm.accountHolder,
-        bankName: withdrawForm.bankName,
-        bankAccount: withdrawForm.bankAccount,
-        reason: withdrawForm.reason,
-      });
-
-      toast.success("Tạo yêu cầu rút tiền thành công");
-      setWithdrawForm({
-        requestedAmount: "",
-        accountHolder: "",
-        bankName: "",
-        bankAccount: "",
-        reason: "",
-      });
-      await loadWithdrawalData();
-    } catch (error) {
-      console.error("Create withdrawal request failed:", error);
-      toast.error(
-        error.response?.data?.message || "Không thể tạo yêu cầu rút tiền",
-      );
-    } finally {
-      setSubmittingWithdrawal(false);
-    }
-  };
-
-  const handleCancelWithdrawal = async (requestId) => {
-    if (!window.confirm("Bạn có chắc muốn hủy yêu cầu rút tiền này?")) {
-      return;
-    }
-
-    try {
-      setCancelingId(requestId);
-      await withdrawalService.cancelRequest(requestId);
-      toast.success("Đã hủy yêu cầu rút tiền");
-      await loadWithdrawalData();
-    } catch (error) {
-      console.error("Cancel withdrawal request failed:", error);
-      toast.error(error.response?.data?.message || "Không thể hủy yêu cầu");
-    } finally {
-      setCancelingId("");
-    }
-  };
-
-  const handleViewDetail = (request) => {
-    setSelectedRequest(request);
-    setShowDetailModal(true);
-  };
 
   const handleCloseDetailModal = () => {
     setShowDetailModal(false);
@@ -202,14 +58,20 @@ const InstructorDashboard = () => {
       color: "var(--secondary)",
     },
     {
-      label: "Đánh giá TB",
-      value: Number(
-        dashboardStats?.avgRating ?? dashboardStats?.averageRating ?? 0,
-      ).toFixed(1),
+      label: "Doanh thu",
+      value: formatPrice(dashboardStats?.totalRevenue ?? 0),
       icon: <FaStar size={24} />,
       color: "var(--warning)",
     },
   ];
+
+  const revenueSeries = normalizeSeries(dashboardStats?.dailyRevenue, "amount");
+  const enrollmentSeries = normalizeSeries(dashboardStats?.dailyEnrollments, "count");
+  const revenueMax = Math.max(...revenueSeries.map((item) => item.value), 0);
+  const enrollmentMax = Math.max(...enrollmentSeries.map((item) => item.value), 0);
+  const statusDistribution = Array.isArray(dashboardStats?.courseStatusDistribution)
+    ? dashboardStats.courseStatusDistribution
+    : [];
 
   if (loading) return <Loading />;
 
@@ -219,6 +81,7 @@ const InstructorDashboard = () => {
         <div>
           <h1>
             Dashboard Giảng viên{" "}
+           {" "}
             <FaStar size={28} style={{ display: "inline" }} />
           </h1>
           <p>Quản lý khóa học và theo dõi tiến độ học sinh của bạn.</p>
@@ -234,11 +97,7 @@ const InstructorDashboard = () => {
 
       <div className="stats-grid">
         {stats.map((s) => (
-          <div
-            key={s.label}
-            className="stat-card"
-            style={{ "--stat-color": s.color }}
-          >
+          <div key={s.label} className="stat-card" style={{ "--stat-color": s.color }}>
             <div className="stat-icon">{s.icon}</div>
             <div>
               <div className="stat-number">{s.value}</div>
@@ -248,7 +107,68 @@ const InstructorDashboard = () => {
         ))}
       </div>
 
-      {/* Withdrawal Detail Modal */}
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Doanh thu 30 ngày</h2>
+        </div>
+        {revenueSeries.length === 0 ? (
+          <div className="empty-state">Chưa có dữ liệu doanh thu.</div>
+        ) : (
+          <div className="instructor-chart">
+            {revenueSeries.map((item) => {
+              const percent = revenueMax > 0 ? Math.max(4, (item.value / revenueMax) * 100) : 0;
+              return (
+                <div key={item.label} className="chart-row">
+                  <div className="chart-label">{item.label}</div>
+                  <div className="chart-track">
+                    <div className="chart-bar" style={{ width: `${percent}%` }} title={`${item.value}`} />
+                  </div>
+                  <div className="chart-value">{formatPrice(item.value)}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Đăng ký mới 30 ngày</h2>
+        </div>
+        {enrollmentSeries.length === 0 ? (
+          <div className="empty-state">Chưa có dữ liệu đăng ký mới.</div>
+        ) : (
+          <div className="instructor-chart">
+            {enrollmentSeries.map((item) => {
+              const percent = enrollmentMax > 0 ? Math.max(4, (item.value / enrollmentMax) * 100) : 0;
+              return (
+                <div key={item.label} className="chart-row">
+                  <div className="chart-label">{item.label}</div>
+                  <div className="chart-track">
+                    <div className="chart-bar chart-bar-alt" style={{ width: `${percent}%` }} />
+                  </div>
+                  <div className="chart-value">{item.value}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Trạng thái khóa học</h2>
+        </div>
+        <div className="status-chips">
+          {statusDistribution.map((item) => (
+            <div key={item.status} className="status-chip">
+              <span>{item.description || item.status}</span>
+              <strong>{item.count ?? 0}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {showDetailModal && selectedRequest && (
         <div
           style={{
@@ -286,7 +206,7 @@ const InstructorDashboard = () => {
                 marginBottom: "20px",
               }}
             >
-              <h2 style={{ margin: 0 }}>Chi tiết yêu cầu rút tiền</h2>
+              <h2 style={{ margin: 0 }}>Chi tiet yeu cau rut tien</h2>
               <button
                 onClick={handleCloseDetailModal}
                 style={{
@@ -298,280 +218,6 @@ const InstructorDashboard = () => {
                 }}
               >
                 <FaTimes />
-              </button>
-            </div>
-
-            <div style={{ display: "grid", gap: "16px" }}>
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Mã yêu cầu
-                </label>
-                <p
-                  style={{
-                    margin: "4px 0 0 0",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                  }}
-                >
-                  {selectedRequest.id}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Trạng thái
-                </label>
-                <p style={{ margin: "4px 0 0 0" }}>
-                  <span
-                    className={`badge ${selectedRequest.status === "PENDING" ? "badge-warning" : selectedRequest.status === "COMPLETED" ? "badge-success" : selectedRequest.status === "APPROVED" ? "badge-info" : "badge-gray"}`}
-                  >
-                    {selectedRequest.status}
-                  </span>
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Số tiền yêu cầu
-                </label>
-                <p
-                  style={{
-                    margin: "4px 0 0 0",
-                    fontSize: "18px",
-                    fontWeight: "700",
-                    color: "var(--success)",
-                  }}
-                >
-                  {formatPrice(selectedRequest.requestedAmount || 0)}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Chủ tài khoản
-                </label>
-                <p style={{ margin: "4px 0 0 0", fontSize: "16px" }}>
-                  {selectedRequest.accountHolder || "-"}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Ngân hàng
-                </label>
-                <p style={{ margin: "4px 0 0 0", fontSize: "16px" }}>
-                  {selectedRequest.bankName || "-"}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Số tài khoản
-                </label>
-                <p
-                  style={{
-                    margin: "4px 0 0 0",
-                    fontSize: "16px",
-                    fontFamily: "monospace",
-                  }}
-                >
-                  {selectedRequest.bankAccount || "-"}
-                </p>
-              </div>
-
-              {selectedRequest.reason && (
-                <div
-                  style={{
-                    borderBottom: "1px solid var(--border-color)",
-                    paddingBottom: "16px",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Lý do
-                  </label>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "14px" }}>
-                    {selectedRequest.reason}
-                  </p>
-                </div>
-              )}
-
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  paddingBottom: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Ngày tạo
-                </label>
-                <p style={{ margin: "4px 0 0 0", fontSize: "14px" }}>
-                  {selectedRequest.createdAt
-                    ? new Date(selectedRequest.createdAt).toLocaleString(
-                        "vi-VN",
-                      )
-                    : "-"}
-                </p>
-              </div>
-
-              {selectedRequest.approvedAt && (
-                <div
-                  style={{
-                    borderBottom: "1px solid var(--border-color)",
-                    paddingBottom: "16px",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Ngày xử lý
-                  </label>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "14px" }}>
-                    {new Date(selectedRequest.approvedAt).toLocaleString(
-                      "vi-VN",
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {selectedRequest.rejectReason && (
-                <div
-                  style={{
-                    background: "#fee",
-                    borderRadius: "8px",
-                    padding: "12px",
-                    borderLeft: "4px solid #e74c3c",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Lý do từ chối
-                  </label>
-                  <p
-                    style={{
-                      margin: "4px 0 0 0",
-                      fontSize: "14px",
-                      color: "#c0392b",
-                    }}
-                  >
-                    {selectedRequest.rejectReason}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              {selectedRequest.status === "PENDING" &&
-                selectedRequest.type === "EARNINGS" && (
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    handleCloseDetailModal();
-                    handleCancelWithdrawal(selectedRequest.id);
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  Hủy yêu cầu
-                </button>
-              )}
-              <button
-                className="btn btn-outline"
-                onClick={handleCloseDetailModal}
-                style={{ flex: 1 }}
-              >
-                Đóng
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -37,6 +37,7 @@ const createEmptyLessonForm = () => ({
   videoUrl: "",
   videoFile: null,
   content: "",
+  documentFile: null,
 });
 
 const toInt = (value) => {
@@ -103,6 +104,22 @@ const ChapterManagement = () => {
   const [lessonFormData, setLessonFormData] = useState(createEmptyLessonForm());
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
 
+  const fetchChapters = useCallback(async () => {
+    if (!courseId) return;
+
+    try {
+      setLoading(true);
+      const res = await chapterService.getChaptersByCourse(courseId);
+      setChapters(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Fetch chapters error:", error);
+      toast.error("KhĂ´ng thá»ƒ táº£i danh sĂ¡ch chÆ°Æ¡ng");
+      setChapters([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId]);
+
   useEffect(() => {
     if (!courseId) return;
 
@@ -120,7 +137,7 @@ const ChapterManagement = () => {
     if (courseId) {
       fetchChapters();
     }
-  }, [courseId]);
+  }, [courseId, fetchChapters]);
 
   useEffect(() => {
     if (!lessonFormData.videoFile) {
@@ -149,22 +166,6 @@ const ChapterManagement = () => {
     lessonFormData.durationMinutes,
     lessonFormData.durationSeconds,
   ]);
-
-  const fetchChapters = async () => {
-    if (!courseId) return;
-
-    try {
-      setLoading(true);
-      const res = await chapterService.getChaptersByCourse(courseId);
-      setChapters(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error("Fetch chapters error:", error);
-      toast.error("Không thể tải danh sách chương");
-      setChapters([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleOpenChapterModal = (chapter = null) => {
     if (chapter) {
@@ -258,6 +259,7 @@ const ChapterManagement = () => {
         videoUrl: currentVideoUrl,
         videoFile: null,
         content: lesson.content || "",
+        documentFile: null,
       });
     } else {
       setEditingLesson(null);
@@ -393,6 +395,10 @@ const ChapterManagement = () => {
         videoSource === VIDEO_SOURCE.UPLOAD &&
         lessonFormData.videoFile &&
         lessonId;
+      const shouldUploadDocument =
+        lessonFormData.type === "DOCUMENT" &&
+        lessonFormData.documentFile &&
+        lessonId;
 
       if (shouldUploadVideo) {
         toast.info("Đang tải video lên...");
@@ -403,6 +409,31 @@ const ChapterManagement = () => {
           lessonFormData.videoFile,
         );
         toast.success("Tải video lên thành công");
+      }
+
+      if (shouldUploadDocument) {
+        toast.info("Đang tải tài liệu lên...");
+        const uploadRes = await lessonService.uploadLessonDocument(
+          courseId,
+          selectedChapterId,
+          lessonId,
+          lessonFormData.documentFile,
+        );
+        const uploadedDocumentUrl = uploadRes?.data?.content || "";
+        const textContent = (lessonFormData.content || "").trim();
+
+        if (uploadedDocumentUrl && textContent) {
+          await lessonService.updateLesson(
+            courseId,
+            selectedChapterId,
+            lessonId,
+            {
+              ...payload,
+              content: `${textContent}\n\nTài liệu đính kèm: ${uploadedDocumentUrl}`,
+            },
+          );
+        }
+        toast.success("Tải tài liệu lên thành công");
       }
 
       handleCloseLessonModal();
@@ -970,10 +1001,32 @@ const ChapterManagement = () => {
               {lessonFormData.type === "DOCUMENT" && (
                 <div className="form-group">
                   <label htmlFor="lesson-content">Nội dung tài liệu</label>
+                  <input
+                    id="lesson-document-file"
+                    type="file"
+                    className="form-input"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.zip"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      setLessonFormData((prev) => ({
+                        ...prev,
+                        documentFile: file,
+                      }));
+                    }}
+                  />
+                  {lessonFormData.documentFile && (
+                    <small className="text-muted">
+                      File: {lessonFormData.documentFile.name} (
+                      {(lessonFormData.documentFile.size / 1024 / 1024).toFixed(
+                        2,
+                      )}{" "}
+                      MB)
+                    </small>
+                  )}
                   <textarea
                     id="lesson-content"
                     className="form-textarea"
-                    placeholder="Nhập nội dung tài liệu"
+                    placeholder="Nhập nội dung tài liệu hoặc dán link tài liệu"
                     value={lessonFormData.content}
                     onChange={(event) =>
                       setLessonFormData((prev) => ({
@@ -1040,3 +1093,4 @@ const ChapterManagement = () => {
 };
 
 export default ChapterManagement;
+

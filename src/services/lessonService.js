@@ -158,4 +158,32 @@ export const lessonService = {
       throw error;
     }
   },
+
+  /**
+   * Upload document file for a lesson
+   * @param {string} courseId - Course ID
+   * @param {string} chapterId - Chapter ID
+   * @param {string} lessonId - Lesson ID
+   * @param {File} file - Document file
+   * @returns Response with LessonResponseDto containing document content/url
+   */
+  uploadLessonDocument: async (courseId, chapterId, lessonId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('[lessonService.uploadLessonDocument] Uploading document for lesson:', lessonId);
+      const response = await api.post(
+        `/api/v1/courses/${courseId}/chapters/${chapterId}/lessons/${lessonId}/document`,
+        formData
+      );
+
+      const lesson = response.data?.data || response.data;
+      console.log('[lessonService.uploadLessonDocument] Success');
+      return { data: lesson };
+    } catch (error) {
+      console.error('[lessonService.uploadLessonDocument] Error:', error);
+      throw error;
+    }
+  },
 };

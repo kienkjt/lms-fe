@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import { orderService } from '../services/orderService';
 import { ROUTES } from '../utils/constants';
-import { formatDate, formatPrice } from '../utils/helpers';
+import { formatPrice } from '../utils/helpers';
 import '../pages/OrdersPage.css';
 
 const PaymentSuccessPage = () => {
@@ -24,7 +24,6 @@ const PaymentSuccessPage = () => {
   const orderId = searchParams.get('orderId');
   const vnpayCode = searchParams.get('vnp_ResponseCode');
   const transactionId = searchParams.get('vnp_TransactionNo');
-  const amount = searchParams.get('vnp_Amount');
 
   useEffect(() => {
     const verifyPayment = async () => {

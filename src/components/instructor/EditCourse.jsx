@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { courseService } from "../../services/courseService";
 import { categoryService } from "../../services/categoryService";
 import { ROUTES } from "../../utils/constants";
@@ -33,7 +32,6 @@ const LEVEL_VALUE_TO_NAME = {
 
 const EditCourse = () => {
   const { courseId } = useParams();
-  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -60,7 +58,6 @@ const EditCourse = () => {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [previewVideoFile, setPreviewVideoFile] = useState(null);
-  const [currentThumbnail, setCurrentThumbnail] = useState(null);
 
   // Fetch categories
   useEffect(() => {
@@ -104,7 +101,6 @@ const EditCourse = () => {
           whatYouWillLearn: course.whatYouWillLearn || "",
         });
 
-        setCurrentThumbnail(course.thumbnail);
         setThumbnailPreview(course.thumbnail);
       } catch (error) {
         console.error("Fetch course error:", error);

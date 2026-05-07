@@ -28,7 +28,6 @@ const Checkout = () => {
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("VNPAY");
   const [note, setNote] = useState("");
-  const [orderCreated, setOrderCreated] = useState(null);
 
   // Load cart and profile
   useEffect(() => {
@@ -108,7 +107,6 @@ const Checkout = () => {
       });
 
       const order = orderRes.data;
-      setOrderCreated(order);
 
       // Step 2: Handle payment based on method
       if (paymentMethod === "FREE") {
@@ -212,15 +210,15 @@ const Checkout = () => {
                   )}
                 </div>
                 <div className="item-price">
-                  {item.paidPrice ||
-                  item.course?.discountPrice ||
-                  item.course?.price
-                    ? `${(
-                        item.paidPrice ||
-                        item.course?.discountPrice ||
-                        item.course?.price
-                      ).toLocaleString("vi-VN")} ₫`
-                    : "Miễn phí"}
+                  {(() => {
+                    const amount =
+                      item.paidPrice ??
+                      item.course?.discountPrice ??
+                      item.course?.price;
+                    return amount != null
+                      ? `${Number(amount).toLocaleString("vi-VN")} ₫`
+                      : "Miễn phí";
+                  })()}
                 </div>
               </div>
             ))}
@@ -268,7 +266,8 @@ const Checkout = () => {
               {!profile.fullName &&
                 !profile.name &&
                 !profile.email &&
-                !profile.phone && (
+                !profile.phone &&
+                !profile.phoneNumber && (
                   <p className="empty-profile">
                     Không có thông tin hồ sơ. Vui lòng cập nhật hồ sơ của bạn.
                   </p>

@@ -32,23 +32,24 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.fullName.trim()) {
-      setError("Vui lòng nhập họ tên");
+      setErrors({ fullName: "Vui lòng nhập họ tên" });
       return;
     }
     if (!form.email) {
-      setError("Vui lòng nhập email");
+      setErrors({ email: "Vui lòng nhập email" });
       return;
     }
     if (form.password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự");
+      setErrors({ password: "Mật khẩu phải có ít nhất 8 ký tự" });
       return;
     }
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(form.password)) {
-      setError(
-        "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)",
-      );
+      setErrors({
+        password:
+          "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)",
+      });
       return;
     }
 
@@ -257,3 +258,4 @@ const Register = () => {
 };
 
 export default Register;
+
