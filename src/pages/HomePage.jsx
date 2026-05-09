@@ -298,7 +298,7 @@ const HomePage = () => {
         <div className="container">
           <div className="section-title-block section-title-centered">
             <div>
-              <h2 className="section-title">Tại sao chọn EduLearn?</h2>
+              <h2 className="section-title">Tại sao chọn LMS?</h2>
               <p className="section-subtitle">
                 Chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất
               </p>

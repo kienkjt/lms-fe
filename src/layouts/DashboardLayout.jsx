@@ -89,20 +89,7 @@ const getInstructorNavItems = () => [
       </svg>
     ),
   },
-  {
-    path: ROUTES.INSTRUCTOR_QA,
-    label: "Hỏi & Đáp",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
-  },
+
   {
     path: ROUTES.PROFILE,
     label: "Hồ sơ",
@@ -267,7 +254,7 @@ const DashboardLayout = ({ children }) => {
               >
                 <path d="M12 2L2 7V12C2 18.6 7.1 24 12 24C16.9 24 22 18.6 22 12V7L12 2Z" />
               </svg>
-              <span className="logo-text">EduLearn</span>
+              <span className="logo-text">LMS</span>
             </Link>
 
             {/* Nav */}
@@ -421,8 +408,8 @@ const DashboardLayout = ({ children }) => {
         {/* Sidebar Header */}
         <div className="sidebar-header">
           <Link to={homePath} className="sidebar-logo">
-            <div className="logo-icon">E</div>
-            {!sidebarCollapsed && <span className="logo-text">EduLearn</span>}
+            <div className="logo-icon">L</div>
+            {!sidebarCollapsed && <span className="logo-text">LMS</span>}
           </Link>
           <button
             className="sidebar-toggle"

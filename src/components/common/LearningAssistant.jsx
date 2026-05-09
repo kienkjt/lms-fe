@@ -71,7 +71,7 @@ const inferCourseName = () =>
   getElementText(".course-detail-title") ||
   getElementText(".learning-title") ||
   getElementText("h1") ||
-  "EduLearn LMS";
+  "LMS";
 
 const inferCurrentLesson = () =>
   getElementText(".lesson-title") ||

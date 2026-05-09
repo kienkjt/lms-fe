@@ -101,10 +101,10 @@ const Navbar = () => {
               fontSize="10"
               fontWeight="bold"
             >
-              E
+              L
             </text>
           </svg>
-          <span className="logo-text">EduLearn</span>
+          <span className="logo-text">LMS</span>
         </Link>
 
         {/* Search Bar - Hidden on mobile, shown on desktop */}
