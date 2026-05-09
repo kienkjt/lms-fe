@@ -14,7 +14,7 @@ export const wishlistService = {
       const page = params.page || 1;
       const pageSize = params.pageSize || 10;
       console.log('[wishlistService.getWishlist] Fetching wishlist - page:', page, 'pageSize:', pageSize);
-      const response = await api.get(`/api/v1/wishlist?page=${page}&pageSize=${pageSize}`);
+      const response = await api.get(`/v1/wishlist?page=${page}&pageSize=${pageSize}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[wishlistService.getWishlist] Error:', error);
@@ -30,7 +30,7 @@ export const wishlistService = {
   add: async (courseId) => {
     try {
       console.log('[wishlistService.add] Adding to wishlist:', courseId);
-      const response = await api.post(`/api/v1/wishlist/courses/${courseId}`);
+      const response = await api.post(`/v1/wishlist/courses/${courseId}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[wishlistService.add] Error:', error);
@@ -46,7 +46,7 @@ export const wishlistService = {
   remove: async (courseId) => {
     try {
       console.log('[wishlistService.remove] Removing from wishlist by course ID:', courseId);
-      const response = await api.delete(`/api/v1/wishlist/courses/${courseId}`);
+      const response = await api.delete(`/v1/wishlist/courses/${courseId}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[wishlistService.remove] Error:', error);
@@ -62,7 +62,7 @@ export const wishlistService = {
   removeById: async (wishlistId) => {
     try {
       console.log('[wishlistService.removeById] Removing wishlist item:', wishlistId);
-      const response = await api.delete(`/api/v1/wishlist/${wishlistId}`);
+      const response = await api.delete(`/v1/wishlist/${wishlistId}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[wishlistService.removeById] Error:', error);
@@ -78,7 +78,7 @@ export const wishlistService = {
   isCourseInWishlist: async (courseId) => {
     try {
       console.log('[wishlistService.isCourseInWishlist] Checking course:', courseId);
-      const response = await api.get(`/api/v1/wishlist/courses/${courseId}/exists`);
+      const response = await api.get(`/v1/wishlist/courses/${courseId}/exists`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[wishlistService.isCourseInWishlist] Error:', error);

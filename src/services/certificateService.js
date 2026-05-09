@@ -11,7 +11,7 @@ export const certificateService = {
   getMyCertificates: async () => {
     try {
       console.log('[certificateService.getMyCertificates] Fetching my certificates');
-      const response = await api.get('/api/v1/certificates/my');
+      const response = await api.get('/v1/certificates/my');
       const certificates = response.data?.data || response.data || [];
       console.log('[certificateService.getMyCertificates] Success, found:', certificates.length);
       return { data: certificates };
@@ -29,7 +29,7 @@ export const certificateService = {
   getMyCertificateForCourse: async (courseId) => {
     try {
       console.log('[certificateService.getMyCertificateForCourse] Fetching certificate for course:', courseId);
-      const response = await api.get(`/api/v1/certificates/courses/${courseId}`);
+      const response = await api.get(`/v1/certificates/courses/${courseId}`);
       const certificate = response.data?.data || response.data;
       console.log('[certificateService.getMyCertificateForCourse] Success');
       return { data: certificate };
@@ -47,7 +47,7 @@ export const certificateService = {
   getCertificate: async (certificateId) => {
     try {
       console.log('[certificateService.getCertificate] Fetching certificate:', certificateId);
-      const response = await api.get(`/api/v1/certificates/${certificateId}`);
+      const response = await api.get(`/v1/certificates/${certificateId}`);
       const certificate = response.data?.data || response.data;
       console.log('[certificateService.getCertificate] Success');
       return { data: certificate };
@@ -65,7 +65,7 @@ export const certificateService = {
   downloadCertificate: async (certificateId) => {
     try {
       console.log('[certificateService.downloadCertificate] Downloading certificate:', certificateId);
-      const response = await api.get(`/api/v1/certificates/${certificateId}/download`, {
+      const response = await api.get(`/v1/certificates/${certificateId}/download`, {
         responseType: 'blob',
       });
       console.log('[certificateService.downloadCertificate] Success');
@@ -93,6 +93,6 @@ export const certificateService = {
    * @returns {string} PDF URL
    */
   getCertificatePdfUrl: (certificateId) => {
-    return `/api/v1/certificates/${certificateId}/download`;
+    return `/v1/certificates/${certificateId}/download`;
   },
 };

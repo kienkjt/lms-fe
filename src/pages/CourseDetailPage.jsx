@@ -122,7 +122,7 @@ const CourseDetailPage = () => {
       try {
         setLoading(true);
 
-        const courseResponse = await api.get(`/api/v1/courses/${slug}`);
+        const courseResponse = await api.get(`/v1/courses/${slug}`);
 
         const normalizedCourse = normalizeCourse(
           courseResponse.data?.data || courseResponse.data,
@@ -294,8 +294,11 @@ const CourseDetailPage = () => {
         toast.success("Đã lưu vào danh sách yêu thích");
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 
-                       (inWishlist ? "Không thể xóa" : "Không thể thêm vào danh sách yêu thích");
+      const errorMsg =
+        error.response?.data?.message ||
+        (inWishlist
+          ? "Không thể xóa"
+          : "Không thể thêm vào danh sách yêu thích");
       toast.error(errorMsg);
     } finally {
       setLoadingWishlist(false);
@@ -331,8 +334,7 @@ const CourseDetailPage = () => {
     100,
     Math.max(0, enrollment?.progressPercent || 0),
   );
-  const canReview =
-    isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]);
+  const canReview = isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]);
 
   return (
     <div className="course-detail-page">
@@ -645,13 +647,15 @@ const CourseDetailPage = () => {
 
               <div className="purchase-actions">
                 <button
-                  className={`btn-wishlist ${inWishlist ? 'active' : ''}`}
+                  className={`btn-wishlist ${inWishlist ? "active" : ""}`}
                   onClick={handleWishlistToggle}
                   disabled={loadingWishlist}
-                  title={inWishlist ? 'Xóa khỏi yêu thích' : 'Lưu vào yêu thích'}
+                  title={
+                    inWishlist ? "Xóa khỏi yêu thích" : "Lưu vào yêu thích"
+                  }
                   id="wishlist-detail-btn"
                 >
-                  <FaHeart /> {inWishlist ? 'Đã lưu' : 'Lưu'}
+                  <FaHeart /> {inWishlist ? "Đã lưu" : "Lưu"}
                 </button>
               </div>
 

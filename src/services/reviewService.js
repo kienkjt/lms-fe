@@ -10,7 +10,7 @@ export const reviewService = {
   create: async (courseId, data) => {
     try {
       console.log('[reviewService.create] Creating review for course:', courseId);
-      const response = await api.post(`/api/v1/courses/${courseId}/reviews`, {
+      const response = await api.post(`/v1/courses/${courseId}/reviews`, {
         rating: data.rating,
         comment: data.comment || '',
       });
@@ -32,7 +32,7 @@ export const reviewService = {
       const page = params?.page || 1;
       const pageSize = params?.pageSize || params?.size || 10;
       console.log('[reviewService.getByCourse] Fetching reviews for course:', courseId);
-      const response = await api.get(`/api/v1/courses/${courseId}/reviews`, {
+      const response = await api.get(`/v1/courses/${courseId}/reviews`, {
         params: { page, pageSize },
       });
       const data = response.data?.data || response.data;
@@ -51,7 +51,7 @@ export const reviewService = {
   getMyReview: async (courseId) => {
     try {
       console.log('[reviewService.getMyReview] Fetching my review for course:', courseId);
-      const response = await api.get(`/api/v1/courses/${courseId}/reviews/me`, {
+      const response = await api.get(`/v1/courses/${courseId}/reviews/me`, {
         suppressErrorLog: true, // 404 is expected when no review exists
         validateStatus: (status) => (status >= 200 && status < 300) || status === 404,
       });
@@ -74,7 +74,7 @@ export const reviewService = {
   updateMyReview: async (courseId, data) => {
     try {
       console.log('[reviewService.updateMyReview] Updating my review for course:', courseId);
-      const response = await api.put(`/api/v1/courses/${courseId}/reviews/me`, {
+      const response = await api.put(`/v1/courses/${courseId}/reviews/me`, {
         rating: data.rating,
         comment: data.comment || '',
       });
@@ -93,7 +93,7 @@ export const reviewService = {
   deleteMyReview: async (courseId) => {
     try {
       console.log('[reviewService.deleteMyReview] Deleting my review for course:', courseId);
-      const response = await api.delete(`/api/v1/courses/${courseId}/reviews/me`);
+      const response = await api.delete(`/v1/courses/${courseId}/reviews/me`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[reviewService.deleteMyReview] Error:', error);
@@ -112,7 +112,7 @@ export const reviewService = {
     try {
       console.log('[reviewService.replyReview] Replying to review:', reviewId);
       const response = await api.post(
-        `/api/v1/courses/${courseId}/reviews/${reviewId}/reply`,
+        `/v1/courses/${courseId}/reviews/${reviewId}/reply`,
         {
           reply: data.reply,
         }
@@ -132,7 +132,7 @@ export const reviewService = {
   getRatingStats: async (courseId) => {
     try {
       console.log('[reviewService.getRatingStats] Fetching stats for course:', courseId);
-      const response = await api.get(`/api/v1/courses/${courseId}/reviews`, {
+      const response = await api.get(`/v1/courses/${courseId}/reviews`, {
         params: { page: 1, pageSize: 100 },
       });
       const pageData = response.data?.data || response.data;

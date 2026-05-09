@@ -16,7 +16,7 @@ export const withdrawalService = {
   getWallet: async () => {
     try {
       console.log('[withdrawalService.getWallet] Fetching wallet information');
-      const response = await api.get('/api/v1/withdrawal/wallet');
+      const response = await api.get('/v1/withdrawal/wallet');
       const wallet = response.data?.data || response.data;
       console.log('[withdrawalService.getWallet] Success', {
         currentBalance: wallet?.currentBalance,
@@ -47,7 +47,7 @@ export const withdrawalService = {
         amount: data.requestedAmount,
         bank: data.bankName,
       });
-      const response = await api.post('/api/v1/withdrawal/request', {
+      const response = await api.post('/v1/withdrawal/request', {
         requestedAmount: data.requestedAmount,
         accountHolder: data.accountHolder,
         bankName: data.bankName,
@@ -84,7 +84,7 @@ export const withdrawalService = {
       const size = params?.size || 10;
       console.log('[withdrawalService.getMyRequests] Fetching withdrawal requests', { page, size });
       const response = await api.get(
-        `/api/v1/withdrawal/requests?page=${page}&size=${size}`
+        `/v1/withdrawal/requests?page=${page}&size=${size}`
       );
       const data = response.data?.data || response.data;
       console.log('[withdrawalService.getMyRequests] Success, count:', data?.content?.length || data?.length);
@@ -103,7 +103,7 @@ export const withdrawalService = {
   getRequest: async (requestId) => {
     try {
       console.log('[withdrawalService.getRequest] Fetching withdrawal request:', requestId);
-      const response = await api.get(`/api/v1/withdrawal/request/${requestId}`);
+      const response = await api.get(`/v1/withdrawal/request/${requestId}`);
       const request = response.data?.data || response.data;
       console.log('[withdrawalService.getRequest] Success');
       return { data: request };
@@ -125,7 +125,7 @@ export const withdrawalService = {
   cancelRequest: async (requestId) => {
     try {
       console.log('[withdrawalService.cancelRequest] Cancelling withdrawal request:', requestId);
-      const response = await api.post(`/api/v1/withdrawal/request/${requestId}/cancel`);
+      const response = await api.post(`/v1/withdrawal/request/${requestId}/cancel`);
       const request = response.data?.data || response.data;
       console.log('[withdrawalService.cancelRequest] Success');
       return { data: request };
@@ -149,7 +149,7 @@ export const withdrawalService = {
     try {
       const page = params?.page ?? 0;
       const size = params?.size || 10;
-      const response = await api.get(`/api/v1/withdrawal/admin/pending?page=${page}&size=${size}`);
+      const response = await api.get(`/v1/withdrawal/admin/pending?page=${page}&size=${size}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[withdrawalService.getPendingWithdrawals] Error:', error);
@@ -161,7 +161,7 @@ export const withdrawalService = {
     try {
       const page = params?.page ?? 0;
       const size = params?.size || 10;
-      const response = await api.get(`/api/v1/withdrawal/admin/all?page=${page}&size=${size}`);
+      const response = await api.get(`/v1/withdrawal/admin/all?page=${page}&size=${size}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[withdrawalService.getAllWithdrawals] Error:', error);
@@ -173,7 +173,7 @@ export const withdrawalService = {
     try {
       const page = params?.page ?? 0;
       const size = params?.size || 10;
-      const response = await api.get(`/api/v1/withdrawal/admin/status/${status}?page=${page}&size=${size}`);
+      const response = await api.get(`/v1/withdrawal/admin/status/${status}?page=${page}&size=${size}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[withdrawalService.getWithdrawalsByStatus] Error:', error);
@@ -183,7 +183,7 @@ export const withdrawalService = {
 
   approveWithdrawal: async (requestId) => {
     try {
-      const response = await api.post(`/api/v1/withdrawal/admin/approve/${requestId}`);
+      const response = await api.post(`/v1/withdrawal/admin/approve/${requestId}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[withdrawalService.approveWithdrawal] Error:', error);
@@ -194,7 +194,7 @@ export const withdrawalService = {
   rejectWithdrawal: async (requestId, rejectReason) => {
     try {
       const response = await api.post(
-        `/api/v1/withdrawal/admin/reject/${requestId}`,
+        `/v1/withdrawal/admin/reject/${requestId}`,
         null,
         { params: { rejectReason } }
       );
@@ -208,7 +208,7 @@ export const withdrawalService = {
   completeWithdrawal: async (requestId, transactionId) => {
     try {
       const response = await api.post(
-        `/api/v1/withdrawal/admin/complete/${requestId}`,
+        `/v1/withdrawal/admin/complete/${requestId}`,
         null,
         { params: { transactionId } }
       );

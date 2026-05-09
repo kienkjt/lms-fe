@@ -72,7 +72,7 @@ api.interceptors.response.use(
         
         if (refreshToken) {
           const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/refresh-token`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/v1/auth/refresh-token`,
             { refreshToken }
           );
           // Backend returns data in response.data.data structure

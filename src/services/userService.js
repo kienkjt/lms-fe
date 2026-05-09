@@ -5,7 +5,7 @@ export const userService = {
    * Get user profile
    */
   getProfile: async () => {
-    return api.get('/api/v1/user/profile');
+    return api.get('/v1/user/profile');
   },
 
   /**
@@ -13,7 +13,7 @@ export const userService = {
    * @param {Object} data - Profile update data (fullName, gender, phoneNumber, bio)
    */
   updateProfile: async (data) => {
-    return api.put('/api/v1/user/profile', {
+    return api.put('/v1/user/profile', {
       fullName: data.fullName,
       gender: data.gender || null,
       phoneNumber: data.phoneNumber || data.phone || null,
@@ -26,7 +26,7 @@ export const userService = {
    * @param {Object} data - Password change data (currentPassword, newPassword, confirmNewPassword)
    */
   changePassword: async (data) => {
-    return api.post('/api/v1/user/change-password', {
+    return api.post('/v1/user/change-password', {
       currentPassword: data.currentPassword,
       newPassword: data.newPassword,
       confirmNewPassword: data.confirmNewPassword,
@@ -41,13 +41,13 @@ export const userService = {
     const formData = new FormData();
     formData.append('file', file);
     // Don't set Content-Type header - let axios handle it with proper boundary
-    return api.post('/api/v1/user/avatar', formData);
+    return api.post('/v1/user/avatar', formData);
   },
 
   /**
    * Delete avatar
    */
   deleteAvatar: async () => {
-    return api.delete('/api/v1/user/avatar');
+    return api.delete('/v1/user/avatar');
   },
 };

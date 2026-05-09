@@ -11,7 +11,7 @@ export const notificationService = {
       const page = params?.page ?? 0;
       const size = params?.size || 10;
       console.log('[notificationService.getAll] Fetching notifications');
-      const response = await api.get(`/api/v1/notifications?page=${page}&size=${size}`);
+      const response = await api.get(`/v1/notifications?page=${page}&size=${size}`);
       const data = response.data?.data || response.data;
       return { data };
     } catch (error) {
@@ -26,7 +26,7 @@ export const notificationService = {
    * @returns Response with updated notification
    */
   markRead: async (id) => {
-    const response = await api.post(`/api/v1/notifications/${id}/read`);
+    const response = await api.post(`/v1/notifications/${id}/read`);
     return { data: response.data?.data || response.data };
   },
 
@@ -37,12 +37,12 @@ export const notificationService = {
   markAllRead: async () => {
     try {
       console.log('[notificationService.markAllRead] Marking all notifications as read');
-      const response = await api.post('/api/v1/notifications/read-all');
+      const response = await api.post('/v1/notifications/read-all');
       return { data: response.data?.data || response.data };
     } catch {
       console.warn('[notificationService.markAllRead] Fallback endpoint /mark-all-read');
       try {
-        const fallback = await api.post('/api/v1/notifications/mark-all-read');
+        const fallback = await api.post('/v1/notifications/mark-all-read');
         return { data: fallback.data?.data || fallback.data };
       } catch (fallbackError) {
         console.error('[notificationService.markAllRead] Error:', fallbackError);
@@ -59,7 +59,7 @@ export const notificationService = {
   delete: async (id) => {
     try {
       console.log('[notificationService.delete] Deleting notification:', id);
-      const response = await api.delete(`/api/v1/notifications/${id}`);
+      const response = await api.delete(`/v1/notifications/${id}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[notificationService.delete] Error:', error);
@@ -74,7 +74,7 @@ export const notificationService = {
   getUnreadCount: async () => {
     try {
       console.log('[notificationService.getUnreadCount] Fetching unread count');
-      const response = await api.get('/api/v1/notifications/unread-count');
+      const response = await api.get('/v1/notifications/unread-count');
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[notificationService.getUnreadCount] Error:', error);
@@ -89,7 +89,7 @@ export const notificationService = {
   create: async (data) => {
     try {
       console.log('[notificationService.create] Creating notification');
-      const response = await api.post('/api/v1/notifications', data);
+      const response = await api.post('/v1/notifications', data);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[notificationService.create] Error:', error);

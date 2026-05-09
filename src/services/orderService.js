@@ -9,7 +9,7 @@ export const orderService = {
   checkout: async (data) => {
     try {
       console.log('[orderService.checkout] Creating order from cart');
-      const response = await api.post('/api/v1/orders/checkout', {
+      const response = await api.post('/v1/orders/checkout', {
         paymentMethod: data.paymentMethod, // VNPAY, BANK_TRANSFER, FREE
         note: data.note || '',
       });
@@ -31,7 +31,7 @@ export const orderService = {
   checkoutCourse: async (courseId, data) => {
     try {
       console.log('[orderService.checkoutCourse] Checking out course:', courseId);
-      const response = await api.post(`/api/v1/orders/checkout/courses/${courseId}`, {
+      const response = await api.post(`/v1/orders/checkout/courses/${courseId}`, {
         paymentMethod: data.paymentMethod, // VNPAY, BANK_TRANSFER, FREE
         note: data.note || '',
       });
@@ -53,7 +53,7 @@ export const orderService = {
   payOrder: async (orderId, data) => {
     try {
       console.log('[orderService.payOrder] Paying for order:', orderId);
-      const response = await api.post(`/api/v1/orders/${orderId}/pay`, {
+      const response = await api.post(`/v1/orders/${orderId}/pay`, {
         transactionId: data.transactionId,
       });
       const order = response.data?.data || response.data;
@@ -73,7 +73,7 @@ export const orderService = {
   cancelOrder: async (orderId) => {
     try {
       console.log('[orderService.cancelOrder] Cancelling order:', orderId);
-      const response = await api.post(`/api/v1/orders/${orderId}/cancel`);
+      const response = await api.post(`/v1/orders/${orderId}/cancel`);
       const order = response.data?.data || response.data;
       console.log('[orderService.cancelOrder] Success');
       return { data: order };
@@ -91,7 +91,7 @@ export const orderService = {
   refundOrder: async (orderId) => {
     try {
       console.log('[orderService.refundOrder] Refunding order:', orderId);
-      const response = await api.post(`/api/v1/orders/${orderId}/refund`);
+      const response = await api.post(`/v1/orders/${orderId}/refund`);
       const order = response.data?.data || response.data;
       console.log('[orderService.refundOrder] Success');
       return { data: order };
@@ -109,7 +109,7 @@ export const orderService = {
   getOrder: async (orderId) => {
     try {
       console.log('[orderService.getOrder] Fetching order:', orderId);
-      const response = await api.get(`/api/v1/orders/${orderId}`);
+      const response = await api.get(`/v1/orders/${orderId}`);
       const order = response.data?.data || response.data;
       console.log('[orderService.getOrder] Success');
       return { data: order };
@@ -128,7 +128,7 @@ export const orderService = {
   initPayment: async (orderId, data) => {
     try {
       console.log('[orderService.initPayment] Initializing payment for order:', orderId);
-      const response = await api.post(`/api/v1/orders/${orderId}/pay/init`, {
+      const response = await api.post(`/v1/orders/${orderId}/pay/init`, {
         paymentMethod: data.paymentMethod,
         language: data.language || 'vn',
         bankCode: data.bankCode || '',
@@ -152,7 +152,7 @@ export const orderService = {
       const page = params?.page || 0; // Backend uses 0-based indexing for orders
       const size = params?.size || 10;
       console.log('[orderService.getMyOrders] Fetching orders');
-      const response = await api.get(`/api/v1/orders/my-orders?page=${page}&size=${size}`);
+      const response = await api.get(`/v1/orders/my-orders?page=${page}&size=${size}`);
       
       // Backend may return list directly or paginated response
       const data = response.data?.data || response.data;

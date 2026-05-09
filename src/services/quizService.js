@@ -21,7 +21,7 @@ export const quizService = {
         if (!v || v.toLowerCase() === "null" || v.toLowerCase() === "undefined") return null;
         return v;
       };
-      const response = await api.post(`/api/v1/courses/${courseId}/quizzes`, {
+      const response = await api.post(`/v1/courses/${courseId}/quizzes`, {
         chapterId: normalizeUuid(data.chapterId),
         lessonId: normalizeUuid(data.lessonId),
         title: data.title,
@@ -48,7 +48,7 @@ export const quizService = {
   getCourseQuizzes: async (courseId) => {
     try {
       console.log('[quizService.getCourseQuizzes] Fetching quizzes for course:', courseId);
-      const response = await api.get(`/api/v1/courses/${courseId}/quizzes`);
+      const response = await api.get(`/v1/courses/${courseId}/quizzes`);
       const quizzes = response.data?.data || response.data || [];
       console.log('[quizService.getCourseQuizzes] Success, found:', quizzes.length);
       return { data: quizzes };
@@ -66,7 +66,7 @@ export const quizService = {
   getQuizSelection: async (courseId) => {
     try {
       console.log('[quizService.getQuizSelection] Fetching quiz selection tree for course:', courseId);
-      const response = await api.get(`/api/v1/courses/${courseId}/quiz-selection`);
+      const response = await api.get(`/v1/courses/${courseId}/quiz-selection`);
       const selection = response.data?.data || response.data || [];
       console.log('[quizService.getQuizSelection] Success, found chapters:', selection.length);
       return { data: selection };
@@ -84,7 +84,7 @@ export const quizService = {
   getQuiz: async (quizId) => {
     try {
       console.log('[quizService.getQuiz] Fetching quiz:', quizId);
-      const response = await api.get(`/api/v1/quizzes/${quizId}`);
+      const response = await api.get(`/v1/quizzes/${quizId}`);
       const quiz = response.data?.data || response.data;
       console.log('[quizService.getQuiz] Success');
       return { data: quiz };
@@ -103,7 +103,7 @@ export const quizService = {
   updateQuiz: async (quizId, data) => {
     try {
       console.log('[quizService.updateQuiz] Updating quiz:', quizId);
-      const response = await api.put(`/api/v1/quizzes/${quizId}`, {
+      const response = await api.put(`/v1/quizzes/${quizId}`, {
         title: data.title,
         description: data.description || '',
         timeLimitMinutes: data.timeLimitMinutes || null,
@@ -128,7 +128,7 @@ export const quizService = {
   deleteQuiz: async (quizId) => {
     try {
       console.log('[quizService.deleteQuiz] Deleting quiz:', quizId);
-      const response = await api.delete(`/api/v1/quizzes/${quizId}`);
+      const response = await api.delete(`/v1/quizzes/${quizId}`);
       console.log('[quizService.deleteQuiz] Success');
       return { data: response.data?.data || response.data || { message: 'Quiz deleted successfully' } };
     } catch (error) {
@@ -148,7 +148,7 @@ export const quizService = {
   addQuestion: async (quizId, data) => {
     try {
       console.log('[quizService.addQuestion] Adding question to quiz:', quizId);
-      const response = await api.post(`/api/v1/quizzes/${quizId}/questions`, {
+      const response = await api.post(`/v1/quizzes/${quizId}/questions`, {
         questionText: data.questionText,
         type: data.type, // MULTIPLE_CHOICE, SHORT_ANSWER, etc
         options: data.options || null, // For multiple choice: "Option1,Option2,Option3"
@@ -174,7 +174,7 @@ export const quizService = {
   updateQuestion: async (questionId, data) => {
     try {
       console.log('[quizService.updateQuestion] Updating question:', questionId);
-      const response = await api.put(`/api/v1/quizzes/questions/${questionId}`, {
+      const response = await api.put(`/v1/quizzes/questions/${questionId}`, {
         questionText: data.questionText,
         type: data.type,
         options: data.options || null,
@@ -199,7 +199,7 @@ export const quizService = {
   deleteQuestion: async (questionId) => {
     try {
       console.log('[quizService.deleteQuestion] Deleting question:', questionId);
-      const response = await api.delete(`/api/v1/quizzes/questions/${questionId}`);
+      const response = await api.delete(`/v1/quizzes/questions/${questionId}`);
       console.log('[quizService.deleteQuestion] Success');
       return { data: response.data?.data || response.data || { message: 'Question deleted successfully' } };
     } catch (error) {
@@ -219,7 +219,7 @@ export const quizService = {
   submitAttempt: async (quizId, data) => {
     try {
       console.log('[quizService.submitAttempt] Submitting quiz attempt:', quizId);
-      const response = await api.post(`/api/v1/quizzes/${quizId}/attempts`, {
+      const response = await api.post(`/v1/quizzes/${quizId}/attempts`, {
         answers: data.answers || [], // Array of { questionId, selectedAnswer }
         timeSpent: data.timeSpent || 0, // In seconds
       });
@@ -247,7 +247,7 @@ export const quizService = {
   getMyAttempts: async (quizId) => {
     try {
       console.log('[quizService.getMyAttempts] Fetching my attempts for quiz:', quizId);
-      const response = await api.get(`/api/v1/quizzes/${quizId}/attempts/my`);
+      const response = await api.get(`/v1/quizzes/${quizId}/attempts/my`);
       let attempts = response.data?.data || response.data || [];
       
       // Ensure each attempt has 'passed' field
