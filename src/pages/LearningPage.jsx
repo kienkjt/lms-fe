@@ -144,9 +144,13 @@ const getCompletedLessonIdsFromProgress = (progressData, chapters = []) => {
   // If lessons array with isCompleted flag is provided, use it
   if (Array.isArray(progressData.lessons)) {
     return progressData.lessons
-      .filter((lesson) => lesson?.isCompleted)
-      .map((lesson) => lesson?.id)
+      .filter((lesson) => lesson?.isCompleted || lesson?.completed)
+      .map((lesson) => lesson?.id || lesson?.lessonId)
       .filter(Boolean);
+  }
+
+  if (Array.isArray(progressData.completedLessonIds)) {
+    return progressData.completedLessonIds.filter(Boolean);
   }
 
   // If only completedLessons count is provided, mark the first N lessons as completed
