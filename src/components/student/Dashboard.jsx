@@ -25,6 +25,26 @@ const normalizeEnrollment = (enrollment) => ({
     0,
 });
 
+const getAccountCreatedDate = (user) => {
+  const rawDate =
+    user?.createdAt ||
+    user?.registeredAt ||
+    user?.joinDate ||
+    user?.accountCreatedAt ||
+    user?.createdDate;
+
+  if (!rawDate) return null;
+
+  const parsedDate = new Date(rawDate);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const addOneYear = (date) => {
+  const nextYear = new Date(date);
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  return nextYear;
+};
+
 const StudentDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [enrollments, setEnrollments] = useState([]);
@@ -32,6 +52,7 @@ const StudentDashboard = () => {
   const [heatmap, setHeatmap] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("year"); // 30days, 3months, 6months, year
+  const accountCreatedDate = getAccountCreatedDate(user);
 
   const getDateRangeParams = useCallback(() => {
     const toDate = new Date();
@@ -48,8 +69,16 @@ const StudentDashboard = () => {
         fromDate.setMonth(toDate.getMonth() - 6);
         break;
       case "year":
-        fromDate.setFullYear(toDate.getFullYear());
-        fromDate.setMonth(0, 1);
+        if (accountCreatedDate) {
+          fromDate.setTime(accountCreatedDate.getTime());
+          const oneYearLater = addOneYear(accountCreatedDate);
+          if (oneYearLater < toDate) {
+            toDate.setTime(oneYearLater.getTime());
+          }
+        } else {
+          fromDate.setFullYear(toDate.getFullYear());
+          fromDate.setMonth(0, 1);
+        }
         break;
       default:
         fromDate.setDate(toDate.getDate() - 29);
@@ -59,7 +88,7 @@ const StudentDashboard = () => {
       fromDate: fromDate.toISOString().slice(0, 10),
       toDate: toDate.toISOString().slice(0, 10)
     };
-  }, [dateRange]);
+  }, [accountCreatedDate, dateRange]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -204,7 +233,10 @@ const StudentDashboard = () => {
               {dateRange === "30days" && "30 ngày gần đây"}
               {dateRange === "3months" && "3 tháng gần đây"}
               {dateRange === "6months" && "6 tháng gần đây"}
-              {dateRange === "year" && `Năm ${new Date().getFullYear()}`}
+              {dateRange === "year" &&
+                (accountCreatedDate
+                  ? "Năm đầu tiên từ ngày tạo tài khoản"
+                  : `Năm ${new Date().getFullYear()}`)}
             </p>
           </div>
         </div>
@@ -241,7 +273,7 @@ const StudentDashboard = () => {
             {monthlyHeatmap().map((monthData) => (
               <div key={monthData.id} className="monthly-heatmap">
                 <div className="month-label">
-                  {monthData.monthName} {monthData.year !== 2026 && monthData.year}
+                  {monthData.monthName} {monthData.year}
                 </div>
                 <div className="calendar-board">
                   <div className="calendar-grid">
