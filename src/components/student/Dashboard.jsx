@@ -229,15 +229,6 @@ const StudentDashboard = () => {
         <div className="section-header-std">
           <div>
             <h2>📅 Lịch Hoạt Động Học Tập</h2>
-            <p className="heatmap-subtitle">
-              {dateRange === "30days" && "30 ngày gần đây"}
-              {dateRange === "3months" && "3 tháng gần đây"}
-              {dateRange === "6months" && "6 tháng gần đây"}
-              {dateRange === "year" &&
-                (accountCreatedDate
-                  ? "Năm đầu tiên từ ngày tạo tài khoản"
-                  : `Năm ${new Date().getFullYear()}`)}
-            </p>
           </div>
         </div>
 
@@ -434,3 +425,4 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
