@@ -3,8 +3,13 @@ import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '../utils/constants';
 import { handleApiError } from '../utils/errorHandler';
 import i18n from '../i18n';
 
+const resolveApiBaseUrl = () => {
+  const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  return rawBaseUrl.replace(/\/$/, '') + '/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  baseURL: resolveApiBaseUrl(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -72,7 +77,7 @@ api.interceptors.response.use(
         
         if (refreshToken) {
           const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/v1/auth/refresh-token`,
+            `${resolveApiBaseUrl()}/v1/auth/refresh-token`,
             { refreshToken }
           );
           // Backend returns data in response.data.data structure
