@@ -144,18 +144,15 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="navbar-actions">
+          <Link to={ROUTES.CART} className="nav-icon-btn" id="cart-icon">
+            <FiShoppingCart size={20} />
+            {items.length > 0 && (
+              <span className="nav-badge">{items.length}</span>
+            )}
+          </Link>
+
           {isAuthenticated ? (
             <>
-              {/* Cart */}
-              {hasRole(user?.role, [ROLES.STUDENT]) && (
-                <Link to={ROUTES.CART} className="nav-icon-btn" id="cart-icon">
-                  <FiShoppingCart size={20} />
-                  {items.length > 0 && (
-                    <span className="nav-badge">{items.length}</span>
-                  )}
-                </Link>
-              )}
-
               <NotificationCenter />
 
               {/* User Dropdown */}

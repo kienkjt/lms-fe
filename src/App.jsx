@@ -143,11 +143,9 @@ function App() {
                 path={ROUTES.CART}
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
-                      <Suspense fallback={<PageLoader />}>
-                        <Cart />
-                      </Suspense>
-                    </ProtectedRoute>
+                    <Suspense fallback={<PageLoader />}>
+                      <Cart />
+                    </Suspense>
                   </WithMainLayout>
                 }
               />
@@ -157,7 +155,9 @@ function App() {
                 path={ROUTES.CHECKOUT}
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
+                    <ProtectedRoute
+                      allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN]}
+                    >
                       <Suspense fallback={<PageLoader />}>
                         <CheckoutPage />
                       </Suspense>
@@ -171,7 +171,9 @@ function App() {
                 path="/order/:orderId"
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
+                    <ProtectedRoute
+                      allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN]}
+                    >
                       <Suspense fallback={<PageLoader />}>
                         <OrderDetailPage />
                       </Suspense>
@@ -276,7 +278,9 @@ function App() {
               <Route
                 path={ROUTES.WISHLIST}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN]}
+                  >
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <WishlistPage />

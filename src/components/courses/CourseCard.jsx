@@ -51,11 +51,6 @@ const CourseCard = ({ course, onWishlistChange }) => {
   const handleAddToCart = async (e) => {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
-      return;
-    }
-
     if (isOwnCourse) {
       toast.error(OWN_COURSE_ACTION_MESSAGE);
       return;
@@ -67,7 +62,9 @@ const CourseCard = ({ course, onWishlistChange }) => {
     }
 
     try {
-      await cartService.addItem(course.id);
+      if (isAuthenticated) {
+        await cartService.addItem(course.id);
+      }
       dispatch(addToCart({ courseId: course.id, course }));
       toast.success("Đã thêm vào giỏ hàng!");
     } catch {

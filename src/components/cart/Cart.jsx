@@ -38,7 +38,9 @@ const Cart = () => {
 
   const handleRemove = async (cartItemId) => {
     try {
-      await cartService.removeItem(cartItemId);
+      if (isAuthenticated) {
+        await cartService.removeItem(cartItemId);
+      }
       dispatch(removeFromCart(cartItemId));
       toast.success("Đã xóa khỏi giỏ hàng");
     } catch (error) {
@@ -49,7 +51,9 @@ const Cart = () => {
 
   const handleClear = async () => {
     try {
-      await cartService.clearCart();
+      if (isAuthenticated) {
+        await cartService.clearCart();
+      }
       dispatch(clearCart());
       toast.success("Đã xóa giỏ hàng");
     } catch {
@@ -66,6 +70,11 @@ const Cart = () => {
   const hasOwnCourse = items.some((item) => isOwnInstructorCourse(user, item));
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN, { state: { from: { pathname: ROUTES.CHECKOUT } } });
+      return;
+    }
+
     if (hasOwnCourse) {
       toast.error(OWN_COURSE_CHECKOUT_MESSAGE);
       return;

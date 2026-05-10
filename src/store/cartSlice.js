@@ -1,10 +1,35 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const GUEST_CART_KEY = 'lms_guest_cart';
+
+const loadGuestCart = () => {
+  try {
+    const savedCart = localStorage.getItem(GUEST_CART_KEY);
+    return savedCart ? JSON.parse(savedCart) : [];
+  } catch {
+    return [];
+  }
+};
+
+const calculateTotal = (items) =>
+  items.reduce(
+    (sum, item) =>
+      sum +
+      (item.price || item.course?.discountPrice || item.course?.price || 0),
+    0,
+  );
+
+const persistGuestCart = (items) => {
+  localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+};
+
+const savedGuestCart = loadGuestCart();
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
-    items: [],
-    total: 0,
+    items: savedGuestCart,
+    total: calculateTotal(savedGuestCart),
     loading: false,
   },
   reducers: {
@@ -14,15 +39,27 @@ const cartSlice = createSlice({
     },
     addToCart: (state, action) => {
       const exists = state.items.find(i => i.courseId === action.payload.courseId);
-      if (!exists) state.items.push(action.payload);
+      if (!exists) {
+        state.items.push({
+          id: action.payload.id || `guest-${action.payload.courseId}`,
+          ...action.payload,
+        });
+        state.total = calculateTotal(state.items);
+        persistGuestCart(state.items);
+      }
     },
     removeFromCart: (state, action) => {
       // action.payload is cartItemId (item.id), not courseId
-      state.items = state.items.filter(i => i.id !== action.payload);
+      state.items = state.items.filter(
+        i => i.id !== action.payload && i.courseId !== action.payload,
+      );
+      state.total = calculateTotal(state.items);
+      persistGuestCart(state.items);
     },
     clearCart: (state) => {
       state.items = [];
       state.total = 0;
+      persistGuestCart([]);
     },
     setTotal: (state, action) => { state.total = action.payload; },
     setLoading: (state, action) => { state.loading = action.payload; },

@@ -195,11 +195,6 @@ const CourseDetailPage = () => {
   }, [slug, isAuthenticated, user?.role, navigate]);
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      navigate(ROUTES.LOGIN);
-      return;
-    }
-
     if (inCart) {
       navigate(ROUTES.CART);
       return;
@@ -211,7 +206,9 @@ const CourseDetailPage = () => {
     }
 
     try {
-      await cartService.addItem(course.id);
+      if (isAuthenticated) {
+        await cartService.addItem(course.id);
+      }
       dispatch(addToCart({ courseId: course.id, course }));
       toast.success("Đã thêm vào giỏ hàng!");
     } catch (error) {
@@ -740,7 +737,7 @@ const CourseDetailPage = () => {
                     id="add-to-cart-btn"
                   >
                     {isOwnCourse ? (
-                      "KhĂ³a há»c cá»§a báº¡n"
+                      "Không thể mua khóa học của chính bạn"
                     ) : inCart ? (
                       "→ Đến giỏ hàng"
                     ) : (
