@@ -30,6 +30,8 @@ const formatCourseForCard = (course) => {
     categoryName: course.category?.name || course.categoryName,
     // Map instructor.fullName → instructorName
     instructorName: course.instructor?.fullName || course.instructor?.name || course.instructorName || 'Unknown Instructor',
+    instructorId: course.instructorId || course.instructor?.id || course.instructor?.userId,
+    instructorEmail: course.instructorEmail || course.instructor?.email,
     // Map description → shortDescription (truncate to first 100 chars)
     shortDescription: course.shortDescription || course.description?.substring(0, 100),
     // Preserve fullDescription for detail/edit pages

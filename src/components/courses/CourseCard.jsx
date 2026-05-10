@@ -11,7 +11,10 @@ import {
   getStarArray,
   truncateText,
 } from "../../utils/helpers";
-import { ROUTES, COURSE_LEVELS } from "../../utils/constants";
+import {
+  isOwnInstructorCourse,
+  OWN_COURSE_ACTION_MESSAGE,
+} from "../../utils/courseOwnership";
 import {
   FaBook,
   FaCheck,
@@ -28,6 +31,7 @@ const levelLabel = {
   INTERMEDIATE: "Trung cấp",
   ADVANCED: "Nâng cao",
 };
+
 const levelClass = {
   BEGINNER: "badge-success",
   INTERMEDIATE: "badge-warning",
@@ -36,23 +40,32 @@ const levelClass = {
 
 const CourseCard = ({ course, onWishlistChange }) => {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { items } = useSelector((state) => state.cart);
   const [inWishlist, setInWishlist] = useState(false);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
-  
+
   const inCart = items.some((i) => i.courseId === course.id);
+  const isOwnCourse = isOwnInstructorCourse(user, course);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
+
     if (!isAuthenticated) {
       toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
       return;
     }
+
+    if (isOwnCourse) {
+      toast.error(OWN_COURSE_ACTION_MESSAGE);
+      return;
+    }
+
     if (inCart) {
       toast.info("Khóa học đã có trong giỏ hàng");
       return;
     }
+
     try {
       await cartService.addItem(course.id);
       dispatch(addToCart({ courseId: course.id, course }));
@@ -65,9 +78,14 @@ const CourseCard = ({ course, onWishlistChange }) => {
   const handleWishlistToggle = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated) {
       toast.info("Vui lòng đăng nhập để lưu khóa học yêu thích");
+      return;
+    }
+
+    if (!inWishlist && isOwnCourse) {
+      toast.error(OWN_COURSE_ACTION_MESSAGE);
       return;
     }
 
@@ -86,8 +104,11 @@ const CourseCard = ({ course, onWishlistChange }) => {
         onWishlistChange(course.id, !inWishlist);
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 
-                       (inWishlist ? "Không thể xóa" : "Không thể thêm vào danh sách yêu thích");
+      const errorMsg =
+        error.response?.data?.message ||
+        (inWishlist
+          ? "Không thể xóa"
+          : "Không thể thêm vào danh sách yêu thích");
       toast.error(errorMsg);
     } finally {
       setLoadingWishlist(false);
@@ -102,7 +123,6 @@ const CourseCard = ({ course, onWishlistChange }) => {
       className="course-card"
       id={`course-card-${course.id}`}
     >
-      {/* Thumbnail */}
       <div className="course-thumbnail">
         {course.thumbnail ? (
           <img src={course.thumbnail} alt={course.title} loading="lazy" />
@@ -112,25 +132,33 @@ const CourseCard = ({ course, onWishlistChange }) => {
           </div>
         )}
 
-        {/* Wishlist Button */}
         <button
-          className={`wishlist-btn ${inWishlist ? 'active' : ''}`}
+          className={`wishlist-btn ${inWishlist ? "active" : ""}`}
           onClick={handleWishlistToggle}
-          disabled={loadingWishlist}
-          title={inWishlist ? 'Xóa khỏi yêu thích' : 'Lưu vào yêu thích'}
+          disabled={loadingWishlist || (!inWishlist && isOwnCourse)}
+          title={
+            isOwnCourse
+              ? OWN_COURSE_ACTION_MESSAGE
+              : inWishlist
+                ? "Xóa khỏi yêu thích"
+                : "Lưu vào yêu thích"
+          }
           id={`wishlist-btn-${course.id}`}
         >
           <FaHeart size={20} />
         </button>
 
-        {/* Overlay */}
         <div className="course-overlay">
           <button
             className="btn btn-primary btn-sm"
             onClick={handleAddToCart}
+            disabled={isOwnCourse}
             id={`add-to-cart-${course.id}`}
+            title={isOwnCourse ? OWN_COURSE_ACTION_MESSAGE : undefined}
           >
-            {inCart ? (
+            {isOwnCourse ? (
+              "Khóa học của bạn"
+            ) : inCart ? (
               <>
                 <FaCheck style={{ marginRight: "6px" }} /> Trong giỏ hàng
               </>
@@ -142,7 +170,6 @@ const CourseCard = ({ course, onWishlistChange }) => {
           </button>
         </div>
 
-        {/* Badge */}
         {course.discountPrice && course.discountPrice < course.price && (
           <span className="course-discount-badge">
             -{Math.round((1 - course.discountPrice / course.price) * 100)}%
@@ -150,9 +177,7 @@ const CourseCard = ({ course, onWishlistChange }) => {
         )}
       </div>
 
-      {/* Info */}
       <div className="course-info">
-        {/* Category + Level */}
         <div className="course-meta">
           {course.level && (
             <span className={`badge ${levelClass[course.level]}`}>
@@ -164,22 +189,18 @@ const CourseCard = ({ course, onWishlistChange }) => {
           )}
         </div>
 
-        {/* Title */}
         <h3 className="course-title">{truncateText(course.title, 65)}</h3>
 
-        {/* Description */}
         <p className="course-desc">
           {truncateText(course.shortDescription, 80)}
         </p>
 
-        {/* Instructor */}
         {course.instructorName && (
           <p className="course-instructor">
             <FaFileAlt style={{ marginRight: "6px" }} /> {course.instructorName}
           </p>
         )}
 
-        {/* Rating */}
         <div className="course-rating">
           <span className="rating-value">
             {(course.avgRating || 0).toFixed(1)}
@@ -194,7 +215,6 @@ const CourseCard = ({ course, onWishlistChange }) => {
           <span className="rating-count">({course.totalReviews || 0})</span>
         </div>
 
-        {/* Stats */}
         <div className="course-stats">
           <span>
             <FaUsers style={{ marginRight: "6px" }} />{" "}
@@ -214,7 +234,6 @@ const CourseCard = ({ course, onWishlistChange }) => {
           )}
         </div>
 
-        {/* Price */}
         <div className="course-price">
           {course.discountPrice && course.discountPrice < course.price ? (
             <>

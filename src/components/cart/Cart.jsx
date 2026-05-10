@@ -6,6 +6,10 @@ import { cartService } from "../../services/cartService";
 import { setCart, removeFromCart, clearCart } from "../../store/cartSlice";
 import { formatPrice } from "../../utils/helpers";
 import { ROUTES } from "../../utils/constants";
+import {
+  isOwnInstructorCourse,
+  OWN_COURSE_CHECKOUT_MESSAGE,
+} from "../../utils/courseOwnership";
 import { FaShoppingCart, FaTrash } from "react-icons/fa";
 import Loading from "../common/Loading";
 import "./Cart.css";
@@ -14,7 +18,7 @@ const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, loading } = useSelector((state) => state.cart);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -59,6 +63,16 @@ const Cart = () => {
       (item.price || item.course?.discountPrice || item.course?.price || 0),
     0,
   );
+  const hasOwnCourse = items.some((item) => isOwnInstructorCourse(user, item));
+
+  const handleCheckout = () => {
+    if (hasOwnCourse) {
+      toast.error(OWN_COURSE_CHECKOUT_MESSAGE);
+      return;
+    }
+
+    navigate("/checkout");
+  };
 
   if (loading) return <Loading />;
 
@@ -179,10 +193,20 @@ const Cart = () => {
                     </span>
                   </div>
 
+                  {hasOwnCourse && (
+                    <p className="text-error" style={{ marginTop: "12px" }}>
+                      {OWN_COURSE_CHECKOUT_MESSAGE}
+                    </p>
+                  )}
+
                   <button
                     className="btn btn-primary btn-full btn-lg"
                     style={{ marginTop: "16px" }}
-                    onClick={() => navigate("/checkout")}
+                    onClick={handleCheckout}
+                    disabled={hasOwnCourse}
+                    title={
+                      hasOwnCourse ? OWN_COURSE_CHECKOUT_MESSAGE : undefined
+                    }
                     id="checkout-btn"
                   >
                     💳 Thanh toán ngay

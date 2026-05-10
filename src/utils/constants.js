@@ -14,8 +14,13 @@ export const normalizeRole = (role) => {
 };
 
 export const hasRole = (role, allowedRoles = []) => {
-  const currentRole = normalizeRole(role);
-  return allowedRoles.map(normalizeRole).includes(currentRole);
+  const currentRoles = Array.isArray(role)
+    ? role.map(normalizeRole)
+    : [normalizeRole(role)];
+  const normalizedAllowedRoles = allowedRoles.map(normalizeRole);
+  return currentRoles.some((currentRole) =>
+    normalizedAllowedRoles.includes(currentRole),
+  );
 };
 
 // Helper function to get user-friendly role display

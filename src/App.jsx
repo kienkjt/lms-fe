@@ -143,7 +143,7 @@ function App() {
                 path={ROUTES.CART}
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
                       <Suspense fallback={<PageLoader />}>
                         <Cart />
                       </Suspense>
@@ -157,7 +157,7 @@ function App() {
                 path={ROUTES.CHECKOUT}
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
                       <Suspense fallback={<PageLoader />}>
                         <CheckoutPage />
                       </Suspense>
@@ -171,7 +171,7 @@ function App() {
                 path="/order/:orderId"
                 element={
                   <WithMainLayout>
-                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
                       <Suspense fallback={<PageLoader />}>
                         <OrderDetailPage />
                       </Suspense>
@@ -276,7 +276,7 @@ function App() {
               <Route
                 path={ROUTES.WISHLIST}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <WishlistPage />

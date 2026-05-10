@@ -35,6 +35,10 @@ import Reviews from "../components/courses/Reviews";
 import api from "../services/api";
 import { ROUTES, ROLES, hasRole } from "../utils/constants";
 import {
+  isOwnInstructorCourse,
+  OWN_COURSE_ACTION_MESSAGE,
+} from "../utils/courseOwnership";
+import {
   formatDate,
   formatDuration,
   formatNumber,
@@ -122,7 +126,7 @@ const CourseDetailPage = () => {
       try {
         setLoading(true);
 
-        const courseResponse = await api.get(`/v1/courses/${slug}`);
+        const courseResponse = await api.get(`/api/v1/courses/${slug}`);
 
         const normalizedCourse = normalizeCourse(
           courseResponse.data?.data || courseResponse.data,
@@ -201,6 +205,11 @@ const CourseDetailPage = () => {
       return;
     }
 
+    if (isOwnInstructorCourse(user, course)) {
+      toast.error(OWN_COURSE_ACTION_MESSAGE);
+      return;
+    }
+
     try {
       await cartService.addItem(course.id);
       dispatch(addToCart({ courseId: course.id, course }));
@@ -214,6 +223,11 @@ const CourseDetailPage = () => {
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       navigate(ROUTES.LOGIN);
+      return;
+    }
+
+    if (isOwnInstructorCourse(user, course)) {
+      toast.error(OWN_COURSE_ACTION_MESSAGE);
       return;
     }
 
@@ -239,6 +253,11 @@ const CourseDetailPage = () => {
 
     try {
       setBuyNowLoading(true);
+
+      if (isOwnInstructorCourse(user, course)) {
+        toast.error(OWN_COURSE_ACTION_MESSAGE);
+        return;
+      }
 
       const orderRes = await orderService.checkoutCourse(course.id, {
         paymentMethod: "VNPAY",
@@ -289,6 +308,10 @@ const CourseDetailPage = () => {
         setInWishlist(false);
         toast.success("Đã xóa khỏi danh sách yêu thích");
       } else {
+        if (isOwnInstructorCourse(user, course)) {
+          toast.error(OWN_COURSE_ACTION_MESSAGE);
+          return;
+        }
         await wishlistService.add(course.id);
         setInWishlist(true);
         toast.success("Đã lưu vào danh sách yêu thích");
@@ -335,6 +358,7 @@ const CourseDetailPage = () => {
     Math.max(0, enrollment?.progressPercent || 0),
   );
   const canReview = isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]);
+  const isOwnCourse = isOwnInstructorCourse(user, course);
 
   return (
     <div className="course-detail-page">
@@ -649,7 +673,7 @@ const CourseDetailPage = () => {
                 <button
                   className={`btn-wishlist ${inWishlist ? "active" : ""}`}
                   onClick={handleWishlistToggle}
-                  disabled={loadingWishlist}
+                  disabled={loadingWishlist || (!inWishlist && isOwnCourse)}
                   title={
                     inWishlist ? "Xóa khỏi yêu thích" : "Lưu vào yêu thích"
                   }
@@ -691,7 +715,8 @@ const CourseDetailPage = () => {
                 <button
                   className="btn btn-primary btn-full btn-lg"
                   onClick={handleEnroll}
-                  disabled={enrollLoading}
+                  disabled={enrollLoading || isOwnCourse}
+                  title={isOwnCourse ? OWN_COURSE_ACTION_MESSAGE : undefined}
                   id="enroll-btn"
                 >
                   {enrollLoading ? (
@@ -710,9 +735,13 @@ const CourseDetailPage = () => {
                   <button
                     className="btn btn-primary btn-full btn-lg"
                     onClick={handleAddToCart}
+                    disabled={isOwnCourse}
+                    title={isOwnCourse ? OWN_COURSE_ACTION_MESSAGE : undefined}
                     id="add-to-cart-btn"
                   >
-                    {inCart ? (
+                    {isOwnCourse ? (
+                      "KhĂ³a há»c cá»§a báº¡n"
+                    ) : inCart ? (
                       "→ Đến giỏ hàng"
                     ) : (
                       <>
@@ -724,7 +753,8 @@ const CourseDetailPage = () => {
                   <button
                     className="btn btn-outline btn-full"
                     onClick={handleBuyNow}
-                    disabled={buyNowLoading}
+                    disabled={buyNowLoading || isOwnCourse}
+                    title={isOwnCourse ? OWN_COURSE_ACTION_MESSAGE : undefined}
                   >
                     {buyNowLoading ? (
                       <>

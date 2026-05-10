@@ -6,6 +6,10 @@ import { cartService } from "../services/cartService";
 import { orderService } from "../services/orderService";
 import { userService } from "../services/userService";
 import { ROUTES } from "../utils/constants";
+import {
+  isOwnInstructorCourse,
+  OWN_COURSE_CHECKOUT_MESSAGE,
+} from "../utils/courseOwnership";
 import Loading from "../components/common/Loading";
 import {
   FaShoppingCart,
@@ -89,11 +93,19 @@ const Checkout = () => {
   };
 
   const total = calculateTotal();
+  const hasOwnCourse = cartItems.some((item) =>
+    isOwnInstructorCourse(user, item),
+  );
 
   // Handle checkout
   const handleCheckout = async () => {
     if (!cartItems || cartItems.length === 0) {
       toast.error("Giỏ hàng trống");
+      return;
+    }
+
+    if (hasOwnCourse) {
+      toast.error(OWN_COURSE_CHECKOUT_MESSAGE);
       return;
     }
 
@@ -347,6 +359,9 @@ const Checkout = () => {
 
         {/* CTA */}
         <div className="checkout-actions">
+          {hasOwnCourse && (
+            <p className="text-error">{OWN_COURSE_CHECKOUT_MESSAGE}</p>
+          )}
           <button
             className="btn btn-secondary"
             onClick={() => navigate(ROUTES.CART)}
@@ -357,7 +372,8 @@ const Checkout = () => {
           <button
             className="btn btn-primary btn-lg"
             onClick={handleCheckout}
-            disabled={processing || !cartItems.length}
+            disabled={processing || !cartItems.length || hasOwnCourse}
+            title={hasOwnCourse ? OWN_COURSE_CHECKOUT_MESSAGE : undefined}
           >
             {processing ? (
               <>

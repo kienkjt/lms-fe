@@ -26,6 +26,8 @@ export const cartService = {
         courseTitle: item.course?.title || item.courseTitle,
         courseThumbnail: item.course?.thumbnail || item.course?.image || item.courseThumbnail,
         instructorName: item.course?.instructorName || item.course?.instructor?.name,
+        instructorId: item.instructorId || item.course?.instructorId || item.course?.instructor?.id || item.course?.instructor?.userId,
+        instructorEmail: item.instructorEmail || item.course?.instructorEmail || item.course?.instructor?.email,
         price: item.course?.discountPrice || item.course?.price || item.price || 0,
         originalPrice: item.course?.originalPrice || item.course?.price || item.originalPrice || 0,
       }));
@@ -42,7 +44,7 @@ export const cartService = {
   addItem: async (courseId) => {
     try {
       console.log('[cartService.addItem] Adding course to cart:', courseId);
-      const response = await api.post('/v1/cart/add', { courseId });
+      const response = await api.post('/api/v1/cart/add', { courseId });
       const cart = response.data?.data || response.data;
       console.log('[cartService.addItem] Success');
       return { data: cart };
@@ -67,6 +69,8 @@ export const cartService = {
         courseTitle: it.courseTitle || it.course?.title,
         courseThumbnail: it.courseThumbnail || it.course?.thumbnail,
         instructorName: it.instructorName || it.course?.instructorName,
+        instructorId: it.instructorId || it.course?.instructorId || it.course?.instructor?.id || it.course?.instructor?.userId,
+        instructorEmail: it.instructorEmail || it.course?.instructorEmail || it.course?.instructor?.email,
         price: it.price || (it.course?.discountPrice || it.course?.price) || 0,
         originalPrice: it.originalPrice || it.course?.originalPrice || it.course?.price || 0,
       }));
@@ -83,7 +87,7 @@ export const cartService = {
   removeItem: async (cartItemId) => {
     try {
       console.log('[cartService.removeItem] Removing from cart:', cartItemId);
-      const response = await api.delete(`/v1/cart/items/${cartItemId}`);
+      const response = await api.delete(`/api/v1/cart/items/${cartItemId}`);
       const cart = response.data?.data || response.data;
       console.log('[cartService.removeItem] Success');
       return { data: cart };
@@ -100,6 +104,8 @@ export const cartService = {
         courseTitle: it.courseTitle || it.course?.title,
         courseThumbnail: it.courseThumbnail || it.course?.thumbnail,
         instructorName: it.instructorName || it.course?.instructorName,
+        instructorId: it.instructorId || it.course?.instructorId || it.course?.instructor?.id || it.course?.instructor?.userId,
+        instructorEmail: it.instructorEmail || it.course?.instructorEmail || it.course?.instructor?.email,
         price: it.price || (it.course?.discountPrice || it.course?.price) || 0,
         originalPrice: it.originalPrice || it.course?.originalPrice || it.course?.price || 0,
       }));
@@ -115,7 +121,7 @@ export const cartService = {
   clearCart: async () => {
     try {
       console.log('[cartService.clearCart] Clearing cart');
-      const response = await api.delete('/v1/cart/clear');
+      const response = await api.delete('/api/v1/cart/clear');
       console.log('[cartService.clearCart] Success');
       const cart = response.data?.data || response.data || { id: null, totalAmount: 0, items: [] };
       return { data: cart };
