@@ -11,7 +11,7 @@ export const LoadingSpinner = ({ size = 'md', text = '' }) => (
 export const PageLoader = () => (
   <div className="page-loader">
     <div className="page-loader-inner">
-      <div className="loader-logo">E</div>
+      <div className="loader-logo">L</div>
       <div className="loader-dots">
         <span></span>
         <span></span>
