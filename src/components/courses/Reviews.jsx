@@ -13,6 +13,8 @@ import {
 } from "react-icons/fa";
 import "./Reviews.css";
 
+const STUDENT_FEATURE_ROLES = [ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN];
+
 const ReviewForm = ({ onSubmit, initialData = null, onCancel = null }) => {
   const { user } = useSelector((state) => state.auth);
   const [rating, setRating] = useState(initialData?.rating || 5);
@@ -263,7 +265,7 @@ const ReviewCard = ({
 const Reviews = ({ courseId, canReview = false }) => {
   const { user } = useSelector((state) => state.auth);
   const isInstructor = hasRole(user?.role, [ROLES.INSTRUCTOR]);
-  const isStudent = hasRole(user?.role, [ROLES.STUDENT]);
+  const isStudent = hasRole(user?.role, STUDENT_FEATURE_ROLES);
 
   const [reviews, setReviews] = useState([]);
   const [myReview, setMyReview] = useState(null);
@@ -413,13 +415,7 @@ const Reviews = ({ courseId, canReview = false }) => {
         </div>
       )}
 
-      {user && isInstructor && (
-        <div className="review-access-note">
-          Giảng viên có thể phản hồi đánh giá của học viên, không thể tự đánh giá khóa học.
-        </div>
-      )}
-
-      {canReview && !myReview && !editingReview && (
+            {canReview && !myReview && !editingReview && (
         <>
           {!showForm ? (
             <button
@@ -506,3 +502,4 @@ export default Reviews;
 
 // Export sub-components for testing
 export { ReviewForm, ReviewCard, ReplyForm };
+

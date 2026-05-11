@@ -47,6 +47,8 @@ import {
 } from "../utils/helpers";
 import "./CourseDetailPage.css";
 
+const STUDENT_FEATURE_ROLES = [ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN];
+
 const normalizeCourse = (course) => {
   if (!course) return null;
 
@@ -170,7 +172,7 @@ const CourseDetailPage = () => {
         }
         setPreviewLesson(getPreviewLesson(chaptersWithLessons));
 
-        if (isAuthenticated && hasRole(user?.role, [ROLES.STUDENT])) {
+        if (isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES)) {
           try {
             const enrollmentRes = await enrollmentService.getEnrollment(
               normalizedCourse.id,
@@ -354,7 +356,7 @@ const CourseDetailPage = () => {
     100,
     Math.max(0, enrollment?.progressPercent || 0),
   );
-  const canReview = isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]);
+  const canReview = isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES);
   const isOwnCourse = isOwnInstructorCourse(user, course);
 
   return (

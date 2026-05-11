@@ -20,6 +20,8 @@ import {
 } from "react-icons/fi";
 import "./Navbar.css";
 
+const STUDENT_FEATURE_ROLES = [ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN];
+
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -127,7 +129,7 @@ const Navbar = () => {
           >
             Khóa học
           </Link>
-          {isAuthenticated && hasRole(user?.role, [ROLES.STUDENT]) && (
+          {isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES) && (
             <Link to={ROUTES.STUDENT_ORDERS} className="nav-link">
               Đơn hàng
             </Link>
@@ -215,7 +217,7 @@ const Navbar = () => {
                     >
                       <FiUser size={18} /> Hồ sơ cá nhân
                     </Link>
-                    {hasRole(user?.role, [ROLES.STUDENT]) && (
+                    {hasRole(user?.role, STUDENT_FEATURE_ROLES) && (
                       <>
                         <Link
                           to={ROUTES.STUDENT_COURSES}
@@ -317,3 +319,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

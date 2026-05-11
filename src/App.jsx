@@ -79,6 +79,8 @@ const CertificatesPage = lazy(() => import("./pages/CertificatesPage"));
 import "./index.css";
 import "./App.css";
 
+const STUDENT_FEATURE_ROLES = [ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN];
+
 // Wrappers
 const WithMainLayout = ({ children }) => <MainLayout>{children}</MainLayout>;
 const WithDashboard = ({ children }) => (
@@ -242,7 +244,7 @@ function App() {
               <Route
                 path={ROUTES.STUDENT_DASHBOARD}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={STUDENT_FEATURE_ROLES}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <StudentDashboard />
@@ -254,7 +256,7 @@ function App() {
               <Route
                 path={ROUTES.STUDENT_COURSES}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={STUDENT_FEATURE_ROLES}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <StudentCoursesList />
@@ -266,7 +268,7 @@ function App() {
               <Route
                 path={ROUTES.STUDENT_ORDERS}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={STUDENT_FEATURE_ROLES}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <OrdersPage />
@@ -292,7 +294,7 @@ function App() {
               <Route
                 path={ROUTES.STUDENT_CERTIFICATES}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={STUDENT_FEATURE_ROLES}>
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <CertificatesPage />
@@ -306,7 +308,7 @@ function App() {
               <Route
                 path={ROUTES.LEARNING}
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                  <ProtectedRoute allowedRoles={STUDENT_FEATURE_ROLES}>
                     <Suspense fallback={<PageLoader />}>
                       <LearningPage />
                     </Suspense>
