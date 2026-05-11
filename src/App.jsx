@@ -15,6 +15,8 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import { PageLoader } from "./components/common/Loading";
 import AuthInit from "./components/common/AuthInit";
 import LearningAssistant from "./components/common/LearningAssistant";
+import FacebookMessenger from "./components/common/FacebookMessenger";
+import MessengerButton from "./components/common/MessengerButton";
 
 // Auth Pages
 import Login from "./components/auth/Login";
@@ -453,6 +455,8 @@ function App() {
           <LearningAssistant />
         </AuthInit>
 
+        <FacebookMessenger />
+        <MessengerButton />
         <ToastContainer
           position="top-right"
           autoClose={3000}

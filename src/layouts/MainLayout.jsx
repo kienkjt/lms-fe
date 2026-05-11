@@ -1,8 +1,6 @@
 import React from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
-import FacebookMessenger from '../components/common/FacebookMessenger';
-import MessengerButton from '../components/common/MessengerButton';
 import './MainLayout.css';
 
 const MainLayout = ({ children }) => {
@@ -13,8 +11,6 @@ const MainLayout = ({ children }) => {
         {children}
       </main>
       <Footer />
-      <FacebookMessenger />
-      <MessengerButton />
     </div>
   );
 };
