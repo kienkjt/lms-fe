@@ -20,7 +20,7 @@ export const formatDuration = (seconds) => {
 };
 
 export const formatPrice = (price, currency = 'VND') => {
-  if (!price || price === 0) return 'Miễn phí';
+  if (!price || price === 0) return '0';
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency }).format(price);
 };
 

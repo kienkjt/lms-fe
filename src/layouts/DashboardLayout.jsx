@@ -191,7 +191,12 @@ const studentNavItems = [
   { path: ROUTES.WISHLIST, label: "Yêu thích" },
   { path: ROUTES.STUDENT_CERTIFICATES, label: "Chứng chỉ" },
 ];
-
+const isStudentFeaturePath = (pathname) =>
+  pathname === ROUTES.STUDENT_DASHBOARD ||
+  pathname === ROUTES.STUDENT_COURSES ||
+  pathname === ROUTES.STUDENT_ORDERS ||
+  pathname === ROUTES.STUDENT_CERTIFICATES ||
+  pathname === ROUTES.WISHLIST;
 // ── UserAvatar: shared component ──
 const UserAvatar = ({ user, size = "md" }) => {
   const initials = getInitials(
@@ -238,9 +243,11 @@ const DashboardLayout = ({ children }) => {
 
   const displayName = getDisplayName(user);
   const isStudent = hasRole(user?.role, [ROLES.STUDENT]);
+  const shouldUseStudentLayout =
+    isStudent || isStudentFeaturePath(location.pathname);
 
   // ─── STUDENT LAYOUT (header-only, no sidebar) ───
-  if (isStudent) {
+  if (shouldUseStudentLayout) {
     return (
       <div className="student-layout">
         <header className="student-header">
@@ -567,3 +574,4 @@ const DashboardLayout = ({ children }) => {
 };
 
 export default DashboardLayout;
+

@@ -9,7 +9,10 @@
 }
 
 .instructor-dashboard-page .welcome-banner h1,
-.instructor-dashboard-page .welcome-banner p,
+.instructor-dashboard-page .welcome-banner p{
+  color: var(--white);
+}
+
 .instructor-dashboard-page .section-header h2,
 .instructor-dashboard-page .data-table th,
 .instructor-dashboard-page .data-table td {
@@ -76,4 +79,8 @@
   border-radius: 10px;
   padding: 10px 12px;
   background: var(--bg-primary);
+}
+
+:root {
+  --white: #ffffff;
 }
