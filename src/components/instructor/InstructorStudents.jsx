@@ -361,9 +361,9 @@ const InstructorStudents = () => {
                         <div>
                           <div>{student.lastLearningDate || "-"}</div>
                           {student.atRisk && (
-                            // <span className="badge badge-warning">
-                            //   {student.inactiveDays} ngày không học
-                            // </span>
+                            <span className="badge badge-warning">
+                              {student.inactiveDays} ngày không học
+                            </span>
                           )}
                         </div>
                       </td>
