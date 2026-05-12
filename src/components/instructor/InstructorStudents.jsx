@@ -373,6 +373,8 @@ const InstructorStudents = () => {
                           <span className="badge badge-success">
                             {formatDate(student.completedAt)}
                           </span>
+                        ) : student.progressPercent === 100 ? (
+                          <span className="badge badge-success">Hoàn thành</span>
                         ) : (
                           <span className="badge badge-gray">Chưa xong</span>
                         )}
