@@ -155,7 +155,7 @@ const ReplyForm = ({ onSubmit, onCancel, submitting = false }) => {
 const ReviewCard = ({
   review,
   isOwn,
-  isInstructor,
+  isCourseOwner,
   onDelete,
   onEdit,
   onReply,
@@ -240,7 +240,7 @@ const ReviewCard = ({
       )}
 
       {/* Reply Form (for instructors) */}
-      {isInstructor && !review.instructorReply && (
+      {isCourseOwner && !review.instructorReply && (
         <>
           {!showReplyForm ? (
             <button
@@ -262,9 +262,8 @@ const ReviewCard = ({
   );
 };
 
-const Reviews = ({ courseId, canReview = false }) => {
+const Reviews = ({ courseId, canReview = false, isCourseOwner = false }) => {
   const { user } = useSelector((state) => state.auth);
-  const isInstructor = hasRole(user?.role, [ROLES.INSTRUCTOR]);
   const isStudent = hasRole(user?.role, STUDENT_FEATURE_ROLES);
 
   const [reviews, setReviews] = useState([]);
@@ -405,17 +404,18 @@ const Reviews = ({ courseId, canReview = false }) => {
       {/* My Review Form */}
       {!user && (
         <div className="review-access-note">
-          Đăng nhập bằng tài khoản học viên đã đăng ký khóa học để viết đánh giá.
+          Đăng nhập bằng tài khoản học viên đã đăng ký khóa học để viết đánh
+          giá.
         </div>
       )}
 
-      {user && isStudent && !canReview && (
+      {user && isStudent && !canReview && !isCourseOwner && (
         <div className="review-access-note">
-          Backend chỉ cho phép học viên đã đăng ký khóa học viết đánh giá.
+          Chỉ học viên đã đăng ký khóa học mới có thể viết đánh giá.
         </div>
       )}
 
-            {canReview && !myReview && !editingReview && (
+      {canReview && !myReview && !editingReview && (
         <>
           {!showForm ? (
             <button
@@ -450,7 +450,7 @@ const Reviews = ({ courseId, canReview = false }) => {
             <ReviewCard
               review={myReview}
               isOwn={true}
-              isInstructor={isInstructor}
+              isCourseOwner={isCourseOwner}
               onDelete={handleDeleteReview}
               onEdit={() => setEditingReview(myReview)}
               onReply={handleReplyReview}
@@ -466,7 +466,7 @@ const Reviews = ({ courseId, canReview = false }) => {
                 key={review.id}
                 review={review}
                 isOwn={review.studentId === user?.id}
-                isInstructor={isInstructor}
+                isCourseOwner={isCourseOwner}
                 onDelete={() =>
                   window.confirm("Bạn có chắc muốn xóa bình luận này?") &&
                   handleDeleteReview()
@@ -502,4 +502,3 @@ export default Reviews;
 
 // Export sub-components for testing
 export { ReviewForm, ReviewCard, ReplyForm };
-

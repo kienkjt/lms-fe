@@ -375,9 +375,12 @@ const CourseDetailPage = () => {
     100,
     Math.max(0, enrollment?.progressPercent || 0),
   );
-  const canReview =
-    isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES);
   const isOwnCourse = isOwnInstructorCourse(user, course);
+  const canReview =
+    isAuthenticated &&
+    hasRole(user?.role, STUDENT_FEATURE_ROLES) &&
+    !isOwnCourse &&
+    !!enrollment;
 
   return (
     <div className="course-detail-page">
@@ -645,7 +648,11 @@ const CourseDetailPage = () => {
 
             {activeTab === "reviews" && (
               <div className="animate-fade-in">
-                <Reviews courseId={course.id} canReview={canReview} />
+                <Reviews
+                  courseId={course.id}
+                  canReview={canReview}
+                  isCourseOwner={isOwnCourse}
+                />
               </div>
             )}
           </div>
