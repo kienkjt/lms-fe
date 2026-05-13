@@ -2,19 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   Legend,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { dashboardService } from "../../services/dashboardService";
 import { withdrawalService } from "../../services/withdrawalService";
@@ -27,7 +20,6 @@ import {
   FaStar,
   FaPlus,
   FaTimes,
-  FaChartBar,
 } from "react-icons/fa";
 import Loading from "../../components/common/Loading";
 import InstructorReportsPage from "../../pages/InstructorReportsPage";
@@ -50,7 +42,6 @@ const InstructorDashboard = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     if (user?.id) {
@@ -98,12 +89,6 @@ const InstructorDashboard = () => {
     },
   ];
 
-  const revenueSeries = normalizeSeries(dashboardStats?.dailyRevenue, "amount");
-  const enrollmentSeries = normalizeSeries(
-    dashboardStats?.dailyEnrollments,
-    "count",
-  );
-
   const statusDistribution = Array.isArray(
     dashboardStats?.courseStatusDistribution,
   )
@@ -143,165 +128,71 @@ const InstructorDashboard = () => {
         </Link>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "16px",
-          marginBottom: "24px",
-          borderBottom: "1px solid var(--border-color)",
-          paddingBottom: "12px",
-        }}
-      >
-        <button
-          className={`btn ${activeTab === "overview" ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setActiveTab("overview")}
-        >
-          Tổng quan
-        </button>
-        <button
-          className={`btn ${activeTab === "reports" ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setActiveTab("reports")}
-        >
-          <FaChartBar style={{ marginRight: "6px" }} /> Báo cáo chi tiết
-        </button>
+      <div className="stats-grid">
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            className="stat-card"
+            style={{ "--stat-color": s.color }}
+          >
+            <div className="stat-icon">{s.icon}</div>
+            <div>
+              <div className="stat-number">{s.value}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {activeTab === "overview" && (
-        <>
-          <div className="stats-grid">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="stat-card"
-                style={{ "--stat-color": s.color }}
-              >
-                <div className="stat-icon">{s.icon}</div>
-                <div>
-                  <div className="stat-number">{s.value}</div>
-                  <div className="stat-label">{s.label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="dashboard-section">
-            <div className="section-header">
-              <h2>Doanh thu 30 ngày</h2>
-            </div>
-            {revenueSeries.length === 0 ? (
-              <div className="empty-state">Chưa có dữ liệu doanh thu.</div>
-            ) : (
-              <div style={{ width: "100%", height: 350 }}>
-                <ResponsiveContainer>
-                  <LineChart
-                    data={revenueSeries}
-                    margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis dataKey="label" />
-                    <YAxis
-                      tickFormatter={(value) =>
-                        new Intl.NumberFormat("vi-VN", {
-                          notation: "compact",
-                        }).format(value)
-                      }
-                    />
-                    <Tooltip
-                      formatter={(value) => [formatPrice(value), "Doanh thu"]}
-                      labelStyle={{ color: "#333" }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="var(--primary)"
-                      strokeWidth={3}
-                      activeDot={{ r: 8 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-
-          <div className="dashboard-section">
-            <div className="section-header">
-              <h2>Đăng ký mới 30 ngày</h2>
-            </div>
-            {enrollmentSeries.length === 0 ? (
-              <div className="empty-state">Chưa có dữ liệu đăng ký mới.</div>
-            ) : (
-              <div style={{ width: "100%", height: 350 }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={enrollmentSeries}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis dataKey="label" />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(value) => [value, "Lượt ghi danh"]}
-                      labelStyle={{ color: "#333" }}
-                      cursor={{ fill: "rgba(0,0,0,0.05)" }}
-                    />
-                    <Bar dataKey="value" fill="#0891b2" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-
-          <div className="dashboard-section">
-            <div className="section-header">
-              <h2>Trạng thái khóa học</h2>
-            </div>
-            {statusDistribution.length === 0 ? (
-              <div className="empty-state">Chưa có dữ liệu khóa học.</div>
-            ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: 300,
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={statusDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {statusDistribution.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [value, "Số lượng"]} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {activeTab === "reports" && (
-        <div style={{ marginTop: "-20px" }}>
-          <InstructorReportsPage disableContainer />
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Trạng thái khóa học</h2>
         </div>
-      )}
+        {statusDistribution.length === 0 ? (
+          <div className="empty-state">Chưa có dữ liệu khóa học.</div>
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: 300,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  label={({ name, percent }) =>
+                    percent > 0.05
+                      ? `${name} (${(percent * 100).toFixed(0)}%)`
+                      : ""
+                  }
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {statusDistribution.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value) => [value, "Số lượng"]} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: "24px" }}>
+        <InstructorReportsPage disableContainer />
+      </div>
 
       {showDetailModal && selectedRequest && (
         <div
