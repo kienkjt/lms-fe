@@ -127,17 +127,19 @@ const OrdersPage = () => {
   };
 
   const handleRefund = async (order) => {
-    if (
-      !window.confirm(
-        `Bạn chắc chắn muốn yêu cầu hoàn tiền đơn ${order.orderCode || order.id}?`,
-      )
-    ) {
+    const reason = window.prompt("Vui lòng nhập lý do yêu cầu hoàn tiền:");
+    if (reason === null) {
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast.error("Vui lòng nhập lý do hoàn tiền");
       return;
     }
 
     try {
       setActionLoadingId(order.id);
-      const response = await orderService.refundOrder(order.id);
+      const response = await orderService.refundOrder(order.id, reason.trim());
       const updated = response.data || {};
       setOrders((prev) =>
         prev.map((item) =>
@@ -354,3 +356,5 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
+
+

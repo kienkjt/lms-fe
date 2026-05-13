@@ -88,10 +88,10 @@ export const orderService = {
    * @param {string} orderId - Order ID
    * @returns Response with OrderResponseDto
    */
-  refundOrder: async (orderId) => {
+  refundOrder: async (orderId, reason) => {
     try {
       console.log('[orderService.refundOrder] Refunding order:', orderId);
-      const response = await api.post(`/v1/orders/${orderId}/refund`);
+      const response = await api.post(`/v1/orders/${orderId}/refund?reason=${encodeURIComponent(reason)}`);
       const order = response.data?.data || response.data;
       console.log('[orderService.refundOrder] Success');
       return { data: order };
@@ -168,3 +168,4 @@ export const orderService = {
     }
   },
 };
+
