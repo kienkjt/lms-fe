@@ -89,24 +89,6 @@ const getInstructorNavItems = () => [
       </svg>
     ),
   },
-
-  {
-    path: ROUTES.INSTRUCTOR_REPORTS,
-    label: "Báo cáo",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M3 3v18h18" />
-        <rect x="7" y="12" width="3" height="6" />
-        <rect x="12" y="9" width="3" height="9" />
-        <rect x="17" y="6" width="3" height="12" />
-      </svg>
-    ),
-  },
   {
     path: ROUTES.PROFILE,
     label: "Hồ sơ",
@@ -129,7 +111,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_DASHBOARD,
     label: "Tổng quan",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <rect x="3" y="3" width="7" height="7" rx="1" />
         <rect x="14" y="3" width="7" height="7" rx="1" />
         <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -141,7 +128,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_USERS,
     label: "Người dùng",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
         <circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -153,7 +145,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_COURSES,
     label: "Khóa học",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
       </svg>
@@ -163,7 +160,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_CATEGORIES,
     label: "Danh mục",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
       </svg>
     ),
@@ -172,7 +174,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_ORDERS,
     label: "Đơn hàng",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <rect x="3" y="4" width="18" height="16" rx="2" />
         <line x1="3" y1="10" x2="21" y2="10" />
       </svg>
@@ -182,7 +189,12 @@ const getAdminNavItems = () => [
     path: ROUTES.ADMIN_REPORTS,
     label: "Báo cáo",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <line x1="18" y1="20" x2="18" y2="10" />
         <line x1="12" y1="20" x2="12" y2="4" />
         <line x1="6" y1="20" x2="6" y2="14" />
@@ -193,7 +205,12 @@ const getAdminNavItems = () => [
     path: ROUTES.PROFILE,
     label: "Hồ sơ",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
       </svg>
@@ -591,4 +608,3 @@ const DashboardLayout = ({ children }) => {
 };
 
 export default DashboardLayout;
-

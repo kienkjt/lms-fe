@@ -1,4 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { dashboardService } from "../services/dashboardService";
 import { formatPrice } from "../utils/helpers";
 import Loading from "../components/common/Loading";
@@ -37,19 +48,17 @@ const InstructorReportsPage = ({ disableContainer }) => {
     [report],
   );
   const revenueSeries = Array.isArray(report?.dailyRevenue)
-    ? report.dailyRevenue
+    ? report.dailyRevenue.map((item) => ({
+        name: item.label,
+        value: Number(item.amount || 0),
+      }))
     : [];
   const enrollmentSeries = Array.isArray(report?.dailyEnrollments)
-    ? report.dailyEnrollments
+    ? report.dailyEnrollments.map((item) => ({
+        name: item.label,
+        value: Number(item.count || 0),
+      }))
     : [];
-  const maxRevenue = Math.max(
-    ...revenueSeries.map((item) => Number(item?.amount || 0)),
-    0,
-  );
-  const maxEnrollment = Math.max(
-    ...enrollmentSeries.map((item) => Number(item?.count || 0)),
-    0,
-  );
 
   if (loading) return <Loading />;
 
@@ -118,21 +127,34 @@ const InstructorReportsPage = ({ disableContainer }) => {
             Chưa có dữ liệu doanh thu trong kỳ đã chọn.
           </div>
         ) : (
-          <div className="instructor-chart">
-            {revenueSeries.map((item) => {
-              const value = Number(item?.amount || 0);
-              const width =
-                maxRevenue > 0 ? Math.max(4, (value / maxRevenue) * 100) : 0;
-              return (
-                <div className="chart-row" key={item.label}>
-                  <div className="chart-label">{item.label}</div>
-                  <div className="chart-track">
-                    <div className="chart-bar" style={{ width: `${width}%` }} />
-                  </div>
-                  <div className="chart-value">{formatPrice(value)}</div>
-                </div>
-              );
-            })}
+          <div style={{ width: "100%", height: 350 }}>
+            <ResponsiveContainer>
+              <LineChart
+                data={revenueSeries}
+                margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="name" />
+                <YAxis
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat("vi-VN", {
+                      notation: "compact",
+                    }).format(value)
+                  }
+                />
+                <Tooltip
+                  formatter={(value) => [formatPrice(value), "Doanh thu"]}
+                  labelStyle={{ color: "#333" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="var(--primary)"
+                  strokeWidth={3}
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         )}
       </div>
@@ -146,26 +168,23 @@ const InstructorReportsPage = ({ disableContainer }) => {
             Chưa có dữ liệu ghi danh trong kỳ đã chọn.
           </div>
         ) : (
-          <div className="instructor-chart">
-            {enrollmentSeries.map((item) => {
-              const value = Number(item?.count || 0);
-              const width =
-                maxEnrollment > 0
-                  ? Math.max(4, (value / maxEnrollment) * 100)
-                  : 0;
-              return (
-                <div className="chart-row" key={item.label}>
-                  <div className="chart-label">{item.label}</div>
-                  <div className="chart-track">
-                    <div
-                      className="chart-bar chart-bar-alt"
-                      style={{ width: `${width}%` }}
-                    />
-                  </div>
-                  <div className="chart-value">{value}</div>
-                </div>
-              );
-            })}
+          <div style={{ width: "100%", height: 350 }}>
+            <ResponsiveContainer>
+              <BarChart
+                data={enrollmentSeries}
+                margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value) => [value, "Lượt ghi danh"]}
+                  labelStyle={{ color: "#333" }}
+                  cursor={{ fill: "rgba(0,0,0,0.05)" }}
+                />
+                <Bar dataKey="value" fill="#0891b2" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         )}
       </div>
