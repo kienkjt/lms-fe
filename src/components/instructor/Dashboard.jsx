@@ -2,9 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { dashboardService } from "../../services/dashboardService";
+import { withdrawalService } from "../../services/withdrawalService";
 import { ROUTES } from "../../utils/constants";
 import { formatPrice } from "../../utils/helpers";
-import { FaBook, FaCheck, FaUsers, FaStar, FaPlus, FaTimes } from "react-icons/fa";
+import {
+  FaBook,
+  FaCheck,
+  FaUsers,
+  FaStar,
+  FaPlus,
+  FaTimes,
+} from "react-icons/fa";
 import Loading from "../../components/common/Loading";
 import "./Dashboard.css";
 
@@ -12,23 +20,30 @@ const normalizeSeries = (series = [], metric = "amount") =>
   (Array.isArray(series) ? series : [])
     .map((item, index) => ({
       label: item?.label || `N${index + 1}`,
-      value: Number(metric === "count" ? item?.count ?? 0 : item?.amount ?? 0),
+      value: Number(
+        metric === "count" ? (item?.count ?? 0) : (item?.amount ?? 0),
+      ),
     }))
     .filter((item) => Number.isFinite(item.value));
 
 const InstructorDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [dashboardStats, setDashboardStats] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.id) {
-      dashboardService
-        .getInstructorDashboard()
-        .then((res) => setDashboardStats(res.data || null))
-        .catch(() => setDashboardStats(null))
+      Promise.all([
+        dashboardService.getInstructorDashboard().catch(() => ({ data: null })),
+        withdrawalService.getWallet().catch(() => ({ data: null })),
+      ])
+        .then(([dashRes, walletRes]) => {
+          setDashboardStats(dashRes.data || null);
+          setWallet(walletRes.data || null);
+        })
         .finally(() => setLoading(false));
     }
   }, [user]);
@@ -59,17 +74,25 @@ const InstructorDashboard = () => {
     },
     {
       label: "Doanh thu",
-      value: formatPrice(dashboardStats?.totalRevenue ?? 0),
+      value: formatPrice(wallet?.totalEarned ?? 0),
       icon: <FaStar size={24} />,
       color: "var(--warning)",
     },
   ];
 
   const revenueSeries = normalizeSeries(dashboardStats?.dailyRevenue, "amount");
-  const enrollmentSeries = normalizeSeries(dashboardStats?.dailyEnrollments, "count");
+  const enrollmentSeries = normalizeSeries(
+    dashboardStats?.dailyEnrollments,
+    "count",
+  );
   const revenueMax = Math.max(...revenueSeries.map((item) => item.value), 0);
-  const enrollmentMax = Math.max(...enrollmentSeries.map((item) => item.value), 0);
-  const statusDistribution = Array.isArray(dashboardStats?.courseStatusDistribution)
+  const enrollmentMax = Math.max(
+    ...enrollmentSeries.map((item) => item.value),
+    0,
+  );
+  const statusDistribution = Array.isArray(
+    dashboardStats?.courseStatusDistribution,
+  )
     ? dashboardStats.courseStatusDistribution
     : [];
 
@@ -81,7 +104,6 @@ const InstructorDashboard = () => {
         <div>
           <h1>
             Dashboard Giảng viên{" "}
-           {" "}
             <FaStar size={28} style={{ display: "inline" }} />
           </h1>
           <p>Quản lý khóa học và theo dõi tiến độ học sinh của bạn.</p>
@@ -97,7 +119,11 @@ const InstructorDashboard = () => {
 
       <div className="stats-grid">
         {stats.map((s) => (
-          <div key={s.label} className="stat-card" style={{ "--stat-color": s.color }}>
+          <div
+            key={s.label}
+            className="stat-card"
+            style={{ "--stat-color": s.color }}
+          >
             <div className="stat-icon">{s.icon}</div>
             <div>
               <div className="stat-number">{s.value}</div>
@@ -116,12 +142,19 @@ const InstructorDashboard = () => {
         ) : (
           <div className="instructor-chart">
             {revenueSeries.map((item) => {
-              const percent = revenueMax > 0 ? Math.max(4, (item.value / revenueMax) * 100) : 0;
+              const percent =
+                revenueMax > 0
+                  ? Math.max(4, (item.value / revenueMax) * 100)
+                  : 0;
               return (
                 <div key={item.label} className="chart-row">
                   <div className="chart-label">{item.label}</div>
                   <div className="chart-track">
-                    <div className="chart-bar" style={{ width: `${percent}%` }} title={`${item.value}`} />
+                    <div
+                      className="chart-bar"
+                      style={{ width: `${percent}%` }}
+                      title={`${item.value}`}
+                    />
                   </div>
                   <div className="chart-value">{formatPrice(item.value)}</div>
                 </div>
@@ -140,12 +173,18 @@ const InstructorDashboard = () => {
         ) : (
           <div className="instructor-chart">
             {enrollmentSeries.map((item) => {
-              const percent = enrollmentMax > 0 ? Math.max(4, (item.value / enrollmentMax) * 100) : 0;
+              const percent =
+                enrollmentMax > 0
+                  ? Math.max(4, (item.value / enrollmentMax) * 100)
+                  : 0;
               return (
                 <div key={item.label} className="chart-row">
                   <div className="chart-label">{item.label}</div>
                   <div className="chart-track">
-                    <div className="chart-bar chart-bar-alt" style={{ width: `${percent}%` }} />
+                    <div
+                      className="chart-bar chart-bar-alt"
+                      style={{ width: `${percent}%` }}
+                    />
                   </div>
                   <div className="chart-value">{item.value}</div>
                 </div>
