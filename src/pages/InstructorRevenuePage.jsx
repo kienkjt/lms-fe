@@ -50,7 +50,11 @@ const InstructorRevenuePage = () => {
 
       const requestData = requestsRes.data;
       if (requestData?.content) {
-        setRequests((requestData.content || []).filter((item) => item?.type === "EARNINGS"));
+        setRequests(
+          (requestData.content || []).filter(
+            (item) => item?.type === "EARNINGS",
+          ),
+        );
         setTotalPages(requestData.totalPages || 1);
       } else if (Array.isArray(requestData)) {
         setRequests(requestData.filter((item) => item?.type === "EARNINGS"));
@@ -61,7 +65,7 @@ const InstructorRevenuePage = () => {
       setCurrentPage(page);
     } catch (error) {
       console.error("Failed to load revenue data:", error);
-      toast.error("KhĂ´ng thá»ƒ táº£i dá»¯ liá»‡u");
+      toast.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -76,38 +80,38 @@ const InstructorRevenuePage = () => {
       withdrawForm;
 
     if (!validateRequired(requestedAmount)) {
-      toast.error("Vui lĂ²ng nháº­p sá»‘ tiá»n muá»‘n rĂºt");
+      toast.error("Vui lòng nhập số tiền muốn rút");
       return false;
     }
 
     if (!validateWithdrawalAmount(requestedAmount, wallet?.availableBalance)) {
       if (Number(requestedAmount) > wallet?.availableBalance) {
         toast.error(
-          `Sá»‘ tiá»n khĂ´ng Ä‘Æ°á»£c vÆ°á»£t quĂ¡ ${formatPrice(wallet?.availableBalance || 0)}`,
+          `Số tiền không được vượt quá ${formatPrice(wallet?.availableBalance || 0)}`,
         );
       } else {
-        toast.error("Vui lĂ²ng nháº­p sá»‘ tiá»n há»£p lá»‡");
+        toast.error("Vui lòng nhập số tiền hợp lệ");
       }
       return false;
     }
 
     if (!validateRequired(accountHolder)) {
-      toast.error("Vui lĂ²ng nháº­p tĂªn chá»§ tĂ i khoáº£n");
+      toast.error("Vui lòng nhập tên chủ tài khoản");
       return false;
     }
 
     if (!validateRequired(bankName)) {
-      toast.error("Vui lĂ²ng nháº­p tĂªn ngĂ¢n hĂ ng");
+      toast.error("Vui lòng nhập tên ngân hàng");
       return false;
     }
 
     if (!validateRequired(bankAccount)) {
-      toast.error("Vui lĂ²ng nháº­p sá»‘ tĂ i khoáº£n");
+      toast.error("Vui lòng nhập số tài khoản");
       return false;
     }
 
     if (!validateBankAccount(bankAccount)) {
-      toast.error("Sá»‘ tĂ i khoáº£n pháº£i lĂ  9-20 chá»¯ sá»‘");
+      toast.error("Số tài khoản phải là 9-20 chữ số");
       return false;
     }
 
@@ -129,7 +133,7 @@ const InstructorRevenuePage = () => {
         reason: withdrawForm.reason,
       });
 
-      toast.success("Táº¡o yĂªu cáº§u rĂºt tiá»n thĂ nh cĂ´ng");
+      toast.success("Tạo yêu cầu rút tiền thành công");
       setWithdrawForm({
         requestedAmount: "",
         accountHolder: "",
@@ -141,7 +145,7 @@ const InstructorRevenuePage = () => {
     } catch (error) {
       console.error("Create withdrawal request failed:", error);
       toast.error(
-        error.response?.data?.message || "KhĂ´ng thá»ƒ táº¡o yĂªu cáº§u rĂºt tiá»n",
+        error.response?.data?.message || "Không thể tạo yêu cầu rút tiền",
       );
     } finally {
       setSubmitting(false);
@@ -149,16 +153,16 @@ const InstructorRevenuePage = () => {
   };
 
   const handleCancel = async (requestId) => {
-    if (!window.confirm("Báº¡n cĂ³ cháº¯c muá»‘n há»§y yĂªu cáº§u rĂºt tiá»n nĂ y?")) return;
+    if (!window.confirm("Bạn có chắc muốn hủy yêu cầu rút tiền này?")) return;
 
     try {
       setCancelingId(requestId);
       await withdrawalService.cancelRequest(requestId);
-      toast.success("ÄĂ£ há»§y yĂªu cáº§u");
+      toast.success("Đã hủy yêu cầu");
       await loadData(currentPage);
     } catch (error) {
       console.error("Cancel withdrawal failed:", error);
-      toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ há»§y yĂªu cáº§u");
+      toast.error(error.response?.data?.message || "Không thể hủy yêu cầu");
     } finally {
       setCancelingId("");
     }
@@ -184,7 +188,7 @@ const InstructorRevenuePage = () => {
     <div className="instructor-revenue-page">
       <div className="dashboard-section">
         <div className="section-header">
-          <h1 style={{ margin: 0 }}>Doanh thu & RĂºt tiá»n</h1>
+          <h1 style={{ margin: 0 }}>Doanh thu & Rút tiền</h1>
         </div>
 
         {/* Wallet Stats */}
@@ -201,14 +205,16 @@ const InstructorRevenuePage = () => {
               >
                 <FaWallet size={24} />
                 <span style={{ fontSize: "12px", opacity: 0.9 }}>
-                  Sá» DÆ¯ HIá»†N Táº I
+                  SỐ DƯ HIỆN TẠI
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
-                {formatPrice(wallet.availableBalance || wallet.currentBalance || 0)}
+                {formatPrice(
+                  wallet.availableBalance || wallet.currentBalance || 0,
+                )}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-                Sáºµn sĂ ng Ä‘á»ƒ rĂºt tiá»n (kháº£ dá»¥ng)
+                Sẵn sàng để rút tiền (khả dụng)
               </div>
             </div>
 
@@ -223,14 +229,14 @@ const InstructorRevenuePage = () => {
               >
                 <FaMoneyBillWave size={24} />
                 <span style={{ fontSize: "12px", opacity: 0.9 }}>
-                  Tá»”NG DOANH THU
+                  TỔNG DOANH THU
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
                 {formatPrice(wallet.totalEarned || 0)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-                Tá»« Ä‘áº§u
+                Từ đầu
               </div>
             </div>
 
@@ -245,14 +251,14 @@ const InstructorRevenuePage = () => {
               >
                 <FaClock size={24} />
                 <span style={{ fontSize: "12px", opacity: 0.9 }}>
-                  TIá»€N CHá»œ RELEASE (7 NGĂ€Y)
+                  TIỀN CHỜ RELEASE (7 NGÀY)
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
                 {formatPrice(wallet.pendingBalance || 0)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-                Tá»± Ä‘á»™ng Ä‘Æ°á»£c cá»™ng láº¡i sau 7 ngĂ y
+                Tự động được cộng lại sau 7 ngày
               </div>
             </div>
 
@@ -267,7 +273,7 @@ const InstructorRevenuePage = () => {
               >
                 <FaClock size={24} />
                 <span style={{ fontSize: "12px", opacity: 0.9 }}>
-                  CHá»œ PHĂ DUYá»†T RĂT
+                  CHỜ PHÊ DUYỆT RÚT
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
@@ -289,14 +295,14 @@ const InstructorRevenuePage = () => {
               >
                 <FaCheckCircle size={24} />
                 <span style={{ fontSize: "12px", opacity: 0.9 }}>
-                  Tá»”NG ÄĂƒ RĂT
+                  TỔNG ĐÃ RÚT
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
                 {formatPrice(wallet.totalWithdrawn || 0)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
-                ThĂ nh cĂ´ng
+                Thành công
               </div>
             </div>
           </div>
@@ -306,7 +312,7 @@ const InstructorRevenuePage = () => {
       {/* Create Withdrawal Request Form */}
       <div className="dashboard-section">
         <div className="section-header">
-          <h2>Táº¡o yĂªu cáº§u rĂºt tiá»n</h2>
+          <h2>Tạo yêu cầu rút tiền</h2>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -321,7 +327,7 @@ const InstructorRevenuePage = () => {
             <div style={{ gridColumn: "1 / -1" }}>
               <textarea
                 className="form-input"
-                placeholder="LĂ½ do rĂºt tiá»n (tĂ¹y chá»n)"
+                placeholder="Lý do rút tiền (tùy chọn)"
                 rows="3"
                 value={withdrawForm.reason}
                 onChange={(e) =>
@@ -338,7 +344,7 @@ const InstructorRevenuePage = () => {
               className="form-input"
               type="number"
               inputMode="numeric"
-              placeholder="Sá»‘ tiá»n muá»‘n rĂºt"
+              placeholder="Số tiền muốn rút"
               value={withdrawForm.requestedAmount}
               onChange={(e) =>
                 setWithdrawForm((prev) => ({
@@ -351,7 +357,7 @@ const InstructorRevenuePage = () => {
             <input
               className="form-input"
               type="text"
-              placeholder="TĂªn chá»§ tĂ i khoáº£n"
+              placeholder="Tên chủ tài khoản"
               value={withdrawForm.accountHolder}
               onChange={(e) =>
                 setWithdrawForm((prev) => ({
@@ -364,7 +370,7 @@ const InstructorRevenuePage = () => {
             <input
               className="form-input"
               type="text"
-              placeholder="TĂªn ngĂ¢n hĂ ng"
+              placeholder="Tên ngân hàng"
               value={withdrawForm.bankName}
               onChange={(e) =>
                 setWithdrawForm((prev) => ({
@@ -377,7 +383,7 @@ const InstructorRevenuePage = () => {
             <input
               className="form-input"
               type="text"
-              placeholder="Sá»‘ tĂ i khoáº£n"
+              placeholder="Số tài khoản"
               value={withdrawForm.bankAccount}
               onChange={(e) =>
                 setWithdrawForm((prev) => ({
@@ -394,7 +400,7 @@ const InstructorRevenuePage = () => {
             className="btn btn-primary btn-lg"
             disabled={submitting}
           >
-            {submitting ? "Äang gá»­i..." : "Gá»­i yĂªu cáº§u rĂºt tiá»n"}
+            {submitting ? "Đang gửi..." : "Gửi yêu cầu rút tiền"}
           </button>
         </form>
       </div>
@@ -402,7 +408,7 @@ const InstructorRevenuePage = () => {
       {/* Withdrawal Requests History */}
       <div className="dashboard-section">
         <div className="section-header">
-          <h2>Lá»‹ch sá»­ yĂªu cáº§u rĂºt tiá»n</h2>
+          <h2>Lịch sử yêu cầu rút tiền</h2>
         </div>
 
         <div
@@ -425,18 +431,18 @@ const InstructorRevenuePage = () => {
                 size={48}
                 style={{ marginBottom: "16px", opacity: 0.3 }}
               />
-              <p>ChÆ°a cĂ³ yĂªu cáº§u rĂºt tiá»n nĂ o</p>
+              <p>Chưa có yêu cầu rút tiền nào</p>
             </div>
           ) : (
             <>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Tráº¡ng thĂ¡i</th>
-                    <th>NgĂ y táº¡o</th>
-                    <th>Sá»‘ tiá»n</th>
-                    <th>NgĂ¢n hĂ ng</th>
-                    <th>Thao tĂ¡c</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Số tiền</th>
+                    <th>Ngân hàng</th>
+                    <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -480,18 +486,18 @@ const InstructorRevenuePage = () => {
                               setShowDetailModal(true);
                             }}
                           >
-                            Chi tiáº¿t
+                            Chi tiết
                           </button>
                           {request.status === "PENDING" &&
                             request.type === "EARNINGS" && (
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleCancel(request.id)}
-                              disabled={cancelingId === request.id}
-                            >
-                              {cancelingId === request.id ? "Äang..." : "Há»§y"}
-                            </button>
-                          )}
+                              <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleCancel(request.id)}
+                                disabled={cancelingId === request.id}
+                              >
+                                {cancelingId === request.id ? "Đang..." : "Hủy"}
+                              </button>
+                            )}
                         </div>
                       </td>
                     </tr>
@@ -566,7 +572,7 @@ const InstructorRevenuePage = () => {
                 marginBottom: "20px",
               }}
             >
-              <h2 style={{ margin: 0 }}>Chi tiáº¿t yĂªu cáº§u</h2>
+              <h2 style={{ margin: 0 }}>Chi tiết yêu cầu</h2>
               <button
                 onClick={() => setShowDetailModal(false)}
                 style={{
@@ -594,7 +600,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  MĂ£ yĂªu cáº§u
+                  Mã yêu cầu
                 </label>
                 <p
                   style={{
@@ -620,7 +626,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Tráº¡ng thĂ¡i
+                  Trạng thái
                 </label>
                 <p style={{ margin: "8px 0 0" }}>
                   <span
@@ -644,7 +650,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Sá»‘ tiá»n
+                  Số tiền
                 </label>
                 <p
                   style={{
@@ -656,7 +662,8 @@ const InstructorRevenuePage = () => {
                 >
                   {formatPrice(selectedRequest.requestedAmount || 0)}
                 </p>
-              </div><div
+              </div>
+              <div
                 style={{
                   paddingBottom: "16px",
                   borderBottom: "1px solid var(--border-color)",
@@ -669,7 +676,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Chá»§ tĂ i khoáº£n
+                  Chủ tài khoản
                 </label>
                 <p style={{ margin: "8px 0 0", fontSize: "14px" }}>
                   {selectedRequest.accountHolder || "-"}
@@ -689,7 +696,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  NgĂ¢n hĂ ng
+                  Ngân hàng
                 </label>
                 <p style={{ margin: "8px 0 0", fontSize: "14px" }}>
                   {selectedRequest.bankName || "-"}
@@ -709,7 +716,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Sá»‘ tĂ i khoáº£n
+                  Số tài khoản
                 </label>
                 <p
                   style={{
@@ -735,7 +742,7 @@ const InstructorRevenuePage = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  NgĂ y táº¡o
+                  Ngày tạo
                 </label>
                 <p style={{ margin: "8px 0 0", fontSize: "14px" }}>
                   {selectedRequest.createdAt
@@ -760,7 +767,7 @@ const InstructorRevenuePage = () => {
                       textTransform: "uppercase",
                     }}
                   >
-                    NgĂ y xá»­ lĂ½
+                    Ngày xử lý
                   </label>
                   <p style={{ margin: "8px 0 0", fontSize: "14px" }}>
                     {new Date(selectedRequest.approvedAt).toLocaleString(
@@ -787,7 +794,7 @@ const InstructorRevenuePage = () => {
                       fontWeight: "600",
                     }}
                   >
-                    LĂ½ do tá»« chá»‘i
+                    Lý do từ chối
                   </label>
                   <p
                     style={{
@@ -805,23 +812,23 @@ const InstructorRevenuePage = () => {
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
               {selectedRequest.status === "PENDING" &&
                 selectedRequest.type === "EARNINGS" && (
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    handleCancel(selectedRequest.id);
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  Há»§y yĂªu cáº§u
-                </button>
-              )}
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      handleCancel(selectedRequest.id);
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    Hủy yêu cầu
+                  </button>
+                )}
               <button
                 className="btn btn-outline"
                 onClick={() => setShowDetailModal(false)}
                 style={{ flex: 1 }}
               >
-                ÄĂ³ng
+                Đóng
               </button>
             </div>
           </div>
@@ -832,4 +839,3 @@ const InstructorRevenuePage = () => {
 };
 
 export default InstructorRevenuePage;
-
