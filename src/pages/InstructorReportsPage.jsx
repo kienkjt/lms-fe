@@ -3,11 +3,12 @@ import { dashboardService } from "../services/dashboardService";
 import { formatPrice } from "../utils/helpers";
 import Loading from "../components/common/Loading";
 import "../components/student/Dashboard.css";
+import "../components/instructor/Dashboard.css";
 
 const YEARS = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i);
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-const InstructorReportsPage = () => {
+const InstructorReportsPage = ({ disableContainer }) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [loading, setLoading] = useState(true);
@@ -35,27 +36,57 @@ const InstructorReportsPage = () => {
     ],
     [report],
   );
-  const revenueSeries = Array.isArray(report?.dailyRevenue) ? report.dailyRevenue : [];
-  const enrollmentSeries = Array.isArray(report?.dailyEnrollments) ? report.dailyEnrollments : [];
-  const maxRevenue = Math.max(...revenueSeries.map((item) => Number(item?.amount || 0)), 0);
-  const maxEnrollment = Math.max(...enrollmentSeries.map((item) => Number(item?.count || 0)), 0);
+  const revenueSeries = Array.isArray(report?.dailyRevenue)
+    ? report.dailyRevenue
+    : [];
+  const enrollmentSeries = Array.isArray(report?.dailyEnrollments)
+    ? report.dailyEnrollments
+    : [];
+  const maxRevenue = Math.max(
+    ...revenueSeries.map((item) => Number(item?.amount || 0)),
+    0,
+  );
+  const maxEnrollment = Math.max(
+    ...enrollmentSeries.map((item) => Number(item?.count || 0)),
+    0,
+  );
 
   if (loading) return <Loading />;
 
   return (
-    <div className="dashboard-page animate-fade-in">
+    <div
+      className={
+        disableContainer
+          ? "animate-fade-in"
+          : "dashboard-page instructor-dashboard-page animate-fade-in"
+      }
+    >
       <div className="dashboard-section">
         <div className="section-header" style={{ marginBottom: 16 }}>
-          <h1>Báo cáo giảng viên</h1>
-          <div style={{ display: "flex", gap: 8 }}>
-            <select className="form-input" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+          {!disableContainer && <h1>Báo cáo giảng viên</h1>}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginLeft: disableContainer ? 0 : "auto",
+            }}
+          >
+            <select
+              className="form-input"
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+            >
               {MONTHS.map((m) => (
                 <option key={m} value={m}>
                   Tháng {m}
                 </option>
               ))}
             </select>
-            <select className="form-input" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+            <select
+              className="form-input"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            >
               {YEARS.map((y) => (
                 <option key={y} value={y}>
                   Năm {y}
@@ -65,7 +96,8 @@ const InstructorReportsPage = () => {
           </div>
         </div>
         <p style={{ marginTop: 0, color: "#666" }}>
-          Khoảng thời gian: {report?.fromDate || "-"} đến {report?.toDate || "-"}
+          Khoảng thời gian: {report?.fromDate || "-"} đến{" "}
+          {report?.toDate || "-"}
         </p>
         <div className="stats-grid">
           {stats.map((item) => (
@@ -82,16 +114,21 @@ const InstructorReportsPage = () => {
           <h2>Biểu đồ doanh thu theo ngày</h2>
         </div>
         {revenueSeries.length === 0 ? (
-          <div className="empty-state">Chưa có dữ liệu doanh thu trong kỳ đã chọn.</div>
+          <div className="empty-state">
+            Chưa có dữ liệu doanh thu trong kỳ đã chọn.
+          </div>
         ) : (
           <div className="instructor-chart">
             {revenueSeries.map((item) => {
               const value = Number(item?.amount || 0);
-              const width = maxRevenue > 0 ? Math.max(4, (value / maxRevenue) * 100) : 0;
+              const width =
+                maxRevenue > 0 ? Math.max(4, (value / maxRevenue) * 100) : 0;
               return (
                 <div className="chart-row" key={item.label}>
                   <div className="chart-label">{item.label}</div>
-                  <div className="chart-track"><div className="chart-bar" style={{ width: `${width}%` }} /></div>
+                  <div className="chart-track">
+                    <div className="chart-bar" style={{ width: `${width}%` }} />
+                  </div>
                   <div className="chart-value">{formatPrice(value)}</div>
                 </div>
               );
@@ -105,16 +142,26 @@ const InstructorReportsPage = () => {
           <h2>Biểu đồ ghi danh theo ngày</h2>
         </div>
         {enrollmentSeries.length === 0 ? (
-          <div className="empty-state">Chưa có dữ liệu ghi danh trong kỳ đã chọn.</div>
+          <div className="empty-state">
+            Chưa có dữ liệu ghi danh trong kỳ đã chọn.
+          </div>
         ) : (
           <div className="instructor-chart">
             {enrollmentSeries.map((item) => {
               const value = Number(item?.count || 0);
-              const width = maxEnrollment > 0 ? Math.max(4, (value / maxEnrollment) * 100) : 0;
+              const width =
+                maxEnrollment > 0
+                  ? Math.max(4, (value / maxEnrollment) * 100)
+                  : 0;
               return (
                 <div className="chart-row" key={item.label}>
                   <div className="chart-label">{item.label}</div>
-                  <div className="chart-track"><div className="chart-bar chart-bar-alt" style={{ width: `${width}%` }} /></div>
+                  <div className="chart-track">
+                    <div
+                      className="chart-bar chart-bar-alt"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
                   <div className="chart-value">{value}</div>
                 </div>
               );

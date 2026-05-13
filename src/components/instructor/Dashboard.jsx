@@ -12,8 +12,10 @@ import {
   FaStar,
   FaPlus,
   FaTimes,
+  FaChartBar,
 } from "react-icons/fa";
 import Loading from "../../components/common/Loading";
+import InstructorReportsPage from "../../pages/InstructorReportsPage";
 import "./Dashboard.css";
 
 const normalizeSeries = (series = [], metric = "amount") =>
@@ -33,6 +35,7 @@ const InstructorDashboard = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     if (user?.id) {
@@ -117,96 +120,131 @@ const InstructorDashboard = () => {
         </Link>
       </div>
 
-      <div className="stats-grid">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="stat-card"
-            style={{ "--stat-color": s.color }}
-          >
-            <div className="stat-icon">{s.icon}</div>
-            <div>
-              <div className="stat-number">{s.value}</div>
-              <div className="stat-label">{s.label}</div>
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          marginBottom: "24px",
+          borderBottom: "1px solid var(--border-color)",
+          paddingBottom: "12px",
+        }}
+      >
+        <button
+          className={`btn ${activeTab === "overview" ? "btn-primary" : "btn-outline"}`}
+          onClick={() => setActiveTab("overview")}
+        >
+          Tổng quan
+        </button>
+        <button
+          className={`btn ${activeTab === "reports" ? "btn-primary" : "btn-outline"}`}
+          onClick={() => setActiveTab("reports")}
+        >
+          <FaChartBar style={{ marginRight: "6px" }} /> Báo cáo chi tiết
+        </button>
+      </div>
+
+      {activeTab === "overview" && (
+        <>
+          <div className="stats-grid">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                className="stat-card"
+                style={{ "--stat-color": s.color }}
+              >
+                <div className="stat-icon">{s.icon}</div>
+                <div>
+                  <div className="stat-number">{s.value}</div>
+                  <div className="stat-label">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h2>Doanh thu 30 ngày</h2>
+            </div>
+            {revenueSeries.length === 0 ? (
+              <div className="empty-state">Chưa có dữ liệu doanh thu.</div>
+            ) : (
+              <div className="instructor-chart">
+                {revenueSeries.map((item) => {
+                  const percent =
+                    revenueMax > 0
+                      ? Math.max(4, (item.value / revenueMax) * 100)
+                      : 0;
+                  return (
+                    <div key={item.label} className="chart-row">
+                      <div className="chart-label">{item.label}</div>
+                      <div className="chart-track">
+                        <div
+                          className="chart-bar"
+                          style={{ width: `${percent}%` }}
+                          title={`${item.value}`}
+                        />
+                      </div>
+                      <div className="chart-value">
+                        {formatPrice(item.value)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h2>Đăng ký mới 30 ngày</h2>
+            </div>
+            {enrollmentSeries.length === 0 ? (
+              <div className="empty-state">Chưa có dữ liệu đăng ký mới.</div>
+            ) : (
+              <div className="instructor-chart">
+                {enrollmentSeries.map((item) => {
+                  const percent =
+                    enrollmentMax > 0
+                      ? Math.max(4, (item.value / enrollmentMax) * 100)
+                      : 0;
+                  return (
+                    <div key={item.label} className="chart-row">
+                      <div className="chart-label">{item.label}</div>
+                      <div className="chart-track">
+                        <div
+                          className="chart-bar chart-bar-alt"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <div className="chart-value">{item.value}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h2>Trạng thái khóa học</h2>
+            </div>
+            <div className="status-chips">
+              {statusDistribution.map((item) => (
+                <div key={item.status} className="status-chip">
+                  <span>{item.description || item.status}</span>
+                  <strong>{item.count ?? 0}</strong>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h2>Doanh thu 30 ngày</h2>
+      {activeTab === "reports" && (
+        <div style={{ marginTop: "-20px" }}>
+          <InstructorReportsPage disableContainer />
         </div>
-        {revenueSeries.length === 0 ? (
-          <div className="empty-state">Chưa có dữ liệu doanh thu.</div>
-        ) : (
-          <div className="instructor-chart">
-            {revenueSeries.map((item) => {
-              const percent =
-                revenueMax > 0
-                  ? Math.max(4, (item.value / revenueMax) * 100)
-                  : 0;
-              return (
-                <div key={item.label} className="chart-row">
-                  <div className="chart-label">{item.label}</div>
-                  <div className="chart-track">
-                    <div
-                      className="chart-bar"
-                      style={{ width: `${percent}%` }}
-                      title={`${item.value}`}
-                    />
-                  </div>
-                  <div className="chart-value">{formatPrice(item.value)}</div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h2>Đăng ký mới 30 ngày</h2>
-        </div>
-        {enrollmentSeries.length === 0 ? (
-          <div className="empty-state">Chưa có dữ liệu đăng ký mới.</div>
-        ) : (
-          <div className="instructor-chart">
-            {enrollmentSeries.map((item) => {
-              const percent =
-                enrollmentMax > 0
-                  ? Math.max(4, (item.value / enrollmentMax) * 100)
-                  : 0;
-              return (
-                <div key={item.label} className="chart-row">
-                  <div className="chart-label">{item.label}</div>
-                  <div className="chart-track">
-                    <div
-                      className="chart-bar chart-bar-alt"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                  <div className="chart-value">{item.value}</div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h2>Trạng thái khóa học</h2>
-        </div>
-        <div className="status-chips">
-          {statusDistribution.map((item) => (
-            <div key={item.status} className="status-chip">
-              <span>{item.description || item.status}</span>
-              <strong>{item.count ?? 0}</strong>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       {showDetailModal && selectedRequest && (
         <div
