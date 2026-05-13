@@ -138,7 +138,7 @@ const HomePage = () => {
       </section>
 
       {/* TRUSTED BY - Stats */}
-      <section className="trusted-section">
+      {/* <section className="trusted-section">
         <div className="container">
           <div className="trusted-stats stagger-children">
             <div>
@@ -159,7 +159,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* TOP COURSES SECTION */}
       <section
