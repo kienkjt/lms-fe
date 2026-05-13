@@ -322,14 +322,7 @@ const CoursesManagement = () => {
                             >
                               {course.title}
                             </div>
-                            <div
-                              style={{
-                                fontSize: "12px",
-                                color: "var(--text-tertiary)",
-                              }}
-                            >
-                              ID: {course.id}
-                            </div>
+                            {/* Course ID text removed per requirement */}
                           </div>
                         </div>
                       </td>
