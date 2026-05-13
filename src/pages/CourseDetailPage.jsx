@@ -24,7 +24,7 @@ import {
   FaVideo,
 } from "react-icons/fa";
 import Loading from "../components/common/Loading";
-import { addToCart } from "../store/cartSlice";
+import { addToCart, setCart } from "../store/cartSlice";
 import { chapterService } from "../services/chapterService";
 import { cartService } from "../services/cartService";
 import { enrollmentService } from "../services/enrollmentService";
@@ -228,9 +228,28 @@ const CourseDetailPage = () => {
 
     try {
       if (isAuthenticated) {
-        await cartService.addItem(course.id);
+        const res = await cartService.addItem(course.id);
+        const data = res?.data;
+        const cartItems = data?.items || data?.cartItems;
+        if (cartItems) {
+          const total =
+            data?.totalAmount ||
+            cartItems.reduce(
+              (sum, item) =>
+                sum +
+                (item.price ||
+                  item.course?.discountPrice ||
+                  item.course?.price ||
+                  0),
+              0,
+            );
+          dispatch(setCart({ items: cartItems, total }));
+        } else {
+          dispatch(addToCart({ courseId: course.id, course }));
+        }
+      } else {
+        dispatch(addToCart({ courseId: course.id, course }));
       }
-      dispatch(addToCart({ courseId: course.id, course }));
       toast.success("Đã thêm vào giỏ hàng!");
     } catch (error) {
       console.error("Add to cart failed:", error);

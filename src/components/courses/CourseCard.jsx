@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { addToCart } from "../../store/cartSlice";
+import { addToCart, setCart } from "../../store/cartSlice";
 import { cartService } from "../../services/cartService";
 import { wishlistService } from "../../services/wishlistService";
 import {
@@ -63,9 +63,28 @@ const CourseCard = ({ course, onWishlistChange }) => {
 
     try {
       if (isAuthenticated) {
-        await cartService.addItem(course.id);
+        const res = await cartService.addItem(course.id);
+        const data = res?.data;
+        const cartItems = data?.items || data?.cartItems;
+        if (cartItems) {
+          const total =
+            data?.totalAmount ||
+            cartItems.reduce(
+              (sum, item) =>
+                sum +
+                (item.price ||
+                  item.course?.discountPrice ||
+                  item.course?.price ||
+                  0),
+              0,
+            );
+          dispatch(setCart({ items: cartItems, total }));
+        } else {
+          dispatch(addToCart({ courseId: course.id, course }));
+        }
+      } else {
+        dispatch(addToCart({ courseId: course.id, course }));
       }
-      dispatch(addToCart({ courseId: course.id, course }));
       toast.success("Đã thêm vào giỏ hàng!");
     } catch {
       toast.error("Không thể thêm vào giỏ hàng");
