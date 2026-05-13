@@ -205,12 +205,24 @@ const StudentCoursesList = () => {
                     {Math.round(enrollment.progressPercent || 0)}% hoàn thành
                   </div>
                 </div>
-                <Link
-                  to={`/learn/${enrollment.courseId}`}
-                  className="btn-continue"
+                <div
+                  style={{ display: "flex", gap: "10px", marginTop: "15px" }}
                 >
-                  {enrollment.completedAt ? "Xem lại" : "Tiếp tục học"}
-                </Link>
+                  <Link
+                    to={`/learn/${enrollment.courseId}`}
+                    className="btn-continue"
+                    style={{ flex: 1 }}
+                  >
+                    {enrollment.completedAt ? "Xem lại" : "Tiếp tục học"}
+                  </Link>
+                  <Link
+                    to={`/courses/${enrollment.courseId}?tab=reviews`}
+                    className="btn-continue"
+                    style={{ flex: 1, backgroundColor: "#6c757d" }}
+                  >
+                    Đánh giá
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   FaBullseye,
@@ -104,6 +104,9 @@ const getPreviewLesson = (chapters) => {
 const CourseDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get("tab") || "curriculum";
   const dispatch = useDispatch();
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -116,7 +119,23 @@ const CourseDetailPage = () => {
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [buyNowLoading, setBuyNowLoading] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(null);
-  const [activeTab, setActiveTab] = useState("curriculum");
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    if (
+      initialTab &&
+      ["overview", "curriculum", "reviews"].includes(initialTab)
+    ) {
+      setActiveTab(initialTab);
+      if (initialTab === "reviews") {
+        setTimeout(() => {
+          document
+            .querySelector(".course-detail-tabs")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      }
+    }
+  }, [initialTab]);
   const [previewLesson, setPreviewLesson] = useState(null);
   const [inWishlist, setInWishlist] = useState(false);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
@@ -356,7 +375,8 @@ const CourseDetailPage = () => {
     100,
     Math.max(0, enrollment?.progressPercent || 0),
   );
-  const canReview = isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES);
+  const canReview =
+    isAuthenticated && hasRole(user?.role, STUDENT_FEATURE_ROLES);
   const isOwnCourse = isOwnInstructorCourse(user, course);
 
   return (

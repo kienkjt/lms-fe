@@ -16,6 +16,7 @@ import {
   FaListUl,
   FaUsers,
   FaQuestionCircle,
+  FaGlobe,
 } from "react-icons/fa";
 import "./CoursesManagement.css";
 
@@ -403,6 +404,19 @@ const CoursesManagement = () => {
                             title="Xem danh sách học viên"
                           >
                             <FaUsers style={{ marginRight: "4px" }} /> Học viên
+                          </button>
+                          <button
+                            onClick={() =>
+                              window.open(
+                                `/courses/${course.slug || course.id}?tab=reviews`,
+                                "_blank",
+                              )
+                            }
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: "12px", padding: "6px 12px" }}
+                            title="Xem đánh giá khóa học"
+                          >
+                            <FaGlobe style={{ marginRight: "4px" }} /> Đánh giá
                           </button>
                           <button
                             onClick={() => openMediaModal(course)}
