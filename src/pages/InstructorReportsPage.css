@@ -1,0 +1,15 @@
+.instructor-reports-page .report-chart-wrap {
+  width: 100%;
+  height: 350px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 8px 6px 2px;
+}
+
+@media (max-width: 768px) {
+  .instructor-reports-page .report-chart-wrap {
+    height: 300px;
+    padding: 6px 4px 2px;
+  }
+}
