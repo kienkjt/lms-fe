@@ -68,6 +68,20 @@ const buildLast30DaysSeries = (rawSeries, valueField, endDateText) => {
   });
 };
 
+const resolveCourseRevenue = (course) => {
+  const value =
+    course?.totalRevenue ??
+    course?.revenue ??
+    course?.total_revenue ??
+    course?.courseRevenue ??
+    course?.grossRevenue ??
+    course?.netRevenue ??
+    course?.amount ??
+    0;
+
+  return Number(value) || 0;
+};
+
 const InstructorReportsPage = ({ disableContainer }) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -89,7 +103,6 @@ const InstructorReportsPage = ({ disableContainer }) => {
 
   const stats = useMemo(
     () => [
-      { label: "Doanh thu", value: formatPrice(report?.revenue || 0) },
       { label: "Đơn bán", value: report?.soldItems || 0 },
       { label: "Ghi danh mới", value: report?.newEnrollments || 0 },
       { label: "Khóa học mới", value: report?.newCourses || 0 },
@@ -225,7 +238,7 @@ const InstructorReportsPage = ({ disableContainer }) => {
                 <td>{course.courseTitle}</td>
                 <td>{course.totalSales || 0}</td>
                 <td>{course.totalStudents || 0}</td>
-                <td>{formatPrice(course.totalRevenue || 0)}</td>
+                <td>{formatPrice(resolveCourseRevenue(course))}</td>
               </tr>
             ))}
             {(report?.topSellingCourses || []).length === 0 && (
