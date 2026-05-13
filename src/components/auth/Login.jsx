@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../store/authSlice";
+import { clearCart } from "../../store/cartSlice";
 import { authService } from "../../services/authService";
 import { ROUTES } from "../../utils/constants";
 import {
@@ -74,7 +75,10 @@ const Login = () => {
 
       // Save to Redux (localStorage is handled by authService)
       dispatch(loginSuccess(user));
-      console.debug("[Login] Dispatched loginSuccess, navigating...");
+      dispatch(clearCart());
+      console.debug(
+        "[Login] Dispatched loginSuccess and cleared guest cart, navigating...",
+      );
 
       // Always go to home first after login (unless redirected from a protected route)
       navigate(from || ROUTES.HOME, { replace: true });

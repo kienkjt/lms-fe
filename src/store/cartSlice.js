@@ -23,7 +23,7 @@ const persistGuestCart = (items) => {
   localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
 };
 
-const savedGuestCart = loadGuestCart();
+const savedGuestCart = !localStorage.getItem('lms_access_token') ? loadGuestCart() : [];
 
 const cartSlice = createSlice({
   name: 'cart',
