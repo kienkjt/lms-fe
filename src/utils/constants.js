@@ -103,6 +103,7 @@ export const ROUTES = {
   INSTRUCTOR_QUIZ: '/instructor/courses/:courseId/quiz',
   INSTRUCTOR_QUIZ_QUESTIONS: '/instructor/courses/:courseId/quiz/:quizId/questions',
   INSTRUCTOR_REVENUE: '/instructor/revenue',
+  INSTRUCTOR_REPORTS: '/instructor/reports',
   INSTRUCTOR_QA: '/instructor/qa',
 
   // Admin

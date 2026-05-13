@@ -52,6 +52,9 @@ const InstructorDashboard = lazy(
 const InstructorRevenuePage = lazy(
   () => import("./pages/InstructorRevenuePage"),
 );
+const InstructorReportsPage = lazy(
+  () => import("./pages/InstructorReportsPage"),
+);
 const CoursesManagement = lazy(
   () => import("./components/instructor/CoursesManagement"),
 );
@@ -436,6 +439,18 @@ function App() {
                     <WithDashboard>
                       <Suspense fallback={<PageLoader />}>
                         <InstructorRevenuePage />
+                      </Suspense>
+                    </WithDashboard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.INSTRUCTOR_REPORTS}
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+                    <WithDashboard>
+                      <Suspense fallback={<PageLoader />}>
+                        <InstructorReportsPage />
                       </Suspense>
                     </WithDashboard>
                   </ProtectedRoute>
