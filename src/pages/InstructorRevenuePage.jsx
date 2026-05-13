@@ -50,11 +50,7 @@ const InstructorRevenuePage = () => {
 
       const requestData = requestsRes.data;
       if (requestData?.content) {
-        setRequests(
-          (requestData.content || []).filter(
-            (item) => item?.type === "EARNINGS",
-          ),
-        );
+        setRequests((requestData.content || []).filter((item) => item?.type === "EARNINGS"));
         setTotalPages(requestData.totalPages || 1);
       } else if (Array.isArray(requestData)) {
         setRequests(requestData.filter((item) => item?.type === "EARNINGS"));
@@ -209,9 +205,7 @@ const InstructorRevenuePage = () => {
                 </span>
               </div>
               <div style={{ fontSize: "28px", fontWeight: "700" }}>
-                {formatPrice(
-                  wallet.availableBalance || wallet.currentBalance || 0,
-                )}
+                {formatPrice(wallet.availableBalance || wallet.currentBalance || 0)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "4px" }}>
                 Sẵn sàng để rút tiền (khả dụng)
@@ -490,14 +484,14 @@ const InstructorRevenuePage = () => {
                           </button>
                           {request.status === "PENDING" &&
                             request.type === "EARNINGS" && (
-                              <button
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleCancel(request.id)}
-                                disabled={cancelingId === request.id}
-                              >
-                                {cancelingId === request.id ? "Đang..." : "Hủy"}
-                              </button>
-                            )}
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleCancel(request.id)}
+                              disabled={cancelingId === request.id}
+                            >
+                              {cancelingId === request.id ? "Đang..." : "Hủy"}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -662,8 +656,7 @@ const InstructorRevenuePage = () => {
                 >
                   {formatPrice(selectedRequest.requestedAmount || 0)}
                 </p>
-              </div>
-              <div
+              </div><div
                 style={{
                   paddingBottom: "16px",
                   borderBottom: "1px solid var(--border-color)",
@@ -812,17 +805,17 @@ const InstructorRevenuePage = () => {
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
               {selectedRequest.status === "PENDING" &&
                 selectedRequest.type === "EARNINGS" && (
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => {
-                      setShowDetailModal(false);
-                      handleCancel(selectedRequest.id);
-                    }}
-                    style={{ flex: 1 }}
-                  >
-                    Hủy yêu cầu
-                  </button>
-                )}
+                <button
+                  className="btn btn-danger"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleCancel(selectedRequest.id);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  Hủy yêu cầu
+                </button>
+              )}
               <button
                 className="btn btn-outline"
                 onClick={() => setShowDetailModal(false)}
