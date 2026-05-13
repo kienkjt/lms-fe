@@ -107,8 +107,13 @@ const ReviewForm = ({ onSubmit, initialData = null, onCancel = null }) => {
   );
 };
 
-const ReplyForm = ({ onSubmit, onCancel, submitting = false }) => {
-  const [reply, setReply] = useState("");
+const ReplyForm = ({
+  onSubmit,
+  onCancel,
+  submitting = false,
+  initialReply = "",
+}) => {
+  const [reply, setReply] = useState(initialReply);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -161,6 +166,7 @@ const ReviewCard = ({
   onReply,
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [isEditingReply, setIsEditingReply] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleReplySubmit = async (replyText) => {
@@ -168,6 +174,7 @@ const ReviewCard = ({
       setSubmitting(true);
       await onReply(review.id, replyText);
       setShowReplyForm(false);
+      setIsEditingReply(false);
     } finally {
       setSubmitting(false);
     }
@@ -224,15 +231,35 @@ const ReviewCard = ({
       </div>
 
       {/* Instructor Reply */}
-      {review.instructorReply && (
+      {review.instructorReply && !isEditingReply && (
         <div className="instructor-reply">
-          <div className="reply-header">
-            <FaReply size={14} />
-            <span className="reply-label">Phản hồi từ giảng viên</span>
-            {review.repliedAt && (
-              <span className="reply-date">
-                {new Date(review.repliedAt).toLocaleDateString("vi-VN")}
-              </span>
+          <div
+            className="reply-header"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <FaReply size={14} />
+              <span className="reply-label">Phản hồi từ giảng viên</span>
+              {review.repliedAt && (
+                <span className="reply-date">
+                  {new Date(review.repliedAt).toLocaleDateString("vi-VN")}
+                </span>
+              )}
+            </div>
+            {isCourseOwner && (
+              <div className="review-actions">
+                <button
+                  className="btn-icon"
+                  onClick={() => setIsEditingReply(true)}
+                  title="Chỉnh sửa phản hồi"
+                >
+                  <FaEdit />
+                </button>
+              </div>
             )}
           </div>
           <p className="reply-text">{review.instructorReply}</p>
@@ -240,23 +267,28 @@ const ReviewCard = ({
       )}
 
       {/* Reply Form (for instructors) */}
-      {isCourseOwner && !review.instructorReply && (
-        <>
-          {!showReplyForm ? (
-            <button
-              className="btn-reply-small"
-              onClick={() => setShowReplyForm(true)}
-            >
-              <FaReply size={12} /> Phản hồi
-            </button>
-          ) : (
+      {isCourseOwner &&
+        ((!review.instructorReply && showReplyForm) || isEditingReply) && (
+          <div className="instructor-reply-form" style={{ marginTop: "15px" }}>
             <ReplyForm
+              initialReply={isEditingReply ? review.instructorReply : ""}
               onSubmit={handleReplySubmit}
-              onCancel={() => setShowReplyForm(false)}
+              onCancel={() => {
+                setShowReplyForm(false);
+                setIsEditingReply(false);
+              }}
               submitting={submitting}
             />
-          )}
-        </>
+          </div>
+        )}
+
+      {isCourseOwner && !review.instructorReply && !showReplyForm && (
+        <button
+          className="btn-reply-small"
+          onClick={() => setShowReplyForm(true)}
+        >
+          <FaReply size={12} /> Phản hồi
+        </button>
       )}
     </div>
   );
