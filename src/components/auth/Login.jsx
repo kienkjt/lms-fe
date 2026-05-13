@@ -32,7 +32,7 @@ const Login = () => {
       setTimeout(() => setSuccess(""), 5000);
     }
     if (location.state?.registrationSuccess) {
-      setSuccess("✅ Xác thực tài khoản thành công! Vui lòng đăng nhập.");
+      setSuccess("Xác thực tài khoản thành công! Vui lòng đăng nhập.");
       setTimeout(() => setSuccess(""), 5000);
     }
   }, [location.state]);
@@ -93,50 +93,19 @@ const Login = () => {
 
   return (
     <div className="auth-page">
-      {/* Left Panel */}
-      <div className="auth-hero">
-        <div className="auth-hero-content">
-          <Link to={ROUTES.HOME} className="auth-logo">
-            <div className="logo-icon-lg">E</div>
-            <span className="logo-text-lg">LMS</span>
-          </Link>
-          <h1>Học tập không giới hạn</h1>
-          <p>
-            Khám phá hàng nghìn khóa học từ các chuyên gia hàng đầu. Nâng cao kỹ
-            năng và mở ra cơ hội mới ngay hôm nay.
-          </p>
-          <div className="auth-stats">
-            <div className="stat-item">
-              <div className="stat-value">10K+</div>
-              <div className="stat-label">Khóa học</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">50K+</div>
-              <div className="stat-label">Học viên</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">500+</div>
-              <div className="stat-label">Giảng viên</div>
-            </div>
-          </div>
-          <div className="auth-testimonials">
-            <div className="testimonial">
-              <p>
-                "LMS đã giúp tôi chuyển đổi sự nghiệp. Các khóa học chất lượng và giảng viên tận tâm đã giúp tôi học được những kỹ năng mới và tìm được công việc mơ ước.  "
-              </p>
-              <div className="testimonial-author">
-                <div className="avatar avatar-sm">TK</div>
-                <span>Nguyễn Trung Kiên — Software Developer</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Panel */}
       <div className="auth-form-panel">
         <div className="auth-form-container animate-fade-in">
-          <div className="auth-form-header">
+          <div className="auth-form-header" style={{ textAlign: "center" }}>
+            <Link
+              to={ROUTES.HOME}
+              className="auth-logo"
+              style={{ justifyContent: "center", marginBottom: "20px" }}
+            >
+              <div className="logo-icon-lg">L</div>
+              <span className="logo-text-lg" style={{ color: "#0f172a" }}>
+                LMS
+              </span>
+            </Link>
             <h2>Chào mừng trở lại</h2>
             <p>Đăng nhập để tiếp tục hành trình học tập</p>
           </div>

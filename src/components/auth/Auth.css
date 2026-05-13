@@ -1,9 +1,11 @@
 /* ========== AUTH PAGE LAYOUT ========== */
 .auth-page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #f8fafc;
+  padding: 20px;
 }
 
 /* ========== HERO PANEL ========== */
@@ -177,7 +179,10 @@
   justify-content: center;
   padding: 60px 48px;
   background: white;
-  overflow-y: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 500px;
 }
 
 .auth-form-container {

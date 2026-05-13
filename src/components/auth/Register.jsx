@@ -80,37 +80,19 @@ const Register = () => {
 
   return (
     <div className="auth-page">
-      {/* Left Panel */}
-      <div className="auth-hero">
-        <div className="auth-hero-content">
-          <Link to={ROUTES.HOME} className="auth-logo">
-            <div className="logo-icon-lg">E</div>
-            <span className="logo-text-lg">LMS</span>
-          </Link>
-          <h1>Bắt đầu hành trình học tập</h1>
-          <p>
-            Tham gia cùng hàng ngàn học viên đang nâng cao kỹ năng mỗi ngày.
-          </p>
-          <div className="auth-features">
-            {[
-              "Lộ trình học tập cá nhân hóa",
-              "Chứng chỉ được công nhận",
-              "Giảng viên hàng đầu",
-              "Học mọi lúc, mọi nơi",
-            ].map((f) => (
-              <div key={f} className="feature-item">
-                <span className="feature-check">✓</span>
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right Panel */}
       <div className="auth-form-panel">
         <div className="auth-form-container animate-fade-in">
-          <div className="auth-form-header">
+          <div className="auth-form-header" style={{ textAlign: "center" }}>
+            <Link
+              to={ROUTES.HOME}
+              className="auth-logo"
+              style={{ justifyContent: "center", marginBottom: "20px" }}
+            >
+              <div className="logo-icon-lg">L</div>
+              <span className="logo-text-lg" style={{ color: "#0f172a" }}>
+                LMS
+              </span>
+            </Link>
             <h2>Tạo tài khoản</h2>
             <p>Miễn phí, không cần thẻ tín dụng</p>
           </div>
@@ -258,4 +240,3 @@ const Register = () => {
 };
 
 export default Register;
-

@@ -75,25 +75,28 @@ const ResetPassword = () => {
 
   return (
     <div className="auth-page">
-      <div className="auth-hero">
-        <div className="auth-hero-content">
-          <div className="auth-logo">
-            <div className="logo-icon-lg">E</div>
-            <span className="logo-text-lg">LMS</span>
-          </div>
-          <div
-            style={{ fontSize: "80px", textAlign: "center", margin: "32px 0" }}
-          >
-            <FiKey size={80} />
-          </div>
-          <h1>Đặt lại mật khẩu</h1>
-          <p>Nhập mật khẩu mới để hoàn tất quá trình khôi phục tài khoản.</p>
-        </div>
-      </div>
-
       <div className="auth-form-panel">
         <div className="auth-form-container animate-fade-in">
-          <div className="auth-form-header">
+          <div className="auth-form-header" style={{ textAlign: "center" }}>
+            <Link
+              to={ROUTES.HOME}
+              className="auth-logo"
+              style={{ justifyContent: "center", marginBottom: "20px" }}
+            >
+              <div className="logo-icon-lg">E</div>
+              <span className="logo-text-lg" style={{ color: "#0f172a" }}>
+                LMS
+              </span>
+            </Link>
+            <div
+              style={{
+                fontSize: "48px",
+                marginBottom: "16px",
+                color: "var(--primary)",
+              }}
+            >
+              <FiKey size={48} />
+            </div>
             <h2>Mật khẩu mới</h2>
             <p>Tạo một mật khẩu mạnh để bảo vệ tài khoản của bạn</p>
           </div>
