@@ -147,7 +147,7 @@ const CourseDetailPage = () => {
       try {
         setLoading(true);
 
-        const courseResponse = await api.get(`/v1/courses/${slug}`);
+        const courseResponse = await api.get(`/api/v1/courses/${slug}`);
 
         const normalizedCourse = normalizeCourse(
           courseResponse.data?.data || courseResponse.data,

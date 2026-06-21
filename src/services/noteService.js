@@ -13,7 +13,7 @@ export const noteService = {
       const size = params?.size || 10;
       console.log('[noteService.getByCourse] Fetching notes for course:', courseId);
       const response = await api.get(
-        `/v1/learning/courses/${courseId}/notes?page=${page}&pageSize=${size}`
+        `/api/v1/learning/courses/${courseId}/notes?page=${page}&pageSize=${size}`
       );
       const data = response.data?.data || response.data;
       console.log('[noteService.getByCourse] Success');
@@ -37,7 +37,7 @@ export const noteService = {
       }
 
       console.log('[noteService.create] Creating note for lesson:', data.lessonId);
-      const response = await api.post(`/v1/learning/courses/${courseId}/lessons/${data.lessonId}/notes`, {
+      const response = await api.post(`/api/v1/learning/courses/${courseId}/lessons/${data.lessonId}/notes`, {
         content: data.content,
         videoTimestamp: data.videoTimestamp ?? 0,
       });
@@ -59,7 +59,7 @@ export const noteService = {
   getById: async (courseId, noteId) => {
     try {
       console.log('[noteService.getById] Resolving note from course notes:', noteId);
-      const response = await api.get(`/v1/learning/courses/${courseId}/notes?page=1&pageSize=100`);
+      const response = await api.get(`/api/v1/learning/courses/${courseId}/notes?page=1&pageSize=100`);
       const data = response.data?.data || response.data;
       const notes = Array.isArray(data) ? data : data?.content || [];
       const note = notes.find((item) => String(item.id) === String(noteId));
@@ -83,7 +83,7 @@ export const noteService = {
   update: async (_courseId, noteId, data) => {
     try {
       console.log('[noteService.update] Updating note:', noteId);
-      const response = await api.put(`/v1/learning/notes/${noteId}`, {
+      const response = await api.put(`/api/v1/learning/notes/${noteId}`, {
         content: data.content,
         videoTimestamp: data.videoTimestamp ?? 0,
       });
@@ -105,7 +105,7 @@ export const noteService = {
   delete: async (_courseId, noteId) => {
     try {
       console.log('[noteService.delete] Deleting note:', noteId);
-      const response = await api.delete(`/v1/learning/notes/${noteId}`);
+      const response = await api.delete(`/api/v1/learning/notes/${noteId}`);
       return { data: response.data?.data || response.data || { message: 'Xóa ghi chú thành công' } };
     } catch (error) {
       console.error('[noteService.delete] Error:', error);
@@ -125,7 +125,7 @@ export const noteService = {
       const size = params?.size || 10;
       console.log('[noteService.getByLesson] Fetching notes for lesson:', lessonId);
       const response = await api.get(
-        `/v1/learning/courses/${courseId}/lessons/${lessonId}/notes?page=${page}&pageSize=${size}`
+        `/api/v1/learning/courses/${courseId}/lessons/${lessonId}/notes?page=${page}&pageSize=${size}`
       );
       const data = response.data?.data || response.data || [];
       const notes = Array.isArray(data) ? data : data?.content || [];

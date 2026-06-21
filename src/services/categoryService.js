@@ -21,7 +21,7 @@ export const categoryService = {
   /**
    * Get all categories
    * 
-   * API endpoint: GET /v1/categories
+   * API endpoint: GET /api/v1/categories
    * Query params: keyword (optional), page (default 0), size (default 20)
    * Response: APIResponse<Page<CategoryResponseDto>>
    *   - data.content: CategoryResponseDto[]
@@ -33,7 +33,7 @@ export const categoryService = {
     try {
       console.log('[categoryService.getAll] Fetching categories from backend API...');
       // Get all categories in one page (size=100 to get most categories)
-      const response = await api.get('/v1/categories?page=1&pageSize=100');
+      const response = await api.get('/api/v1/categories?page=1&pageSize=100');
       
       console.log('[categoryService.getAll] Raw response:', response);
       
@@ -61,14 +61,14 @@ export const categoryService = {
   /**
    * Get category by ID
    * 
-   * API endpoint: GET /v1/categories/{categoryId}
+   * API endpoint: GET /api/v1/categories/{categoryId}
    * Response: APIResponse<CategoryResponseDto>
    * Frontend extract: id + name only
    */
   getById: async (id) => {
     try {
       console.log('[categoryService.getById] Fetching category:', id);
-      const response = await api.get(`/v1/categories/${id}`);
+      const response = await api.get(`/api/v1/categories/${id}`);
       
       // Handle response: response.data could be { statusCode, data: {...} } or direct CategoryResponseDto
       const category = response.data?.data || response.data;
@@ -89,7 +89,7 @@ export const categoryService = {
   create: async (data) => {
     try {
       console.log('[categoryService.create] Creating category');
-      const response = await api.post('/v1/categories', {
+      const response = await api.post('/api/v1/categories', {
         name: data.name,
         description: data.description || '',
       });
@@ -103,7 +103,7 @@ export const categoryService = {
   update: async (id, data) => {
     try {
       console.log('[categoryService.update] Updating category:', id);
-      const response = await api.put(`/v1/categories/${id}`, {
+      const response = await api.put(`/api/v1/categories/${id}`, {
         name: data.name,
         description: data.description || '',
       });
@@ -117,7 +117,7 @@ export const categoryService = {
   delete: async (id) => {
     try {
       console.log('[categoryService.delete] Deleting category:', id);
-      const response = await api.post(`/v1/categories/${id}`);
+      const response = await api.post(`/api/v1/categories/${id}`);
       return { data: response.data?.data || response.data };
     } catch (error) {
       console.error('[categoryService.delete] API error:', error);
